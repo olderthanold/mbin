@@ -38,7 +38,7 @@ echo "User for user-level tasks: $CURRENT_USER"
 echo "=========================================="
 
 echo ""
-echo "[1/2] mbin_path.sh v01 - ensure ~/mbin, PATH update, and prompt cwd for user: $CURRENT_USER"
+echo "2.[1/2] mbin_path.sh v01 - ensure ~/mbin, PATH update, and prompt cwd for user: $CURRENT_USER"
 if id "$CURRENT_USER" >/dev/null 2>&1; then
   sudo -u "$CURRENT_USER" -H bash "$SCRIPT_DIR/mbin_path.sh"
 else

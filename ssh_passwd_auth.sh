@@ -23,6 +23,7 @@ fi
 SSHD_MAIN_CONFIG="/etc/ssh/sshd_config"  # Main OpenSSH daemon config file.
 SSHD_DROPIN_DIR="/etc/ssh/sshd_config.d"  # Drop-in include directory.
 OVERRIDE_FILE="$SSHD_DROPIN_DIR/zzzz-password-auth-override.conf"  # Last file.
+TS="$(date +%Y%m%d_%H%M%S)"
 
 mkdir -p "$SSHD_DROPIN_DIR"  # Ensure drop-in directory exists.
 
@@ -44,6 +45,28 @@ read_effective() {
   effective_password="$(awk '/^passwordauthentication / {print $2}' <<< "$out")"
   effective_kbd="$(awk '/^kbdinteractiveauthentication / {print $2}' <<< "$out")"
   effective_pam="$(awk '/^usepam / {print $2}' <<< "$out")"
+}
+
+force_yes_in_file() {
+  local file="$1"
+  local tmp
+  tmp="$(mktemp)"
+
+  awk '
+    /^[[:space:]]*#/ { print; next }
+    /^[[:space:]]*PasswordAuthentication[[:space:]]+/ { print "PasswordAuthentication yes"; next }
+    /^[[:space:]]*KbdInteractiveAuthentication[[:space:]]+/ { print "KbdInteractiveAuthentication yes"; next }
+    /^[[:space:]]*UsePAM[[:space:]]+/ { print "UsePAM yes"; next }
+    { print }
+  ' "$file" > "$tmp"
+
+  if ! cmp -s "$file" "$tmp"; then
+    cp -a "$file" "${file}.bak_${TS}"
+    install -m 644 "$tmp" "$file"
+    echo "Normalized auth directives to yes in: $file"
+  fi
+
+  rm -f "$tmp"
 }
 
 echo "[3/3] verify_effective_settings v01 - Checking effective SSH settings..."
@@ -74,9 +97,24 @@ CONF
   echo "Effective UsePAM (fallback): ${effective_pam:-<missing>}"
 
   if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
-    echo "ERROR: Effective settings are still not all 'yes'."
-    echo "Please check for restrictive Match blocks in /etc/ssh/sshd_config*"
-    exit 1
+    echo "Fallback still not effective. Normalizing existing auth directives to yes..."
+
+    force_yes_in_file "$SSHD_MAIN_CONFIG"
+    while IFS= read -r -d '' f; do
+      force_yes_in_file "$f"
+    done < <(find "$SSHD_DROPIN_DIR" -maxdepth 1 -type f -name '*.conf' -print0)
+
+    sshd -t
+    read_effective
+    echo "Effective PasswordAuthentication (normalized): ${effective_password:-<missing>}"
+    echo "Effective KbdInteractiveAuthentication (normalized): ${effective_kbd:-<missing>}"
+    echo "Effective UsePAM (normalized): ${effective_pam:-<missing>}"
+
+    if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
+      echo "ERROR: Effective settings are still not all 'yes'."
+      echo "Please check restrictive Match blocks in /etc/ssh/sshd_config*"
+      exit 1
+    fi
   fi
 fi
 
