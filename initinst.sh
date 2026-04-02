@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail  # Stop on errors/unset vars/pipeline failures
+
+# Server/instance-level initialization.
+# Scope: host-wide configuration (packages, SSH daemon, firewall/network/web service).
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+require_file() {
+  local f="$1"
+  if [[ ! -f "$f" ]]; then
+    echo "Error: required script not found: $f"
+    exit 1
+  fi
+}
+
+for f in \
+  "$SCRIPT_DIR/update_inst.sh" \
+  "$SCRIPT_DIR/ssh_passwd_auth.sh" \
+  "$SCRIPT_DIR/network.sh"; do
+  require_file "$f"
+done
+
+if [[ "$EUID" -ne 0 ]]; then
+  echo "Error: run as root (use sudo), e.g.:"
+  echo "  sudo bash $0"
+  exit 1
+fi
+
+echo "=========================================="
+echo "Running initinst (instance/server setup)"
+echo "=========================================="
+
+echo ""
+echo "[1/3] update_inst.sh - update apt packages and install base tools (mc)"
+bash "$SCRIPT_DIR/update_inst.sh"
+
+echo ""
+echo "[2/3] ssh_passwd_auth.sh - enable SSH password + keyboard-interactive auth (PAM)"
+bash "$SCRIPT_DIR/ssh_passwd_auth.sh"
+
+echo ""
+echo "[3/3] network.sh - configure nginx, firewall rules, and connectivity checks"
+bash "$SCRIPT_DIR/network.sh"
+
+echo ""
+echo "=========================================="
+echo "initinst complete. Host-level setup finished."
+echo "Safe to run again (idempotent where possible)."
+echo "=========================================="

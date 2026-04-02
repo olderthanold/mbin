@@ -51,17 +51,14 @@ fi
 # Ensure include dir exists
 mkdir -p "$SSHD_DROPIN_DIR"
 
-# Keep timestamped backup of previous override (if any)
+# Keep timestamped backup of previous override only when content changes
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 BACKUP_FILE="${OVERRIDE_FILE}.bak_${TIMESTAMP}"
 
-if [[ -f "$OVERRIDE_FILE" ]]; then
-  cp -a "$OVERRIDE_FILE" "$BACKUP_FILE"  # Backup old override
-  echo "Backup created: $BACKUP_FILE"
-fi
+TMP_OVERRIDE_FILE="$(mktemp)"
+trap 'rm -f "$TMP_OVERRIDE_FILE"' EXIT
 
-echo "Writing override file: $OVERRIDE_FILE"
-cat > "$OVERRIDE_FILE" <<'CONF'
+cat > "$TMP_OVERRIDE_FILE" <<'CONF'
 # Managed by ensure_ssh_password_auth.sh
 # Keep this file last (99-*) so it wins over earlier values.
 PasswordAuthentication yes
@@ -69,7 +66,16 @@ KbdInteractiveAuthentication yes
 UsePAM yes
 CONF
 
-chmod 644 "$OVERRIDE_FILE"  # Safe perms for config file
+if [[ -f "$OVERRIDE_FILE" ]] && cmp -s "$TMP_OVERRIDE_FILE" "$OVERRIDE_FILE"; then
+  echo "Override already up to date: $OVERRIDE_FILE"
+else
+  if [[ -f "$OVERRIDE_FILE" ]]; then
+    cp -a "$OVERRIDE_FILE" "$BACKUP_FILE"  # Backup old override when changing
+    echo "Backup created: $BACKUP_FILE"
+  fi
+  echo "Writing override file: $OVERRIDE_FILE"
+  install -m 644 "$TMP_OVERRIDE_FILE" "$OVERRIDE_FILE"
+fi
 
 # Syntax validation before restart to avoid lockout from bad config
 echo "Validating sshd configuration syntax..."
@@ -99,14 +105,18 @@ echo "Effective UsePAM: ${effective_pam:-<missing>}"
 
 if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
   echo "Drop-in was not enough; applying fallback at end of $SSHD_MAIN_CONFIG"
-  cp -a "$SSHD_MAIN_CONFIG" "$MAIN_BACKUP_FILE"  # Backup main config
-  cat >> "$SSHD_MAIN_CONFIG" <<'CONF'
+  if ! grep -Fq "# Managed by ensure_ssh_password_auth.sh (fallback)" "$SSHD_MAIN_CONFIG"; then
+    cp -a "$SSHD_MAIN_CONFIG" "$MAIN_BACKUP_FILE"  # Backup main config only before first fallback append
+    cat >> "$SSHD_MAIN_CONFIG" <<'CONF'
 
 # Managed by ensure_ssh_password_auth.sh (fallback)
 PasswordAuthentication yes
 KbdInteractiveAuthentication yes
 UsePAM yes
 CONF
+  else
+    echo "Fallback block already present in $SSHD_MAIN_CONFIG"
+  fi
 
   sshd -t  # Validate after fallback write
   effective_password="$(sshd -T | awk '/^passwordauthentication / {print $2}')"
