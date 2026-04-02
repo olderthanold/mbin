@@ -1,18 +1,11 @@
 #!/bin/bash
 set -o pipefail  # Fail pipeline if any command fails
 
-echo "=========================================="
-echo "Starting update_inst.sh v01 - OCI Instance Initialization"
-echo "=========================================="
-
-###############################################################################
-# SECTION 1: System Update
-###############################################################################
 echo ""
 echo "[1/2] apt_update_upgrade v01 - Updating system packages..."
-sudo apt-get update  # Refresh package index
-sudo apt-get upgrade -y  # Upgrade installed packages
-echo "✓ System packages updated successfully"
+# sudo apt-get update  # Refresh package index
+# sudo apt-get upgrade -y  # Upgrade installed packages
+# echo "✓ System packages updated successfully"
 
 echo "════════════════════════additional apps═══════════════════════════"
 echo "[2/2] install_mc v01 - Installing Midnight Commander (mc)..."
