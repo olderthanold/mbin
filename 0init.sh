@@ -1,16 +1,7 @@
 #!/usr/bin/env bash
+set -euo pipefail  # Stop on errors/unset vars
 
-# Orchestrator for first-time setup, safe to re-run.
-# Runs in this sequence:
-#   1) update_inst.sh
-#   2) ssh_passwd_auth.sh
-#   3) mbin_path.sh
-#   4) clone_user.sh (create ubun2 from current user)
-#   5) network.sh
-
-set -euo pipefail
-
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"  # Script dir
 
 UPDATE_SCRIPT="$SCRIPT_DIR/update_inst.sh"
 SSH_SCRIPT="$SCRIPT_DIR/ssh_passwd_auth.sh"
@@ -36,10 +27,9 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-# Current human user (caller), not root.
-CURRENT_USER="${SUDO_USER:-$(logname 2>/dev/null || true)}"
+CURRENT_USER="${SUDO_USER:-$(logname 2>/dev/null || true)}"  # Caller user
 if [[ -z "$CURRENT_USER" || "$CURRENT_USER" == "root" ]]; then
-  CURRENT_USER="ubuntu"
+  CURRENT_USER="ubuntu"  # Fallback user
 fi
 
 echo "=========================================="

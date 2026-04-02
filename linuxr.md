@@ -73,7 +73,8 @@ git clone -b main https://github.com/olderthanold/mbin.git
 ## ==== update repo
 cd mbin && git pull origin main
 ## 
-git add -A && git commit -m "update" && git push older-m main
+git add -A && git commit -m "update" && git push older-github main
+git add -A && git commit -m "update" && git push older-gitlab main
 
 # ==== DISKS ========================================================
 ## ==== Disks list mountable

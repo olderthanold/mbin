@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-
-set -euo pipefail
+set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
 ###############################################################################
 # Network setup and checks (standalone)
@@ -14,12 +13,12 @@ echo "[1/4] Installing Nginx web server..."
 if dpkg -s nginx >/dev/null 2>&1; then
     echo "✓ Nginx package already installed - skipping installation"
     # Ensure service is enabled and started if present
-    sudo systemctl enable --now nginx >/dev/null 2>&1 || true
+    sudo systemctl enable --now nginx >/dev/null 2>&1 || true  # Ensure nginx running
 else
     # Install nginx for web connectivity verification
     # Nginx will auto-start on installation
     echo "Installing Nginx..."
-    sudo apt-get install -y nginx
+    sudo apt-get install -y nginx  # Install nginx
     echo "✓ Nginx installed successfully"
 fi
 
@@ -36,8 +35,7 @@ sudo iptables -L INPUT --line-numbers -v
 echo ""
 echo "Setting up INPUT rules..."
 
-# Flush existing INPUT rules to start clean
-sudo iptables -F INPUT
+sudo iptables -F INPUT  # Flush INPUT chain
 
 # === INPUT CHAIN CONFIGURATION (inbound) ===
 sudo iptables -I INPUT 1 -m state --state RELATED,ESTABLISHED -j ACCEPT
@@ -58,9 +56,9 @@ echo ""
 echo "Configuring OUTPUT rules..."
 
 # === OUTPUT CHAIN CONFIGURATION (outbound) ===
-sudo iptables -F OUTPUT
+sudo iptables -F OUTPUT  # Flush OUTPUT chain
 
-sudo iptables -P OUTPUT ACCEPT
+sudo iptables -P OUTPUT ACCEPT  # Allow outbound traffic
 
 echo "✓ OUTPUT firewall rules configured (all outgoing allowed)"
 
@@ -82,7 +80,7 @@ else
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y iptables-persistent
 fi
 
-sudo netfilter-persistent save
+sudo netfilter-persistent save  # Save firewall rules
 echo "✓ Iptables rules saved permanently"
 
 ###############################################################################

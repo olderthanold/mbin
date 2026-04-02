@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-
-# Fail fast:
-# -e  exit on error
-# -u  treat unset variables as error
-# -o pipefail  fail a pipeline if any command fails
-set -euo pipefail
+set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
 # Purpose:
 #   1) Ensure ~/mbin directory exists.
@@ -21,10 +16,10 @@ set -euo pipefail
 #   - Changes are appended to ~/.bashrc only when required.
 #   - A new shell (or "source ~/.bashrc") is needed to apply appended lines.
 
-MBIN_DIR="$HOME/mbin"
-BASHRC_FILE="$HOME/.bashrc"
-PATH_MARKER='export PATH="$PATH:$HOME/mbin"'
-PROMPT_MARKER="# Added by mbin_path.sh (ensure prompt shows current directory)"
+MBIN_DIR="$HOME/mbin"  # Target tools dir
+BASHRC_FILE="$HOME/.bashrc"  # User bashrc
+PATH_MARKER='export PATH="$PATH:$HOME/mbin"'  # PATH line
+PROMPT_MARKER="# Added by mbin_path.sh (ensure prompt shows current directory)"  # Prompt marker
 
 # Returns success if $PATH already contains an exact $HOME/mbin path segment.
 # Using ":$PATH:" avoids partial matches.
@@ -90,7 +85,7 @@ fi
 
 # Create ~/mbin only when missing
 if [[ "$dir_exists" == false ]]; then
-  mkdir -p "$MBIN_DIR"
+  mkdir -p "$MBIN_DIR"  # Create mbin dir
   echo "Created directory: $MBIN_DIR"
 fi
 

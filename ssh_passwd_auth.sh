@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-
-# Strict mode for safer automation:
-# -e: stop on first failing command
-# -u: fail on unset variables
-# -o pipefail: fail pipelines if any command inside fails
-set -euo pipefail
+set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
 # Ensures SSH daemon allows password + keyboard-interactive auth with PAM.
 # Safe method used here:
@@ -52,7 +47,7 @@ if [[ ! -f "$SSHD_MAIN_CONFIG" ]]; then
   exit 1
 fi
 
-# Ensure include directory exists for drop-in config fragments
+# Ensure include dir exists
 mkdir -p "$SSHD_DROPIN_DIR"
 
 # Keep timestamped backup of previous override (if any)
@@ -60,7 +55,7 @@ TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 BACKUP_FILE="${OVERRIDE_FILE}.bak_${TIMESTAMP}"
 
 if [[ -f "$OVERRIDE_FILE" ]]; then
-  cp -a "$OVERRIDE_FILE" "$BACKUP_FILE"
+  cp -a "$OVERRIDE_FILE" "$BACKUP_FILE"  # Backup old override
   echo "Backup created: $BACKUP_FILE"
 fi
 
@@ -73,8 +68,7 @@ KbdInteractiveAuthentication yes
 UsePAM yes
 CONF
 
-# World-readable is fine for sshd config; no secrets here
-chmod 644 "$OVERRIDE_FILE"
+chmod 644 "$OVERRIDE_FILE"  # Safe perms for config file
 
 # Syntax validation before restart to avoid lockout from bad config
 echo "Validating sshd configuration syntax..."
@@ -111,12 +105,12 @@ fi
 # Ubuntu commonly uses ssh.service, while some distros use sshd.service.
 echo "Restarting SSH service..."
 if systemctl list-unit-files | grep -q '^ssh\.service'; then
-  systemctl restart ssh
-  systemctl is-active --quiet ssh
+  systemctl restart ssh  # Restart ssh service
+  systemctl is-active --quiet ssh  # Confirm running
   echo "SSH service restarted successfully (ssh.service)."
 elif systemctl list-unit-files | grep -q '^sshd\.service'; then
-  systemctl restart sshd
-  systemctl is-active --quiet sshd
+  systemctl restart sshd  # Restart sshd service
+  systemctl is-active --quiet sshd  # Confirm running
   echo "SSH service restarted successfully (sshd.service)."
 else
   echo "ERROR: Could not find ssh.service or sshd.service in systemd."
