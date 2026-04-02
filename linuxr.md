@@ -66,6 +66,12 @@ tail -f clone.log
 /proc
 tail -f /proc/<pid>/fd/1
 
+# ==== GIT ========================================================
+## ==== clone repo
+git clone -b main https://github.com/olderthanold/mbin.git
+## ==== update repo
+cd mbin && git pull origin main
+
 # ==== DISKS ========================================================
 ## ==== Disks list mountable
 sudo fdisk -l
