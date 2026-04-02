@@ -18,7 +18,7 @@ This script enforces the following effective SSH settings:
   UsePAM yes
 
 It writes an override file:
-  /etc/ssh/sshd_config.d/99-password-auth-override.conf
+  /etc/ssh/sshd_config.d/zzzz-password-auth-override.conf
 
 Then validates and restarts SSH safely.
 USAGE
@@ -39,8 +39,58 @@ fi
 # Main sshd config + drop-in override path
 SSHD_MAIN_CONFIG="/etc/ssh/sshd_config"
 SSHD_DROPIN_DIR="/etc/ssh/sshd_config.d"
-OVERRIDE_FILE="$SSHD_DROPIN_DIR/99-password-auth-override.conf"
+OVERRIDE_FILE="$SSHD_DROPIN_DIR/zzzz-password-auth-override.conf"
 MAIN_BACKUP_FILE="${SSHD_MAIN_CONFIG}.bak_$(date +%Y%m%d_%H%M%S)"
+
+get_effective_settings() {
+  # Provide -C context so Match blocks are evaluated for a realistic local login path.
+  local values
+  values="$(sshd -T -C user=root,host=localhost,addr=127.0.0.1)"
+  effective_password="$(awk '/^passwordauthentication / {print $2}' <<< "$values")"
+  effective_kbd="$(awk '/^kbdinteractiveauthentication / {print $2}' <<< "$values")"
+  effective_pam="$(awk '/^usepam / {print $2}' <<< "$values")"
+}
+
+force_yes_in_file() {
+  local file="$1"
+  local tmp
+  tmp="$(mktemp)"
+
+  awk '
+    {
+      line = $0
+
+      # Keep comments unchanged
+      if (line ~ /^[[:space:]]*#/) {
+        print line
+        next
+      }
+
+      if (line ~ /^[[:space:]]*PasswordAuthentication[[:space:]]+/) {
+        print "PasswordAuthentication yes"
+        next
+      }
+      if (line ~ /^[[:space:]]*KbdInteractiveAuthentication[[:space:]]+/) {
+        print "KbdInteractiveAuthentication yes"
+        next
+      }
+      if (line ~ /^[[:space:]]*UsePAM[[:space:]]+/) {
+        print "UsePAM yes"
+        next
+      }
+
+      print line
+    }
+  ' "$file" > "$tmp"
+
+  if ! cmp -s "$file" "$tmp"; then
+    cp -a "$file" "${file}.bak_${TIMESTAMP}"
+    install -m 644 "$tmp" "$file"
+    echo "Adjusted existing directives to 'yes' in: $file"
+  fi
+
+  rm -f "$tmp"
+}
 
 # Guard: sshd main file must exist
 if [[ ! -f "$SSHD_MAIN_CONFIG" ]]; then
@@ -60,7 +110,7 @@ trap 'rm -f "$TMP_OVERRIDE_FILE"' EXIT
 
 cat > "$TMP_OVERRIDE_FILE" <<'CONF'
 # Managed by ensure_ssh_password_auth.sh
-# Keep this file last (99-*) so it wins over earlier values.
+# Keep this file lexicographically last so it wins over earlier values.
 PasswordAuthentication yes
 KbdInteractiveAuthentication yes
 UsePAM yes
@@ -95,9 +145,7 @@ fi
 # This handles commented/overridden options correctly because sshd -T
 # prints the final merged configuration.
 echo "Checking effective SSH settings..."
-effective_password="$(sshd -T | awk '/^passwordauthentication / {print $2}')"
-effective_kbd="$(sshd -T | awk '/^kbdinteractiveauthentication / {print $2}')"
-effective_pam="$(sshd -T | awk '/^usepam / {print $2}')"
+get_effective_settings
 
 echo "Effective PasswordAuthentication: ${effective_password:-<missing>}"
 echo "Effective KbdInteractiveAuthentication: ${effective_kbd:-<missing>}"
@@ -119,17 +167,33 @@ CONF
   fi
 
   sshd -t  # Validate after fallback write
-  effective_password="$(sshd -T | awk '/^passwordauthentication / {print $2}')"
-  effective_kbd="$(sshd -T | awk '/^kbdinteractiveauthentication / {print $2}')"
-  effective_pam="$(sshd -T | awk '/^usepam / {print $2}')"
+  get_effective_settings
 
   echo "Effective PasswordAuthentication (fallback): ${effective_password:-<missing>}"
   echo "Effective KbdInteractiveAuthentication (fallback): ${effective_kbd:-<missing>}"
   echo "Effective UsePAM (fallback): ${effective_pam:-<missing>}"
 
   if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
-    echo "ERROR: Effective settings are still not all 'yes'."
-    exit 1
+    echo "Fallback append was still not enough; normalizing existing directives in main + drop-ins..."
+
+    force_yes_in_file "$SSHD_MAIN_CONFIG"
+    while IFS= read -r -d '' f; do
+      force_yes_in_file "$f"
+    done < <(find "$SSHD_DROPIN_DIR" -maxdepth 1 -type f -name '*.conf' -print0)
+
+    sshd -t
+    get_effective_settings
+
+    echo "Effective PasswordAuthentication (normalized): ${effective_password:-<missing>}"
+    echo "Effective KbdInteractiveAuthentication (normalized): ${effective_kbd:-<missing>}"
+    echo "Effective UsePAM (normalized): ${effective_pam:-<missing>}"
+
+    if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
+      echo "ERROR: Effective settings are still not all 'yes'."
+      echo "Diagnostics (active directives):"
+      grep -RIn --include='*.conf' --include='sshd_config' '^[[:space:]]*(PasswordAuthentication|KbdInteractiveAuthentication|UsePAM)[[:space:]]+' /etc/ssh || true
+      exit 1
+    fi
   fi
 fi
 
