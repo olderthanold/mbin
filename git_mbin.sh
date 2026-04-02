@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-
-if [ -d "$HOME"/mbin/.git ]; then  # If repo exists, pull
+if [ -d "$HOME"/mbin/.git ]; then
   if ! git -C "$HOME"/mbin pull origin main; then
-    echo "pull failed"
-    rm -rf "$HOME"/mbin/.git
+    cd "$HOME"
+    rm -rf "$HOME"/mbin
     git clone -b main https://github.com/olderthanold/mbin.git "$HOME"/mbin
   fi
-else  # If missing, clone
+elif [ -d "$HOME"/mbin ]; then
+  cd "$HOME"
+  rm -rf "$HOME"/mbin
+  git clone -b main https://github.com/olderthanold/mbin.git "$HOME"/mbin
+else
   git clone -b main https://github.com/olderthanold/mbin.git "$HOME"/mbin
 fi
-chmod +x "$HOME"/mbin/*.sh  # Make scripts executable
+chmod +x "$HOME"/mbin/*.sh 2>/dev/null || true

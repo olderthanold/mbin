@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail  # Stop on errors/unset vars/pipeline failures
-#e
+
 ###############################################################################
 # Network setup and checks (standalone)
 # Safe to re-run: package checks and firewall rules are applied idempotently.
