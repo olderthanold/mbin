@@ -2,7 +2,7 @@
 set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
 ###############################################################################
-# Network setup and checks (standalone)
+# Network setup and checks (standalone).
 # Safe to re-run: package checks and firewall rules are applied idempotently.
 ###############################################################################
 
