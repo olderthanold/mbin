@@ -67,10 +67,13 @@ tail -f clone.log
 tail -f /proc/<pid>/fd/1
 
 # ==== GIT ========================================================
+## ubuntu
 ## ==== clone repo
 git clone -b main https://github.com/olderthanold/mbin.git
 ## ==== update repo
 cd mbin && git pull origin main
+## 
+git add -A && git commit -m "update" && git push older-m main
 
 # ==== DISKS ========================================================
 ## ==== Disks list mountable
