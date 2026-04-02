@@ -37,7 +37,7 @@ echo "Running initusr.sh v01 (user setup)"
 echo "User for user-level tasks: $CURRENT_USER"
 echo "=========================================="
 
-echo ""
+echo "═════════════════════════════════════════════════════════════════════════"
 echo "2.[1/2] mbin_path.sh v01 - ensure ~/mbin, PATH update, and prompt cwd for user: $CURRENT_USER"
 if id "$CURRENT_USER" >/dev/null 2>&1; then
   sudo -u "$CURRENT_USER" -H bash "$SCRIPT_DIR/mbin_path.sh"
@@ -45,16 +45,16 @@ else
   echo "Warning: user '$CURRENT_USER' not found; skipping mbin_path.sh"
 fi
 
-echo ""
+echo "═════════════════════════════════════════════════════════════════════════"
 if [[ -n "$TARGET_USER" ]]; then
-  echo "[2/2] clone_user.sh v01 - create '$TARGET_USER' cloned from '$CURRENT_USER' (sudo + home + ssh keys)"
+  echo "2.[2/2] clone_user.sh v01 - create '$TARGET_USER' cloned from '$CURRENT_USER' (sudo + home + ssh keys)"
   if id "$TARGET_USER" >/dev/null 2>&1; then
     echo "User '$TARGET_USER' already exists; skipping clone step (idempotent behavior)."
   else
     bash "$SCRIPT_DIR/clone_user.sh" "$TARGET_USER" "$CURRENT_USER"
   fi
 else
-  echo "[2/2] clone_user.sh v01 - skipped (no new username provided)"
+  echo "2.[2/2] clone_user.sh v01 - skipped (no new username provided)"
 fi
 
 echo ""
