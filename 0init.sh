@@ -33,13 +33,13 @@ if [[ -z "$CURRENT_USER" || "$CURRENT_USER" == "root" ]]; then
 fi
 
 echo "=========================================="
-echo "Running 0init sequence"
+echo "Running 0init sequence 01"
 echo "Current user for user-level steps: $CURRENT_USER"
 echo "=========================================="
 
 echo ""
 echo "[1/5] update_inst.sh"
-bash "$SCRIPT_DIR/update_inst.sh"
+# bash "$SCRIPT_DIR/update_inst.sh"
 
 echo ""
 echo "[2/5] ssh_passwd_auth.sh"
