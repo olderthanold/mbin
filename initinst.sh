@@ -6,6 +6,27 @@ set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
+print_sep() {
+  printf '================================================================================\n'
+}
+
+print_center_equals() {
+  local title="$1"
+  local width=80
+  local content=" ${title} "
+
+  if (( ${#content} >= width )); then
+    printf '%s\n' "$title"
+    return
+  fi
+
+  local pad_total=$((width - ${#content}))
+  local left=$((pad_total / 2))
+  local right=$((pad_total - left))
+
+  printf '%*s%s%*s\n' "$left" '' "$content" "$right" '' | tr ' ' '='
+}
+
 require_file() {
   local f="$1"
   if [[ ! -f "$f" ]]; then
@@ -27,24 +48,24 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo "=========================================="
-echo "Running initinst (instance/server setup)"
-echo "=========================================="
+print_sep
+print_center_equals "Running initinst (instance/server setup)"
+print_sep
 
 echo ""
-echo "[1/3] update_inst.sh - update apt packages and install base tools (mc)"
+print_center_equals "[1/3] update_inst.sh - update apt packages and install base tools (mc)"
 bash "$SCRIPT_DIR/update_inst.sh"
 
 echo ""
-echo "[2/3] ssh_passwd_auth.sh - enable SSH password + keyboard-interactive auth (PAM)"
+print_center_equals "[2/3] ssh_passwd_auth.sh - enable SSH password + keyboard-interactive auth (PAM)"
 bash "$SCRIPT_DIR/ssh_passwd_auth.sh"
 
 echo ""
-echo "[3/3] network.sh - configure nginx, firewall rules, and connectivity checks"
+print_center_equals "[3/3] network.sh - configure nginx, firewall rules, and connectivity checks"
 bash "$SCRIPT_DIR/network.sh"
 
 echo ""
-echo "=========================================="
+print_sep
 echo "initinst complete. Host-level setup finished."
 echo "Safe to run again (idempotent where possible)."
-echo "=========================================="
+print_sep
