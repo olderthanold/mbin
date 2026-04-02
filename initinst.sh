@@ -38,7 +38,8 @@ require_file() {
 for f in \
   "$SCRIPT_DIR/update_inst.sh" \
   "$SCRIPT_DIR/ssh_passwd_auth.sh" \
-  "$SCRIPT_DIR/network.sh"; do
+  "$SCRIPT_DIR/network.sh" \
+  "$SCRIPT_DIR/root_mbin_path.sh"; do
   require_file "$f"
 done
 
@@ -49,20 +50,24 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 
 print_sep
-print_center_equals "Running initinst (instance/server setup)"
+print_center_equals "Running initinst.sh v01 (instance/server setup)"
 print_sep
 
 echo ""
-print_center_equals "[1/3] update_inst.sh - update apt packages and install base tools (mc)"
+print_center_equals "[1/4] update_inst.sh v01 - update apt packages and install base tools (mc)"
 bash "$SCRIPT_DIR/update_inst.sh"
 
 echo ""
-print_center_equals "[2/3] ssh_passwd_auth.sh - enable SSH password + keyboard-interactive auth (PAM)"
+print_center_equals "[2/4] ssh_passwd_auth.sh v01 - enable SSH password + keyboard-interactive auth (PAM)"
 bash "$SCRIPT_DIR/ssh_passwd_auth.sh"
 
 echo ""
-print_center_equals "[3/3] network.sh - configure nginx, firewall rules, and connectivity checks"
+print_center_equals "[3/4] network.sh v01 - configure nginx, firewall rules, and connectivity checks"
 bash "$SCRIPT_DIR/network.sh"
+
+echo ""
+print_center_equals "[4/4] root_mbin_path.sh v01 - enable root/sudo access to mbin commands"
+bash "$SCRIPT_DIR/root_mbin_path.sh"
 
 echo ""
 print_sep

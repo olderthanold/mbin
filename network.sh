@@ -7,7 +7,8 @@ set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 ###############################################################################
 
 echo ""
-echo "[1/4] Installing Nginx web server..."
+echo "Running network.sh v01"
+echo "[1/4] nginx_install v01 - Installing Nginx web server..."
 
 # Check if nginx is already installed
 if dpkg -s nginx >/dev/null 2>&1; then
@@ -26,7 +27,7 @@ fi
 # SECTION 2: Configure iptables Firewall Rules
 ###############################################################################
 echo ""
-echo "[2/4] Configuring firewall rules (iptables)..."
+echo "[2/4] iptables_config v01 - Configuring firewall rules (iptables)..."
 
 echo ""
 echo "=== CURRENT INPUT CHAIN ==="
@@ -87,7 +88,7 @@ echo "✓ Iptables rules saved permanently"
 # SECTION 3: Test Outbound Connectivity
 ###############################################################################
 echo ""
-echo "[3/4] Testing outbound connectivity..."
+echo "[3/4] outbound_check v01 - Testing outbound connectivity..."
 echo ""
 
 echo "Testing DNS resolution..."
@@ -215,7 +216,7 @@ fix_https_nginx() {
 }
 
 echo ""
-echo "[4/4] Testing HTTP and HTTPS ports (80, 443)..."
+echo "[4/4] http_https_check v01 - Testing HTTP and HTTPS ports (80, 443)..."
 echo ""
 
 HTTP_REACHABLE=false

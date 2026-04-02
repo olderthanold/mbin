@@ -46,15 +46,15 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 
 print_sep
-print_center_equals "Running 0init provisioning sequence (initinst + initusr)"
+print_center_equals "Running 0init.sh v01 (initinst + initusr)"
 print_sep
 
 echo ""
-print_center_equals "[1/2] initinst.sh - server-level setup"
+print_center_equals "[1/2] initinst.sh v01 - server-level setup"
 bash "$SCRIPT_DIR/initinst.sh"
 
 echo ""
-print_center_equals "[2/2] initusr.sh - user-level setup"
+print_center_equals "[2/2] initusr.sh v01 - user-level setup"
 bash "$SCRIPT_DIR/initusr.sh" "$TARGET_USER"
 
 echo ""

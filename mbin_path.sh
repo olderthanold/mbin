@@ -11,6 +11,8 @@ BASHRC_FILE="$HOME/.bashrc"
 PATH_MARKER='export PATH="$PATH:$HOME/mbin"'
 PROMPT_MARKER="# Added by mbin_path.sh (ensure prompt shows full current directory)"
 
+echo "Running mbin_path.sh v01"
+
 has_mbin_in_path() {
   case ":$PATH:" in
     *":$MBIN_DIR:"*) return 0 ;;

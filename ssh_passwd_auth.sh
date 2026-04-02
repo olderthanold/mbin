@@ -33,9 +33,9 @@ KbdInteractiveAuthentication yes
 UsePAM yes
 CONF
 
-echo "Wrote override: $OVERRIDE_FILE"
+echo "[1/3] write_override v01 - Wrote override: $OVERRIDE_FILE"
 
-echo "Validating sshd syntax..."
+echo "[2/3] validate_sshd v01 - Validating sshd syntax..."
 sshd -t  # Syntax check before reading effective config/restarting service.
 
 read_effective() {
@@ -46,7 +46,7 @@ read_effective() {
   effective_pam="$(awk '/^usepam / {print $2}' <<< "$out")"
 }
 
-echo "Checking effective SSH settings..."
+echo "[3/3] verify_effective_settings v01 - Checking effective SSH settings..."
 read_effective
 echo "Effective PasswordAuthentication: ${effective_password:-<missing>}"
 echo "Effective KbdInteractiveAuthentication: ${effective_kbd:-<missing>}"

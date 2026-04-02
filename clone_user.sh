@@ -6,6 +6,8 @@ set -euo pipefail  # Stop on errors/unset vars
 # Must run as root
 [[ $EUID -ne 0 ]] && { echo "Run with sudo/root"; exit 1; }
 
+echo "Running clone_user.sh v01"
+
 NEW_USER="$1"  # New account name
 SOURCE_USER="${2:-${SUDO_USER:-$(id -un)}}"  # Source account
 

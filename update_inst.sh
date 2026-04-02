@@ -2,14 +2,14 @@
 set -o pipefail  # Fail pipeline if any command fails
 
 echo "=========================================="
-echo "Starting OCI Instance Initialization"
+echo "Starting update_inst.sh v01 - OCI Instance Initialization"
 echo "=========================================="
 
 ###############################################################################
 # SECTION 1: System Update
 ###############################################################################
 echo ""
-echo "[1/5] Updating system packages..."
+echo "[1/5] apt_update_upgrade v01 - Updating system packages..."
 sudo apt-get update  # Refresh package index
 sudo apt-get upgrade -y  # Upgrade installed packages
 echo "✓ System packages updated successfully"
