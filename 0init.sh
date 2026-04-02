@@ -2,12 +2,7 @@
 set -euo pipefail  # Stop on errors/unset vars
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"  # Script dir
-
-UPDATE_SCRIPT="$SCRIPT_DIR/update_inst.sh"
-SSH_SCRIPT="$SCRIPT_DIR/ssh_passwd_auth.sh"
-MBIN_SCRIPT="$SCRIPT_DIR/mbin_path.sh"
-CLONE_SCRIPT="$SCRIPT_DIR/clone_user.sh"
-NETWORK_SCRIPT="$SCRIPT_DIR/network.sh"
+TARGET_USER="${1:-ubun2}"  # New cloned user (default: ubun2)
 
 require_file() {
   local f="$1"
@@ -17,7 +12,12 @@ require_file() {
   fi
 }
 
-for f in "$UPDATE_SCRIPT" "$SSH_SCRIPT" "$MBIN_SCRIPT" "$CLONE_SCRIPT" "$NETWORK_SCRIPT"; do
+for f in \
+  "$SCRIPT_DIR/update_inst.sh" \
+  "$SCRIPT_DIR/ssh_passwd_auth.sh" \
+  "$SCRIPT_DIR/mbin_path.sh" \
+  "$SCRIPT_DIR/clone_user.sh" \
+  "$SCRIPT_DIR/network.sh"; do
   require_file "$f"
 done
 
@@ -39,31 +39,31 @@ echo "=========================================="
 
 echo ""
 echo "[1/5] update_inst.sh"
-bash "$UPDATE_SCRIPT"
+bash "$SCRIPT_DIR/update_inst.sh"
 
 echo ""
 echo "[2/5] ssh_passwd_auth.sh"
-bash "$SSH_SCRIPT"
+bash "$SCRIPT_DIR/ssh_passwd_auth.sh"
 
 echo ""
 echo "[3/5] mbin_path.sh (for user: $CURRENT_USER)"
 if id "$CURRENT_USER" >/dev/null 2>&1; then
-  sudo -u "$CURRENT_USER" -H bash "$MBIN_SCRIPT"
+  sudo -u "$CURRENT_USER" -H bash "$SCRIPT_DIR/mbin_path.sh"
 else
   echo "Warning: user '$CURRENT_USER' not found; skipping mbin_path.sh"
 fi
 
 echo ""
-echo "[4/5] clone_user.sh -> ubun2 from $CURRENT_USER"
-if id ubun2 >/dev/null 2>&1; then
-  echo "User 'ubun2' already exists; skipping clone step (idempotent behavior)."
+echo "[4/5] clone_user.sh -> $TARGET_USER from $CURRENT_USER"
+if id "$TARGET_USER" >/dev/null 2>&1; then
+  echo "User '$TARGET_USER' already exists; skipping clone step (idempotent behavior)."
 else
-  bash "$CLONE_SCRIPT" ubun2 "$CURRENT_USER"
+  bash "$SCRIPT_DIR/clone_user.sh" "$TARGET_USER" "$CURRENT_USER"
 fi
 
 echo ""
 echo "[5/5] network.sh"
-bash "$NETWORK_SCRIPT"
+bash "$SCRIPT_DIR/network.sh"
 
 echo ""
 echo "=========================================="

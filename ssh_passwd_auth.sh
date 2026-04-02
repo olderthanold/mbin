@@ -40,6 +40,7 @@ fi
 SSHD_MAIN_CONFIG="/etc/ssh/sshd_config"
 SSHD_DROPIN_DIR="/etc/ssh/sshd_config.d"
 OVERRIDE_FILE="$SSHD_DROPIN_DIR/99-password-auth-override.conf"
+MAIN_BACKUP_FILE="${SSHD_MAIN_CONFIG}.bak_$(date +%Y%m%d_%H%M%S)"
 
 # Guard: sshd main file must exist
 if [[ ! -f "$SSHD_MAIN_CONFIG" ]]; then
@@ -97,8 +98,29 @@ echo "Effective KbdInteractiveAuthentication: ${effective_kbd:-<missing>}"
 echo "Effective UsePAM: ${effective_pam:-<missing>}"
 
 if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
-  echo "ERROR: Effective settings are not all 'yes'. Aborting restart."
-  exit 1
+  echo "Drop-in was not enough; applying fallback at end of $SSHD_MAIN_CONFIG"
+  cp -a "$SSHD_MAIN_CONFIG" "$MAIN_BACKUP_FILE"  # Backup main config
+  cat >> "$SSHD_MAIN_CONFIG" <<'CONF'
+
+# Managed by ensure_ssh_password_auth.sh (fallback)
+PasswordAuthentication yes
+KbdInteractiveAuthentication yes
+UsePAM yes
+CONF
+
+  sshd -t  # Validate after fallback write
+  effective_password="$(sshd -T | awk '/^passwordauthentication / {print $2}')"
+  effective_kbd="$(sshd -T | awk '/^kbdinteractiveauthentication / {print $2}')"
+  effective_pam="$(sshd -T | awk '/^usepam / {print $2}')"
+
+  echo "Effective PasswordAuthentication (fallback): ${effective_password:-<missing>}"
+  echo "Effective KbdInteractiveAuthentication (fallback): ${effective_kbd:-<missing>}"
+  echo "Effective UsePAM (fallback): ${effective_pam:-<missing>}"
+
+  if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
+    echo "ERROR: Effective settings are still not all 'yes'."
+    exit 1
+  fi
 fi
 
 # Restart SSH daemon.

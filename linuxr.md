@@ -47,9 +47,19 @@ top
 ps all
 ps -f
 
+# ==== GIT ========================================================
+## ubuntu
+## ==== clone repo
+git clone -b main https://github.com/olderthanold/mbin.git
+## ==== update repo
+cd mbin && git pull origin main
+## 
+git add -A && git commit -m "update" && git push older-github main
+git add -A && git commit -m "update" && git push older-gitlab main
+
 # ==== Executables =================================================
 ## make executable, single or recursive whole dir
-chmod +x <file>
+chmod +x ./*.sh
 chmod -R +x /path/to/dir
 ## ==== nohup 
 ### Run in background even if console closes
@@ -65,16 +75,6 @@ tail -f clone.log
 ### Access process output
 /proc
 tail -f /proc/<pid>/fd/1
-
-# ==== GIT ========================================================
-## ubuntu
-## ==== clone repo
-git clone -b main https://github.com/olderthanold/mbin.git
-## ==== update repo
-cd mbin && git pull origin main
-## 
-git add -A && git commit -m "update" && git push older-github main
-git add -A && git commit -m "update" && git push older-gitlab main
 
 # ==== DISKS ========================================================
 ## ==== Disks list mountable
