@@ -29,7 +29,7 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 
 echo "=========================================="
-echo "Running initinst.sh v01 (instance/server setup)"
+echo "1. Running initinst.sh v01 (instance/server setup)"
 echo "=========================================="
 
 echo "═════════════════════════════════════════════════════════════════════════"

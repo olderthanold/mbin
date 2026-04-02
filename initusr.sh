@@ -33,8 +33,7 @@ if [[ -z "$CURRENT_USER" || "$CURRENT_USER" == "root" ]]; then
 fi
 
 echo "=========================================="
-echo "Running initusr.sh v01 (user setup)"
-echo "User for user-level tasks: $CURRENT_USER"
+echo "2. Running initusr.sh v01 (user setup) for: $CURRENT_USER"
 echo "=========================================="
 
 echo "═════════════════════════════════════════════════════════════════════════"
