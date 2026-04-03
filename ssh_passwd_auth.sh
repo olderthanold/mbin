@@ -40,7 +40,7 @@ KbdInteractiveAuthentication yes
 UsePAM yes
 CONF
 
-echo "[1/3].a write_override v03 - Wrote override: $OVERRIDE_FILE"
+echo "1.[2/4].a write_override v03 - Wrote override: $OVERRIDE_FILE"
 
 if ! grep -Fq "# Managed by ssh_passwd_auth.sh (fallback)" "$SSHD_MAIN_CONFIG"; then
   cp -a "$SSHD_MAIN_CONFIG" "${SSHD_MAIN_CONFIG}.bak_${TS}"
@@ -51,10 +51,10 @@ PasswordAuthentication yes
 KbdInteractiveAuthentication yes
 UsePAM yes
 CONF
-  echo "[1/3].a write_fallback v03 - Appended fallback block to: $SSHD_MAIN_CONFIG"
+  echo "1.[2/4].a write_fallback v03 - Appended fallback block to: $SSHD_MAIN_CONFIG"
 fi
 
-echo "[2/3].b validate_sshd v03 - Validating sshd syntax..."
+echo "1.[2/4].b validate_sshd v03 - Validating sshd syntax..."
 sshd -t -f "$SSHD_MAIN_CONFIG"
 
 read_effective() {
@@ -65,7 +65,7 @@ read_effective() {
   effective_pam="$(awk '/^usepam / {print $2}' <<< "$out")"
 }
 
-echo "[3/3].c verify_effective_settings v03 - Checking effective SSH settings..."
+echo "1.[2/4].c verify_effective_settings v03 - Checking effective SSH settings..."
 read_effective
 echo "Effective PasswordAuthentication: ${effective_password:-<missing>}"
 echo "Effective KbdInteractiveAuthentication: ${effective_kbd:-<missing>}"
