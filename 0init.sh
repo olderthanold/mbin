@@ -24,20 +24,16 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo "=========================================="
-echo "Running 0init.sh v02 (initinst + initusr)"
-echo "=========================================="
+echo "Running 0init.sh v03 (initinst + initusr)"
 
 echo "═════════════════════════════════════════════════════════════════════════"
-echo "[1/2] initinst.sh v03 - server-level setup"
+echo "[1/2] initinst.sh v04 - server-level setup"
 bash "$SCRIPT_DIR/initinst.sh"
 
 echo "═════════════════════════════════════════════════════════════════════════"
-echo "[2/2] initusr.sh v03 - user-level setup"
+echo "[2/2] initusr.sh v04 - user-level setup"
 bash "$SCRIPT_DIR/initusr.sh" "$TARGET_USER"
 
 echo ""
-echo "=========================================="
 echo "0init complete. Server-level and user-level setup finished."
 echo "Safe to run again (idempotent where possible)."
-echo "=========================================="

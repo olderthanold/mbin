@@ -14,6 +14,10 @@ which # where in windows
 ## ==== net cat
 nc
 # ==== USER =========================================================
+## list users
+awk -F: '$3>=1000 && $3<65534 {print $1}' /etc/passwd #non system users
+getent group sudo       #sudo group members
+
 ### prepend to path
 export PATH="$PATH:$HOME$/mbin"
 

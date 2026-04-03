@@ -7,7 +7,7 @@ set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 ###############################################################################
 
 echo ""
-echo "Running network.sh v01"
+echo "Running network.sh v02"
 echo "1.[3/4].a nginx_install v01 - Installing Nginx web server..."
 
 # Check if nginx is already installed
@@ -262,9 +262,7 @@ else
 fi
 
 echo ""
-echo "=========================================="
 echo "✓ NETWORK SETUP & CHECK COMPLETE"
-echo "=========================================="
 echo "Incoming firewall rules configured: SSH(22), HTTP(80), HTTPS(443)"
 if [ -n "$FINAL_PUBLIC_IP" ]; then
     echo "Public IP: $FINAL_PUBLIC_IP"

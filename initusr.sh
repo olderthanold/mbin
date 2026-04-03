@@ -32,9 +32,7 @@ if [[ -z "$CURRENT_USER" || "$CURRENT_USER" == "root" ]]; then
   CURRENT_USER="ubuntu"  # Fallback user
 fi
 
-echo "=========================================="
-echo "2. Running initusr.sh v03 (user setup) for: $CURRENT_USER"
-echo "=========================================="
+echo "2. Running initusr.sh v04 (user setup) for: $CURRENT_USER"
 
 echo "_________________________________________________________________________"
 echo "2.[1/2] mbin_path.sh v02 - ensure ~/mbin, PATH update, and prompt cwd for user: $CURRENT_USER"
@@ -57,7 +55,5 @@ else
 fi
 
 echo ""
-echo "=========================================="
 echo "initusr complete. User-level setup finished."
 echo "Safe to run again (idempotent where possible)."
-echo "=========================================="

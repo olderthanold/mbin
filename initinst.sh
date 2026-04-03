@@ -28,12 +28,10 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo "=========================================="
-echo "1. Running initinst.sh v03 (instance/server setup)"
-echo "=========================================="
+echo "1. Running initinst.sh v04 (instance/server setup)"
 
 echo "_________________________________________________________________________"
-echo "1.[1/4] update_inst.sh v02 - update apt packages and install base tools (mc)"
+echo "1.[1/4] update_inst.sh v03 - update apt packages and install base tools (mc)"
 bash "$SCRIPT_DIR/update_inst.sh"
 
 echo "_________________________________________________________________________"
@@ -49,7 +47,5 @@ echo "1.[4/4] root_mbin_path.sh v02 - enable root/sudo access to mbin commands"
 bash "$SCRIPT_DIR/root_mbin_path.sh"
 
 echo ""
-echo "=========================================="
 echo "initinst complete. Host-level setup finished."
 echo "Safe to run again (idempotent where possible)."
-echo "=========================================="
