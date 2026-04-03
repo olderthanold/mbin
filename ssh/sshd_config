@@ -129,13 +129,3 @@ Subsystem	sftp	/usr/lib/openssh/sftp-server
 #	AllowTcpForwarding no
 #	PermitTTY no
 #	ForceCommand cvs server
-
-# Managed by ssh_passwd_auth.sh (fallback)
-PasswordAuthentication yes
-KbdInteractiveAuthentication yes
-UsePAM yes
-
-# Managed by ssh_passwd_auth_test.sh (fallback)
-PasswordAuthentication yes
-KbdInteractiveAuthentication yes
-UsePAM yes
