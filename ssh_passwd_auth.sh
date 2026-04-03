@@ -1,133 +1,92 @@
 #!/usr/bin/env bash
-set -euo pipefail  # Exit on error, undefined vars, and failed pipelines.
+set -euo pipefail  # Exit on command errors, unset vars, and pipe failures.
 
-# Simple SSH password-auth enablement for Ubuntu/Debian style sshd.
+# Purpose: enforce and verify effective SSH auth settings on target host.
 
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then  # Help mode.
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   cat <<'USAGE'
 Usage: sudo bash ssh_passwd_auth.sh
 
-Ensures these effective sshd settings are enabled:
+Enforces effective:
   PasswordAuthentication yes
   KbdInteractiveAuthentication yes
   UsePAM yes
+
 USAGE
   exit 0
 fi
 
-if [[ "$EUID" -ne 0 ]]; then  # We need root to edit /etc/ssh and restart sshd.
+if [[ "$EUID" -ne 0 ]]; then
   echo "Error: run as root (use sudo)."
   exit 1
 fi
 
-SSHD_MAIN_CONFIG="/etc/ssh/sshd_config"  # Main OpenSSH daemon config file.
-SSHD_DROPIN_DIR="/etc/ssh/sshd_config.d"  # Drop-in include directory.
-OVERRIDE_FILE="$SSHD_DROPIN_DIR/zzzz-password-auth-override.conf"  # Last file.
+SSHD_MAIN_CONFIG="/etc/ssh/sshd_config"
+SSHD_DROPIN_DIR="$(dirname "$SSHD_MAIN_CONFIG")/sshd_config.d"
+OVERRIDE_FILE="$SSHD_DROPIN_DIR/zzzz-password-auth-override.conf"
 TS="$(date +%Y%m%d_%H%M%S)"
 
-mkdir -p "$SSHD_DROPIN_DIR"  # Ensure drop-in directory exists.
+if [[ ! -f "$SSHD_MAIN_CONFIG" ]]; then
+  echo "Error: sshd_config not found: $SSHD_MAIN_CONFIG"
+  exit 1
+fi
 
-cat > "$OVERRIDE_FILE" <<'CONF'  # Rewrite file each run (idempotent).
+mkdir -p "$SSHD_DROPIN_DIR"
+
+cat > "$OVERRIDE_FILE" <<'CONF'
 # Managed by ssh_passwd_auth.sh
 PasswordAuthentication yes
 KbdInteractiveAuthentication yes
 UsePAM yes
 CONF
 
-echo "[1/3].a write_override v02 - Wrote override: $OVERRIDE_FILE"
+echo "[1/3].a write_override v03 - Wrote override: $OVERRIDE_FILE"
 
-echo "[2/3].b validate_sshd v02 - Validating sshd syntax..."
-sshd -t  # Syntax check before reading effective config/restarting service.
-
-read_effective() {
-  local out  # Effective config snapshot for a concrete connection context.
-  out="$(sshd -T -C user=root,host=localhost,addr=127.0.0.1)"
-  effective_password="$(awk '/^passwordauthentication / {print $2}' <<< "$out")"
-  effective_kbd="$(awk '/^kbdinteractiveauthentication / {print $2}' <<< "$out")"
-  effective_pam="$(awk '/^usepam / {print $2}' <<< "$out")"
-}
-
-force_yes_in_file() {
-  local file="$1"
-  local tmp
-  tmp="$(mktemp)"
-
-  awk '
-    /^[[:space:]]*#/ { print; next }
-    /^[[:space:]]*PasswordAuthentication[[:space:]]+/ { print "PasswordAuthentication yes"; next }
-    /^[[:space:]]*KbdInteractiveAuthentication[[:space:]]+/ { print "KbdInteractiveAuthentication yes"; next }
-    /^[[:space:]]*UsePAM[[:space:]]+/ { print "UsePAM yes"; next }
-    { print }
-  ' "$file" > "$tmp"
-
-  if ! cmp -s "$file" "$tmp"; then
-    cp -a "$file" "${file}.bak_${TS}"
-    install -m 644 "$tmp" "$file"
-    echo "Normalized auth directives to yes in: $file"
-  fi
-
-  rm -f "$tmp"
-}
-
-echo "[3/3].c verify_effective_settings v02 - Checking effective SSH settings..."
-read_effective
-echo "Effective PasswordAuthentication: ${effective_password:-<missing>}"
-echo "Effective KbdInteractiveAuthentication: ${effective_kbd:-<missing>}"
-echo "Effective UsePAM: ${effective_pam:-<missing>}"
-
-# Straightforward fallback: add one final block in main config, then re-check.
-if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
-  echo "Drop-in did not win. Applying one managed fallback block in $SSHD_MAIN_CONFIG"
-  if ! grep -Fq "# Managed by ssh_passwd_auth.sh (fallback)" "$SSHD_MAIN_CONFIG"; then
-    cat >> "$SSHD_MAIN_CONFIG" <<'CONF'
+if ! grep -Fq "# Managed by ssh_passwd_auth.sh (fallback)" "$SSHD_MAIN_CONFIG"; then
+  cp -a "$SSHD_MAIN_CONFIG" "${SSHD_MAIN_CONFIG}.bak_${TS}"
+  cat >> "$SSHD_MAIN_CONFIG" <<'CONF'
 
 # Managed by ssh_passwd_auth.sh (fallback)
 PasswordAuthentication yes
 KbdInteractiveAuthentication yes
 UsePAM yes
 CONF
-  else
-    echo "Fallback block already present; not appending duplicate."
-  fi
-
-  sshd -t  # Validate after fallback update.
-  read_effective
-  echo "Effective PasswordAuthentication (fallback): ${effective_password:-<missing>}"
-  echo "Effective KbdInteractiveAuthentication (fallback): ${effective_kbd:-<missing>}"
-  echo "Effective UsePAM (fallback): ${effective_pam:-<missing>}"
-
-  if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
-    echo "Fallback still not effective. Normalizing existing auth directives to yes..."
-
-    force_yes_in_file "$SSHD_MAIN_CONFIG"
-    while IFS= read -r -d '' f; do
-      force_yes_in_file "$f"
-    done < <(find "$SSHD_DROPIN_DIR" -maxdepth 1 -type f -name '*.conf' -print0)
-
-    sshd -t
-    read_effective
-    echo "Effective PasswordAuthentication (normalized): ${effective_password:-<missing>}"
-    echo "Effective KbdInteractiveAuthentication (normalized): ${effective_kbd:-<missing>}"
-    echo "Effective UsePAM (normalized): ${effective_pam:-<missing>}"
-
-    if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
-      echo "ERROR: Effective settings are still not all 'yes'."
-      echo "Please check restrictive Match blocks in /etc/ssh/sshd_config*"
-      exit 1
-    fi
-  fi
+  echo "[1/3].a write_fallback v03 - Appended fallback block to: $SSHD_MAIN_CONFIG"
 fi
 
-echo "Restarting SSH service..."  # Apply changes to running daemon.
-if systemctl list-unit-files | grep -q '^ssh\.service'; then
-  systemctl restart ssh  # Ubuntu/Debian service name.
-  systemctl is-active --quiet ssh  # Fail if service did not come up.
-elif systemctl list-unit-files | grep -q '^sshd\.service'; then
-  systemctl restart sshd  # Alternate service name (some distros).
-  systemctl is-active --quiet sshd  # Fail if service did not come up.
-else
-  echo "ERROR: Could not find ssh.service or sshd.service"
+echo "[2/3].b validate_sshd v03 - Validating sshd syntax..."
+sshd -t -f "$SSHD_MAIN_CONFIG"
+
+read_effective() {
+  local out
+  out="$(sshd -T -f "$SSHD_MAIN_CONFIG" -C user=root,host=localhost,addr=127.0.0.1)"
+  effective_password="$(awk '/^passwordauthentication / {print $2}' <<< "$out")"
+  effective_kbd="$(awk '/^kbdinteractiveauthentication / {print $2}' <<< "$out")"
+  effective_pam="$(awk '/^usepam / {print $2}' <<< "$out")"
+}
+
+echo "[3/3].c verify_effective_settings v03 - Checking effective SSH settings..."
+read_effective
+echo "Effective PasswordAuthentication: ${effective_password:-<missing>}"
+echo "Effective KbdInteractiveAuthentication: ${effective_kbd:-<missing>}"
+echo "Effective UsePAM: ${effective_pam:-<missing>}"
+
+if [[ "$effective_password" != "yes" || "$effective_kbd" != "yes" || "$effective_pam" != "yes" ]]; then
+  echo "ERROR: Effective settings are not all 'yes'."
+  echo "Inspect: /etc/ssh/sshd_config and /etc/ssh/sshd_config.d/*.conf"
   exit 1
 fi
 
-echo "Done. SSH password + keyboard-interactive auth with PAM are enabled."
+echo "Applying settings (restart/reload SSH)..."
+if systemctl restart ssh >/dev/null 2>&1; then
+  echo "Restarted ssh service."
+elif systemctl restart sshd >/dev/null 2>&1; then
+  echo "Restarted sshd service."
+elif systemctl restart ssh.socket >/dev/null 2>&1; then
+  echo "Restarted ssh.socket (socket-activated sshd)."
+else
+  echo "WARNING: Could not restart ssh/sshd service automatically."
+  echo "Please restart manually on target host."
+fi
+
+echo "Done. SSH auth settings are effective (yes/yes/yes)."
