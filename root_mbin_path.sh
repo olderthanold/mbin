@@ -9,7 +9,7 @@ if [[ "$EUID" -ne 0 ]]; then  # Only root can safely edit /root/.bashrc.
   exit 1
 fi
 
-echo "Running root_mbin_path.sh v01"  # Simple run banner/version marker.
+echo "Running root_mbin_path.sh v02"  # Simple run banner/version marker.
 
 # File and text snippets used to make this script idempotent.
 ROOT_BASHRC="/root/.bashrc"  # Target shell startup file for root user.

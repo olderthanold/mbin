@@ -25,15 +25,15 @@ if [[ "$EUID" -ne 0 ]]; then
 fi
 
 echo "=========================================="
-echo "Running 0init.sh v01 (initinst + initusr)"
+echo "Running 0init.sh v02 (initinst + initusr)"
 echo "=========================================="
 
 echo "═════════════════════════════════════════════════════════════════════════"
-echo "[1/2] initinst.sh v02 - server-level setup"
+echo "[1/2] initinst.sh v03 - server-level setup"
 bash "$SCRIPT_DIR/initinst.sh"
 
 echo "═════════════════════════════════════════════════════════════════════════"
-echo "[2/2] initusr.sh v02 - user-level setup"
+echo "[2/2] initusr.sh v03 - user-level setup"
 bash "$SCRIPT_DIR/initusr.sh" "$TARGET_USER"
 
 echo ""
