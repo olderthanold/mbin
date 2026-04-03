@@ -32,19 +32,19 @@ echo "=========================================="
 echo "1. Running initinst.sh v02 (instance/server setup)"
 echo "=========================================="
 
-echo "═════════════════════════════════════════════════════════════════════════"
+echo "_________________________________________________________________________"
 echo "1.[1/4] update_inst.sh v02 - update apt packages and install base tools (mc)"
 bash "$SCRIPT_DIR/update_inst.sh"
 
-echo "═════════════════════════════════════════════════════════════════════════"
+echo "_________________________________________________________________________"
 echo "1.[2/4] ssh_passwd_auth.sh v02 - enable SSH password + keyboard-interactive auth (PAM)"
 bash "$SCRIPT_DIR/ssh_passwd_auth.sh"
 
-echo "═════════════════════════════════════════════════════════════════════════"
+echo "_________________________________________________________________________"
 echo "1.[3/4] network.sh v02 - configure nginx, firewall rules, and connectivity checks"
 bash "$SCRIPT_DIR/network.sh"
 
-echo "═════════════════════════════════════════════════════════════════════════"
+echo "_________________________________________________________________________"
 echo "1.[4/4] root_mbin_path.sh v02 - enable root/sudo access to mbin commands"
 bash "$SCRIPT_DIR/root_mbin_path.sh"
 

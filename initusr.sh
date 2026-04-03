@@ -36,7 +36,7 @@ echo "=========================================="
 echo "2. Running initusr.sh v02 (user setup) for: $CURRENT_USER"
 echo "=========================================="
 
-echo "═════════════════════════════════════════════════════════════════════════"
+echo "_________________________________________________________________________"
 echo "2.[1/2] mbin_path.sh v02 - ensure ~/mbin, PATH update, and prompt cwd for user: $CURRENT_USER"
 if id "$CURRENT_USER" >/dev/null 2>&1; then
   sudo -u "$CURRENT_USER" -H bash "$SCRIPT_DIR/mbin_path.sh"
@@ -44,7 +44,7 @@ else
   echo "Warning: user '$CURRENT_USER' not found; skipping mbin_path.sh"
 fi
 
-echo "═════════════════════════════════════════════════════════════════════════"
+echo "_________________________________________________________________________"
 if [[ -n "$TARGET_USER" ]]; then
   echo "2.[2/2] clone_user.sh v02 - create '$TARGET_USER' cloned from '$CURRENT_USER' (sudo + home + ssh keys)"
   if id "$TARGET_USER" >/dev/null 2>&1; then
