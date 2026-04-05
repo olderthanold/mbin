@@ -18,7 +18,8 @@ for f in \
   "$SCRIPT_DIR/update_inst.sh" \
   "$SCRIPT_DIR/ssh_passwd_auth.sh" \
   "$SCRIPT_DIR/network.sh" \
-  "$SCRIPT_DIR/root_path_bashrc.sh"; do
+  "$SCRIPT_DIR/root_path_bashrc.sh" \
+  "$SCRIPT_DIR/root_path_sudoers.sh"; do
   require_file "$f"
 done
 
@@ -28,23 +29,27 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo "1. Running initinst.sh v04 (instance/server setup)"
+echo "1. Running initinst.sh v05 (instance/server setup)"
 
 echo "_________________________________________________________________________"
-echo "1.[1/4] update_inst.sh v03 - update apt packages and install base tools (mc)"
+echo "1.[1/5] update_inst.sh v03 - update apt packages and install base tools (mc)"
 bash "$SCRIPT_DIR/update_inst.sh"
 
 echo "_________________________________________________________________________"
-echo "1.[2/4] ssh_passwd_auth.sh v02 - enable SSH password + keyboard-interactive auth (PAM)"
+echo "1.[2/5] ssh_passwd_auth.sh v02 - enable SSH password + keyboard-interactive auth (PAM)"
 bash "$SCRIPT_DIR/ssh_passwd_auth.sh"
 
 echo "_________________________________________________________________________"
-echo "1.[3/4] network.sh v02 - configure nginx, firewall rules, and connectivity checks"
+echo "1.[3/5] network.sh v02 - configure nginx, firewall rules, and connectivity checks"
 bash "$SCRIPT_DIR/network.sh"
 
 echo "_________________________________________________________________________"
-echo "1.[4/4] root_path_bashrc.sh v01 - normalize root .bashrc PATH for mbin"
+echo "1.[4/5] root_path_bashrc.sh v01 - normalize root .bashrc PATH for mbin"
 bash "$SCRIPT_DIR/root_path_bashrc.sh"
+
+echo "_________________________________________________________________________"
+echo "1.[5/5] root_path_sudoers.sh v01 - ensure sudo secure_path contains mbin path"
+bash "$SCRIPT_DIR/root_path_sudoers.sh"
 
 echo ""
 echo "initinst complete. Host-level setup finished."
