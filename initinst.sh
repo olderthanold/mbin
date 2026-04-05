@@ -18,7 +18,7 @@ for f in \
   "$SCRIPT_DIR/update_inst.sh" \
   "$SCRIPT_DIR/ssh_passwd_auth.sh" \
   "$SCRIPT_DIR/network.sh" \
-  "$SCRIPT_DIR/root_mbin_path.sh"; do
+  "$SCRIPT_DIR/root_path_bashrc.sh"; do
   require_file "$f"
 done
 
@@ -43,8 +43,8 @@ echo "1.[3/4] network.sh v02 - configure nginx, firewall rules, and connectivity
 bash "$SCRIPT_DIR/network.sh"
 
 echo "_________________________________________________________________________"
-echo "1.[4/4] root_mbin_path.sh v02 - enable root/sudo access to mbin commands"
-bash "$SCRIPT_DIR/root_mbin_path.sh"
+echo "1.[4/4] root_path_bashrc.sh v01 - normalize root .bashrc PATH for mbin"
+bash "$SCRIPT_DIR/root_path_bashrc.sh"
 
 echo ""
 echo "initinst complete. Host-level setup finished."

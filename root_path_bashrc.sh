@@ -16,7 +16,7 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-echo "Running root_mbin_path.sh v05"
+echo "Running root_path_bashrc.sh v01"
 
 ROOT_BASHRC="/root/.bashrc"
 

@@ -22,8 +22,8 @@ This document describes the run order started by `0init.sh`, including step numb
 │     │     ├─ 1.[3/4].b iptables_config v01
 │     │     ├─ 1.[3/4].c outbound_check v01
 │     │     └─ 1.[3/4].d http_https_check v01
-│     └─ 1.[4/4] root_mbin_path.sh v02
-│        └─ root_mbin_path.sh v02
+│     └─ 1.[4/4] root_path_bashrc.sh v01
+│        └─ root_path_bashrc.sh v01
 └─ [2/2] initusr.sh v04
    └─ initusr.sh v04
       ├─ 2.[1/2] mbin_path.sh v02
