@@ -1,0 +1,55 @@
+Cmnd_Alias ISCSIADM = /sbin/iscsiadm, /usr/sbin/iscsiadm
+
+Cmnd_Alias DMSETUP = /sbin/dmsetup, /usr/sbin/dmsetup
+
+Cmnd_Alias MULTIPATH_INSTALL = /bin/apt install -o Dpkg\:\:Options\:\:\=--force-confold -y multipath-tools, \
+                               /usr/bin/apt install -o Dpkg\:\:Options\:\:\=--force-confold -y multipath-tools
+
+Cmnd_Alias MULTIPATH_SYSTEMD = /bin/systemctl * multipathd.service, \
+                               /bin/systemctl * multipath-tools
+
+Cmnd_Alias MULTIPATH_LIST = /sbin/multipath *, /usr/sbin/multipath *
+
+Cmnd_Alias TEE_COMMAND = /bin/tee, /usr/bin/tee
+Cmnd_Alias TASKSET_COMMAND = /bin/taskset, /usr/bin/taskset
+Cmnd_Alias IP_COMMAND = /sbin/ip, /usr/sbin/ip
+Cmnd_Alias UMOUNT_COMMAND = /bin/umount, /usr/bin/umount
+Cmnd_Alias LN_COMMAND = /bin/ln, /usr/bin/ln
+Cmnd_Alias SYSTEMDRUN_COMMAND = /usr/bin/systemd-run
+Cmnd_Alias SNAP_COMMAND = /usr/bin/snap
+
+
+Cmnd_Alias OSMH_COMMAND = /snap/oracle-cloud-agent/current/plugins/oci-osmh/oci-osmh
+Cmnd_Alias OCI_RDMA_AUTHENTICATION = /snap/oracle-cloud-agent/current/plugins/oci-hpc/oci-rdma-authentication/oci-rdma-authentication
+Cmnd_Alias OCI_HPC_MONITORING = /snap/oracle-cloud-agent/current/plugins/oci-hpc/oci-hpc-monitoring/oci-hpc-monitoring
+Cmnd_Alias OCI_HPC_CONFIGURE = /snap/oracle-cloud-agent/current/plugins/oci-hpc/oci-hpc-configure/oci-hpc-configure
+
+Cmnd_Alias UM_SYSTEMD = /bin/systemctl * unified-monitoring-agent.service, \
+                        /bin/systemctl * unified-monitoring-agent_config_downloader.timer
+Cmnd_Alias UM_INSTALL = /usr/bin/apt install -o Dpkg\:\:Options\:\:\=--force-confold -y /var/lib/oracle-cloud-agent/plugins/unifiedmonitoring/temp-unified-monitoring.deb, \
+                        /bin/apt install -o Dpkg\:\:Options\:\:\=--force-confold -y /var/lib/oracle-cloud-agent/plugins/unifiedmonitoring/temp-unified-monitoring.deb
+
+Cmnd_Alias UM_DOWNGRADE = /usr/bin/apt --allow-downgrades install -o Dpkg\:\:Options\:\:\=--force-confold -y /var/lib/oracle-cloud-agent/plugins/unifiedmonitoring/temp-unified-monitoring.deb, \
+                          /bin/apt --allow-downgrades install -o Dpkg\:\:Options\:\:\=--force-confold -y /var/lib/oracle-cloud-agent/plugins/unifiedmonitoring/temp-unified-monitoring.deb
+
+Cmnd_Alias UM_KEY_IMPORT = /usr/bin/gpg --import /etc/oracle-cloud-agent/plugins/unifiedmonitoring/rpm-gpg-pub-key-centos8, \
+                           /bin/gpg --import /etc/oracle-cloud-agent/plugins/unifiedmonitoring/rpm-gpg-pub-key-centos8
+
+Cmnd_Alias UM_GPG_VERIFY = /usr/bin/gpg --verify /var/lib/oracle-cloud-agent/plugins/unifiedmonitoring/temp-unified-monitoring.deb, \
+                           /bin/gpg --verify /var/lib/oracle-cloud-agent/plugins/unifiedmonitoring/temp-unified-monitoring.deb
+
+Cmnd_Alias UM_UPDATE = /usr/bin/apt update, \
+                       /bin/apt update
+Cmnd_Alias CP_COMMAND = /bin/cp, /usr/bin/cp
+
+
+Cmnd_Alias WLP_SYSTEMD = /bin/systemctl, /usr/sbin/systemctl, /usr/bin/systemctl
+Cmnd_Alias FALCON_CTL = /opt/CrowdStrike/falconctl
+Cmnd_Alias WLP_GPG = /bin/gpg, /usr/sbin/gpg, /usr/bin/gpg
+
+Cmnd_Alias WLP_APTGET = /bin/apt-get, /usr/sbin/apt-get, /usr/bin/apt-get
+
+Cmnd_Alias WLP_APT = /bin/apt, /usr/sbin/apt, /usr/bin/apt
+snap_daemon ALL=(root) NOPASSWD:  SETENV: DMSETUP, ISCSIADM, MULTIPATH_INSTALL, \
+MULTIPATH_SYSTEMD, MULTIPATH_LIST, TEE_COMMAND, TASKSET_COMMAND, IP_COMMAND, UMOUNT_COMMAND, LN_COMMAND, CP_COMMAND, SSHD_COMMAND, LS_COMMAND, STAT_COMMAND, CP_COMMAND, VSSTOOLS_COMMAND, QA_COMMAND, MV_COMMAND, CAT_COMMAND, MKDIR_COMMAND, RM_COMMAND, OSMH_COMMAND, WLP_SYSTEMD, WLP_GPG, WLP_APTGET, WLP_APT, WLP_SYSTEMD, FALCON_CTL, WLP_GPG, WLP_APTGET, WLP_APT, OCI_RDMA_AUTHENTICATION, OCI_HPC_MONITORING, OCI_HPC_CONFIGURE, UM_INSTALL, \
+UM_DOWNGRADE, UM_SYSTEMD, UM_KEY_IMPORT, UM_UPDATE, UM_GPG_VERIFY, SNAP_COMMAND

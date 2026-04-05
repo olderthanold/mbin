@@ -1,0 +1,9 @@
+Cmnd_Alias SSHD_COMMAND = /bin/sshd, /usr/bin/sshd, /usr/sbin/sshd
+Cmnd_Alias LS_COMMAND = /bin/ls, /usr/bin/ls, /usr/sbin/ls
+Cmnd_Alias MV_COMMAND = /bin/mv, /usr/bin/mv, /usr/sbin/mv
+Cmnd_Alias STAT_COMMAND = /bin/stat, /usr/bin/stat, /usr/sbin/stat
+Cmnd_Alias VSSTOOLS_COMMAND = /usr/libexec/oracle-cloud-agent/plugins/oci-vulnerabilityscan/vss-tools, /snap/oracle-cloud-agent/current/plugins/oci-vulnerabilityscan/vss-tools
+Cmnd_Alias QA_COMMAND = /var/lib/oracle-cloud-agent/plugins/oci-vulnerabilityscan/qualys/agent_image/QualysAgentWrapper.sh
+Cmnd_Alias CAT_COMMAND = /bin/cat, /usr/bin/cat, /usr/sbin/cat
+Cmnd_Alias MKDIR_COMMAND = /bin/mkdir,  /usr/bin/mkdir, /usr/sbin/mkdir
+Cmnd_Alias RM_COMMAND = /bin/rm,  /usr/bin/rm, /usr/sbin/rm
