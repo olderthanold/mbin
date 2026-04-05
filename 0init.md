@@ -8,8 +8,8 @@ This document describes the run order started by `0init.sh`, including step numb
 │  └─ initinst.sh v06
 │     ├─ 1.[1/6] update_inst.sh v03
 │     │  └─ update_inst.sh v03
-│     │     ├─ 1.[1/4].a apt_update_upgrade v03
-│     │     └─ 1.[1/4].b install_mc v03
+│     │     ├─ 1.[1/6].a apt_update_upgrade v03
+│     │     └─ 1.[1/6].b install_mc v03
 │     ├─ 1.[2/6] ssh_passwd_auth.sh v02
 │     │  └─ ssh_passwd_auth.sh
 │     │     ├─ check_1_before: list non-commented hits/values for 3 directives

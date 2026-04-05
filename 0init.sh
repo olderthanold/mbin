@@ -27,7 +27,7 @@ fi
 echo "Running 0init.sh v03 (initinst + initusr)"
 
 echo "═════════════════════════════════════════════════════════════════════════"
-echo "[1/2] initinst.sh v04 - server-level setup"
+echo "[1/2] initinst.sh v06 - server-level setup"
 bash "$SCRIPT_DIR/initinst.sh"
 
 echo "═════════════════════════════════════════════════════════════════════════"

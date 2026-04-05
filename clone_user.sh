@@ -22,11 +22,6 @@ NEW_HOME="/home/$NEW_USER"  # Target home
 useradd -m -s /bin/bash "$NEW_USER"  # Create user with bash shell
 usermod -aG sudo "$NEW_USER"  # Add to sudo group
 
-# Passwordless sudo rule
-echo "$NEW_USER ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/90-${NEW_USER}-nopasswd"
-chmod 440 "/etc/sudoers.d/90-${NEW_USER}-nopasswd"  # Secure perms
-visudo -cf "/etc/sudoers.d/90-${NEW_USER}-nopasswd" >/dev/null  # Validate
-
 # Copy home files (skip cache/trash)
 rsync -aHAX --exclude='.cache/' --exclude='.local/share/Trash/' "$SOURCE_HOME/" "$NEW_HOME/"
 
