@@ -17,9 +17,9 @@ require_file() {
 for f in \
   "$SCRIPT_DIR/update_inst.sh" \
   "$SCRIPT_DIR/ssh_passwd_auth.sh" \
-  "$SCRIPT_DIR/network.sh" \
   "$SCRIPT_DIR/root_path_bashrc.sh" \
-  "$SCRIPT_DIR/root_path_sudoers.sh"; do
+  "$SCRIPT_DIR/root_path_sudoers.sh" \
+  "$SCRIPT_DIR/network.sh"; do
   require_file "$f"
 done
 
@@ -40,16 +40,16 @@ echo "1.[2/5] ssh_passwd_auth.sh v02 - enable SSH password + keyboard-interactiv
 bash "$SCRIPT_DIR/ssh_passwd_auth.sh"
 
 echo "_________________________________________________________________________"
-echo "1.[3/5] network.sh v02 - configure nginx, firewall rules, and connectivity checks"
-bash "$SCRIPT_DIR/network.sh"
-
-echo "_________________________________________________________________________"
-echo "1.[4/5] root_path_bashrc.sh v01 - normalize root .bashrc PATH for mbin"
+echo "1.[3/5] root_path_bashrc.sh v01 - normalize root .bashrc PATH for mbin"
 bash "$SCRIPT_DIR/root_path_bashrc.sh"
 
 echo "_________________________________________________________________________"
-echo "1.[5/5] root_path_sudoers.sh v01 - ensure sudo secure_path contains mbin path"
+echo "1.[4/5] root_path_sudoers.sh v01 - ensure sudo secure_path contains mbin path"
 bash "$SCRIPT_DIR/root_path_sudoers.sh"
+
+echo "_________________________________________________________________________"
+echo "1.[5/5] network.sh v02 - configure nginx, firewall rules, and connectivity checks"
+bash "$SCRIPT_DIR/network.sh"
 
 echo ""
 echo "initinst complete. Host-level setup finished."
