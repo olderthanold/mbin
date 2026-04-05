@@ -19,7 +19,21 @@ TARGET_FILES=(
   "/etc/ssh/sshd_config.d/60-cloudimg-settings.conf"
 )
 
-echo "Running ssh_passwd_auth3.sh"
+echo "Running ssh_passwd_auth.sh"
+
+# Optional flag: --force
+# - default (no flag): if initial compliance check passes, exit with no changes.
+# - --force: run enforcement even if already compliant.
+FORCE=0
+if [[ "${1:-}" == "--force" ]]; then
+  FORCE=1
+  shift
+fi
+
+if [[ "$#" -ne 0 ]]; then
+  echo "Usage: $0 [--force]"
+  exit 1
+fi
 
 # Check helper: list all existing NON-commented directive hits + values.
 # This is used once at the beginning and once at the end.
@@ -60,6 +74,47 @@ report_nonhashed_hits() {
   done
 }
 
+# Return 0 when a single directive line exists and is already set to yes.
+# Return 1 otherwise.
+directive_is_compliant_in_file() {
+  local target_file="$1"
+  local directive="$2"
+
+  mapfile -t matches < <(
+    grep -nE "^[[:space:]]*#?[[:space:]]*${directive}([[:space:]]+.*)?$" "$target_file" || true
+  )
+
+  if (( ${#matches[@]} != 1 )); then
+    return 1
+  fi
+
+  local line_text="${matches[0]#*:}"
+
+  if [[ "$line_text" =~ ^[[:space:]]*${directive}[[:space:]]+yes([[:space:]]*(#.*)?)?$ ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
+# Return 0 if entire file is compliant for all directives, else 1.
+file_is_compliant() {
+  local target_file="$1"
+
+  if [[ ! -f "$target_file" ]]; then
+    return 1
+  fi
+
+  local directive
+  for directive in "${DIRECTIVES[@]}"; do
+    if ! directive_is_compliant_in_file "$target_file" "$directive"; then
+      return 1
+    fi
+  done
+
+  return 0
+}
+
 # Procedure: enforce directive rules against one target file.
 enforce_ssh_auth_directives() {
   local target_file="$1"
@@ -73,6 +128,12 @@ enforce_ssh_auth_directives() {
     echo "Error: target file is not writable: $target_file"
     echo "Hint: run with sudo if this is a system config file."
     return 1
+  fi
+
+  # Skip edit/backup if nothing needs to change (unless --force is used).
+  if (( FORCE == 0 )) && file_is_compliant "$target_file"; then
+    echo "No changes needed for: $target_file"
+    return 0
   fi
 
   local backup_file
@@ -157,6 +218,26 @@ enforce_ssh_auth_directives() {
 
 # Check 1/2: state before changes.
 report_nonhashed_hits "CHECK 1/2 - BEFORE"
+
+# If all target files already comply, exit early (unless --force is used).
+all_compliant=1
+for target_file in "${TARGET_FILES[@]}"; do
+  if ! file_is_compliant "$target_file"; then
+    all_compliant=0
+    break
+  fi
+done
+
+if (( FORCE == 0 && all_compliant == 1 )); then
+  echo ""
+  echo "Initial check passed. No changes are needed."
+  exit 0
+fi
+
+if (( FORCE == 1 )); then
+  echo ""
+  echo "--force enabled: running enforcement even if already compliant."
+fi
 
 echo ""
 echo "Running directive enforcement for required files..."
