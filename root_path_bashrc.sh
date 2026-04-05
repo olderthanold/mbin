@@ -45,11 +45,31 @@ mapfile -t matches < <(
 match_count="${#matches[@]}"
 echo "Found $match_count matching line(s)."
 
+# Decide whether a file change is needed.
+need_change=1
+if (( match_count == 1 )); then
+  only_hit_text="${matches[0]#*:}"
+  if [[ "$only_hit_text" == "$ROOT_PATH_LINE" ]]; then
+    need_change=0
+  fi
+fi
+
+if (( need_change == 0 )); then
+  echo "[3/4] Already normalized. No changes needed."
+  echo "[4/4] Done. Root PATH mbin line already correct in: $ROOT_BASHRC"
+  exit 0
+fi
+
+# Backup only when a change is actually required.
+backup_file="${ROOT_BASHRC}.bak_$(date +%Y%m%d_%H%M%S)"
+echo "[3/4] Change needed. Creating backup: $backup_file"
+cp "$ROOT_BASHRC" "$backup_file"
+
 if (( match_count == 0 )); then
-  echo "[3/4] No existing mbin PATH line found. Appending normalized line."
+  echo "No existing mbin PATH line found. Appending normalized line."
   printf '\n%s\n' "$ROOT_PATH_LINE" >> "$ROOT_BASHRC"
 else
-  echo "[3/4] Looping through all matched lines:"
+  echo "Looping through all matched lines:"
   last_line_no=0
   idx=0
   for match in "${matches[@]}"; do
@@ -87,3 +107,4 @@ else
 fi
 
 echo "[4/4] Done. Root PATH mbin line cleaned and normalized in: $ROOT_BASHRC"
+echo "Backup kept at: $backup_file"
