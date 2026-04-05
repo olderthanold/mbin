@@ -1,3 +1,19 @@
+
+# ==== GIT ========================================================
+## ubuntu
+## ==== clone repo
+git clone -b main https://github.com/olderthanold/mbin.git
+## ==== update repo
+cd mbin && git pull origin main
+## 
+git add -A && git commit -m "update" && git push older-github main
+git add -A && git commit -m "update" && git push older-gitlab main
+
+# ==== Executables =================================================
+## make executable, single or recursive whole dir
+chmod +x ./*.sh
+chmod -R +x /path/to/dir
+
 # ==== Linux =============================================
 ## Update
 sudo apt-get update && sudo apt-get update -y
@@ -50,21 +66,6 @@ sudo systemctl restart ssh
 top
 ps all
 ps -f
-
-# ==== GIT ========================================================
-## ubuntu
-## ==== clone repo
-git clone -b main https://github.com/olderthanold/mbin.git
-## ==== update repo
-cd mbin && git pull origin main
-## 
-git add -A && git commit -m "update" && git push older-github main
-git add -A && git commit -m "update" && git push older-gitlab main
-
-# ==== Executables =================================================
-## make executable, single or recursive whole dir
-chmod +x ./*.sh
-chmod -R +x /path/to/dir
 ## ==== nohup 
 ### Run in background even if console closes
 ```bash
