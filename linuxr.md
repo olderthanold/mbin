@@ -12,7 +12,8 @@ git add -A && git commit -m "update" && git push older-gitlab main
 # ==== Executables =================================================
 ## make executable, single or recursive whole dir
 chmod +x ./*.sh
-chmod -R +x /path/to/dir
+chmod -R +x /path/to/dir        # enable execute
+chmod 777 -R /path/to/dir       # rwx to all
 
 # ==== Linux =============================================
 ## Update
@@ -33,7 +34,9 @@ nc
 ## list users
 awk -F: '$3>=1000 && $3<65534 {print $1}' /etc/passwd #non system users
 getent group sudo       #sudo group members
-
+## groups
+groups ubuntu
+sudo usermod -aG groupname username
 ### prepend to path
 export PATH="$PATH:$HOME$/mbin"
 

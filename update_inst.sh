@@ -1,5 +1,5 @@
 #!/bin/bash
-set -o pipefail  # Fail pipeline if any command fails
+set -euo pipefail  # Fail on errors/unset vars/pipeline failures
 
 echo "Running update_inst.sh v04"
 
@@ -17,5 +17,10 @@ if apt list --installed 2>/dev/null | grep -q '^mc/'; then
 else
     echo "mc not found in installed package list. Installing with: sudo apt install -y mc"
     sudo apt install -y mc
-    echo "✓ mc installed"
+    if apt list --installed 2>/dev/null | grep -q '^mc/'; then
+        echo "✓ mc installed"
+    else
+        echo "Error: mc installation did not complete successfully"
+        exit 1
+    fi
 fi

@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# web_cleanup.sh v01
+# web_cleanup.sh v02
 #
 # Purpose:
-#   Remove Nginx site entry and Let's Encrypt certificate artifacts for a domain.
+#   Remove Nginx and Let's Encrypt artifacts created for a domain by 0web flow.
 #
 # Args:
 #   $1 domain (optional; default: olderthanold.duckdns.org)
 #
 # Notes:
-#   - Leaves website content directory/home untouched.
-#   - Only removes Nginx site config/symlink and cert-related files.
+#   - Leaves website content directory untouched (default: /webs/<domain>).
+#   - Removes domain Nginx site config/symlink and certificate/renewal traces.
 
 DEFAULT_DOMAIN="olderthanold.duckdns.org"
 DOMAIN="${1:-$DEFAULT_DOMAIN}"
@@ -28,8 +28,10 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo "Running web_cleanup.sh v01"
+echo "Running web_cleanup.sh v02"
 echo "Target domain: $DOMAIN"
+
+WEBSITE_DIR="/webs/$DOMAIN"
 
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
@@ -75,9 +77,21 @@ if [[ -d "$LE_ARCHIVE_DIR" ]]; then
   echo "Removed: $LE_ARCHIVE_DIR"
 fi
 
+# Also remove duplicate lineage traces like <domain>-0001 created by certbot retries.
+shopt -s nullglob
+for f in /etc/letsencrypt/renewal/"$DOMAIN"-*.conf; do
+  rm -f "$f"
+  echo "Removed: $f"
+done
+for d in /etc/letsencrypt/live/"$DOMAIN"-* /etc/letsencrypt/archive/"$DOMAIN"-*; do
+  rm -rf "$d"
+  echo "Removed: $d"
+done
+shopt -u nullglob
+
 echo "[4/4] Testing and reloading Nginx..."
 nginx -t
 systemctl reload nginx
 
 echo "Done. Nginx entry and cert artifacts removed for: $DOMAIN"
-echo "Website home/content was intentionally left untouched."
+echo "Website content directory intentionally left untouched: $WEBSITE_DIR"
