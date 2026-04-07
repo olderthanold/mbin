@@ -10,7 +10,7 @@ This document describes the run order started by `0init.sh`, including step numb
 │     │  └─ update_inst.sh v03
 │     │     ├─ 1.[1/6].a apt_update_upgrade v03
 │     │     └─ 1.[1/6].b install_mc v03
-│     ├─ 1.[2/6] ssh_passwd_auth.sh v02
+│     ├─ 1.[2/6] ssh_passwd_auth.sh v04
 │     │  └─ ssh_passwd_auth.sh
 │     │     ├─ check_1_before: list non-commented hits/values for 3 directives
 │     │     ├─ compliance_check: exit with no changes unless --force

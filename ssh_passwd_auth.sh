@@ -19,7 +19,7 @@ TARGET_FILES=(
   "/etc/ssh/sshd_config.d/60-cloudimg-settings.conf"
 )
 
-echo "Running ssh_passwd_auth.sh v02"
+echo "Running ssh_passwd_auth.sh v04"
 
 # Optional flag: --force
 # - default (no flag): if initial compliance check passes, exit with no changes.
@@ -206,14 +206,25 @@ enforce_ssh_auth_directives() {
   echo ""
   echo "[3/5] Validating sshd config syntax with: $SSHD_BIN -t -f $target_file"
   if [[ -x "$SSHD_BIN" ]]; then
-    # On some systems /run/sshd may not exist until ssh service initialization.
-    # Ensure directory exists so validation does not fail with:
-    #   "Missing privilege separation directory: /run/sshd"
-    if [[ ! -d "/run/sshd" ]]; then
-      echo "Creating missing privilege separation directory: /run/sshd"
-      mkdir -p /run/sshd
-      chmod 755 /run/sshd
-    fi
+    # On freshly booted instances, /run/sshd may not exist yet.
+    # Prompt user before validation if directory is still missing.
+    while [[ ! -d "/run/sshd" ]]; do
+      echo "Required runtime directory is missing: /run/sshd"
+      echo "Choose action: [R]etry check (default) or [Q]uit"
+      read -r -p "> " user_choice
+      user_choice="${user_choice:-R}"
+
+      case "$user_choice" in
+        [Qq])
+          echo "User chose to quit because /run/sshd is not present yet."
+          return 1
+          ;;
+        *)
+          echo "Retrying /run/sshd presence check..."
+          ;;
+      esac
+    done
+
     "$SSHD_BIN" -t -f "$target_file"
   else
     echo "Warning: $SSHD_BIN not found/executable, skipping validation step."

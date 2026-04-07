@@ -37,7 +37,7 @@ echo "1.[1/6] update_inst.sh v03 - update apt packages and install base tools (m
 bash "$SCRIPT_DIR/update_inst.sh"
 
 echo "_________________________________________________________________________"
-echo "1.[2/6] ssh_passwd_auth.sh v02 - enable SSH password + keyboard-interactive auth (PAM)"
+echo "1.[2/6] ssh_passwd_auth.sh v04 - enable SSH password + keyboard-interactive auth (PAM)"
 bash "$SCRIPT_DIR/ssh_passwd_auth.sh"
 
 echo "_________________________________________________________________________"
