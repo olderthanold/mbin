@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e  # Stop on first error
 
-# web_entry_nginx.sh v07
+# web_entry_nginx.sh v09
 #
 # Args:
 #   $1 website/domain (optional; default: olderthanold.duckdns.org)
@@ -27,7 +27,7 @@ fi
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 
-echo "Running web_entry_nginx.sh v07"
+echo "Running web_entry_nginx.sh v09"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 
@@ -36,8 +36,8 @@ OWNER_USER="${SUDO_USER:-${USER:-$(whoami)}}"
 OWNER_GROUP="$(id -gn "$OWNER_USER" 2>/dev/null || echo "$OWNER_USER")"
 
 if [ -f "$NGINX_AVAILABLE" ]; then
-    echo "Config already exists at $NGINX_AVAILABLE. Exiting."
-    exit 1
+    echo "Config already exists at $NGINX_AVAILABLE. Skipping create step (idempotent)."
+    exit 0
 fi
 
 if [ -d "$WEB_ROOT" ]; then
@@ -57,7 +57,7 @@ fi
 # Only seed default page content when directory was created by this run.
 if [ "$CREATED_WEB_ROOT" = "true" ]; then
     TEMPLATE_HTML="/var/www/html/index.nginx-debian.html"
-    TARGET_HTML="$WEB_ROOT/index.nginx-debian.html"
+    TARGET_HTML="$WEB_ROOT/index.htm"
     USERNAME_VALUE="$OWNER_USER"
 
     if [ -f "$TEMPLATE_HTML" ]; then
