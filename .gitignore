@@ -1,6 +1,9 @@
 gitilinxp.bat
 gitnoprox.bat
 gitproxtest.bat
+
 root
 ssh
 sudoers.d
+
+ai_prompt.txt
