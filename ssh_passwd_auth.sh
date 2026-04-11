@@ -207,23 +207,23 @@ enforce_ssh_auth_directives() {
   echo "[3/5] Validating sshd config syntax with: $SSHD_BIN -t -f $target_file"
   if [[ -x "$SSHD_BIN" ]]; then
     # On freshly booted instances, /run/sshd may not exist yet.
-    # Prompt user before validation if directory is still missing.
-    while [[ ! -d "/run/sshd" ]]; do
+    # Wait non-interactively and poll every 1s.
+    local wait_cycles=0
+    if [[ ! -d "/run/sshd" ]]; then
       echo "Required runtime directory is missing: /run/sshd"
-      echo "Choose action: [R]etry check (default) or [Q]uit"
-      read -r -p "> " user_choice
-      user_choice="${user_choice:-R}"
+      echo "Waiting for /run/sshd to appear. Press Ctrl-C to interrupt."
+    fi
 
-      case "$user_choice" in
-        [Qq])
-          echo "User chose to quit because /run/sshd is not present yet."
-          return 1
-          ;;
-        *)
-          echo "Retrying /run/sshd presence check..."
-          ;;
-      esac
+    while [[ ! -d "/run/sshd" ]]; do
+      wait_cycles=$((wait_cycles + 1))
+      printf '\rWaiting for /run/sshd... %ds (%d checks). Press Ctrl-C to interrupt.' "$wait_cycles" "$wait_cycles"
+      sleep 1
     done
+
+    if (( wait_cycles > 0 )); then
+      printf '\n'
+      echo "/run/sshd detected after ${wait_cycles}s."
+    fi
 
     "$SSHD_BIN" -t -f "$target_file"
   else
