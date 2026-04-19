@@ -1,6 +1,42 @@
 
 # ==== GIT ========================================================
-## ubuntu
+## ubuntu!!
+nano ~/.ssh/config
+### put in:
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/old.key
+    IdentitiesOnly yes
+
+Host gitlab.com
+    HostName gitlab.com
+    User git
+    IdentityFile ~/.ssh/old.key
+    IdentitiesOnly yes
+### then
+add key to ~/.ssh/old.key
+
+chmod 600 ~/.ssh/old.key
+chmod 600 ~/.ssh/config
+cd ~
+git clone git@github.com:olderthanold/m.git ~/m
+git config user.email "olderthanold@gmail.com"
+git config user.name "olderthanold"
+git remote add github git@github.com:username/m.git
+git remote add gitlab git@gitlab.com:username/m.git
+git remote set-url --add --push origin git@github.com:olderthanold/m.git
+git remote set-url --add --push origin git@gitlab.com:olderthanold/m.git
+git remote -v
+git add .
+git pull
+git push
+
+git add .
+commit -m "ubuntucommit $(date +"%Y-%m-%d %H:%M:%S")"
+git push
+
+
 ## ==== clone repo
 git clone -b main https://github.com/olderthanold/mbin.git
 ## ==== update repo
