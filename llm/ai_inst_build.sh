@@ -10,13 +10,13 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 # Step 1: Refresh apt package index metadata.
-echo -e "${GREEN}==> Step 1/6: Updating apt package index...${NC}"
+echo -e "${GREEN}==> Step 1/5: Updating apt package index...${NC}"
 sudo apt update
 
 # Step 2: Install required packages.
 # apt install -y:
 #   -y automatically answers "yes" to prompts for non-interactive installs.
-echo -e "${GREEN}==> Step 2/6: Installing dependencies (git, build-essential, cmake, python3, curl)...${NC}"
+echo -e "${GREEN}==> Step 2/5: Installing dependencies (git, build-essential, cmake, python3, curl)...${NC}"
 sudo apt install -y \
   git \
   build-essential \
@@ -25,7 +25,7 @@ sudo apt install -y \
   curl
 
 # Install uv (Python package manager)
-echo -e "${GREEN}==> Step 3/6: Ensuring uv is installed...${NC}"
+echo -e "${GREEN}==> Step 3/5: Ensuring uv is installed...${NC}"
 if ! command -v uv &> /dev/null; then
     echo -e "${GREEN}Installing uv...${NC}"
     # curl options:
@@ -38,28 +38,8 @@ fi
 # Print uv version to verify installation and PATH.
 uv --version
 
-# Prefer Homebrew package when available (faster and simpler than source build)
-echo -e "${GREEN}==> Step 4/6: Checking for Homebrew-based llama.cpp install path...${NC}"
-if command -v brew &> /dev/null; then
-    echo -e "${GREEN}Homebrew detected. Installing/upgrading llama.cpp via brew...${NC}"
-    # Install llama.cpp formula (or upgrade if already installed)
-    if brew list --formula | grep -q '^llama\.cpp$'; then
-        echo -e "${GREEN}llama.cpp formula found. Running brew upgrade llama.cpp${NC}"
-        brew upgrade llama.cpp
-    else
-        echo -e "${GREEN}llama.cpp formula not found. Running brew install llama.cpp${NC}"
-        brew install llama.cpp
-    fi
-
-    echo -e "${GREEN}Homebrew llama.cpp binaries are typically available on PATH.${NC}"
-    # Verify installed binaries and print detected paths
-    command -v llama-server || true
-    command -v llama-cli || true
-    exit 0
-fi
-
 # Handling llama.cpp (CPU Only)
-echo -e "${GREEN}==> Step 5/6: Using source-build fallback for llama.cpp (CPU only)...${NC}"
+echo -e "${GREEN}==> Step 4/5: Building/updating llama.cpp from source (CPU only)...${NC}"
 mkdir -p ~/ai
 cd ~/ai
 
@@ -101,7 +81,7 @@ else
     echo -e "${GREEN}===== llama.cpp is already built and up to date =====${NC}"
 fi
 
-echo -e "${GREEN}==> Step 6/6: Final binary output paths${NC}"
+echo -e "${GREEN}==> Step 5/5: Final binary output paths${NC}"
 echo -e "${GREEN}Binaries are located at:${NC}"
 echo "$HOME/ai/llama.cpp/build/bin/llama-server"
 echo "$HOME/ai/llama.cpp/build/bin/llama-cli"
