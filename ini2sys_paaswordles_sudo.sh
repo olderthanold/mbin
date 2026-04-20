@@ -23,7 +23,7 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running init_2_system_paaswordles_sudo.sh v01${NC}"
+echo -e "${YELLOW}Running ini2sys_paaswordles_sudo.sh v02${NC}"
 
 SUDOERS_DIR="/etc/sudoers.d"
 RULE_LINE='%sudo ALL=(ALL:ALL) NOPASSWD:ALL'

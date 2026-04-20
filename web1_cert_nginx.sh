@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web_1_cert_nginx.sh v02
+# web1_cert_nginx.sh v03
 #
 # Purpose:
 #   Obtain and configure an auto-renewable Let's Encrypt certificate for Nginx.
@@ -111,7 +111,7 @@ fi
 CERT_FULLCHAIN="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 CERT_PRIVKEY="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
 
-echo -e "${YELLOW}Running web_1_cert_nginx.sh v02${NC}"
+echo -e "${YELLOW}Running web1_cert_nginx.sh v03${NC}"
 echo "Target domain: $DOMAIN"
 echo -e "${YELLOW}[1/5] Ensuring certbot + nginx plugin are installed (this may take a while)...${NC}"
 apt-get update -y

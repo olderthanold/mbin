@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web_1_entry_nginx.sh v09
+# web1_entry_nginx.sh v10
 #
 # Args:
 #   $1 website/domain (optional; default: olderthanold.duckdns.org)
@@ -32,7 +32,7 @@ fi
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 
-echo -e "${YELLOW}Running web_1_entry_nginx.sh v09${NC}"
+echo -e "${YELLOW}Running web1_entry_nginx.sh v10${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 

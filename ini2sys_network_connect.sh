@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 ###############################################################################
 
 echo ""
-echo -e "${YELLOW}Running init_2_system_network_connect.sh v01${NC}"
+echo -e "${YELLOW}Running ini2sys_network_connect.sh v02${NC}"
 echo -e "${YELLOW}Checking nginx, outbound connectivity, HTTP and HTTPS reachability...${NC}"
 
 echo -e "${YELLOW}network_connect.[1/3] nginx_install_check v01 - Installing/checking Nginx web server...${NC}"

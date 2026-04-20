@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# init_2_system_global_path_profile.sh v04
+# ini2sys_global_path_profile.sh v05
 #
 # Purpose:
 #   Configure one global PATH entry for all users via /etc/profile.d.
@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 #   - Ensures /opt/mbin exists
 #   - Writes /etc/profile.d/mbin.sh for login shells
 #   - Ensures /root/.bashrc has one effective non-commented PATH line for /opt/mbin
-#   - Reuses existing passwordless-sudo drop-in location (from init_2_system_paaswordles_sudo.sh logic)
+#   - Reuses existing passwordless-sudo drop-in location (from ini2sys_paaswordles_sudo.sh logic)
 #     to ensure sudo secure_path includes /opt/mbin (no extra arbitrary sudoers file)
 
 if [[ "${EUID}" -ne 0 ]]; then
@@ -23,7 +23,7 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running init_2_system_global_path_profile.sh v04${NC}"
+echo -e "${YELLOW}Running ini2sys_global_path_profile.sh v05${NC}"
 
 MBIN_DIR="/opt/mbin"
 PROFILE_FILE="/etc/profile.d/mbin.sh"
@@ -107,7 +107,7 @@ done
 
 if [[ -z "$target_sudoers_file" ]]; then
   echo -e "${RED}Error: no existing passwordless-sudo file found in $SUDOERS_DIR.${NC}"
-  echo "Run init_2_system_paaswordles_sudo.sh first, then re-run this script."
+  echo "Run ini2sys_paaswordles_sudo.sh first, then re-run this script."
   exit 1
 fi
 

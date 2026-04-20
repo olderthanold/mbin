@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 ###############################################################################
 
 echo ""
-echo -e "${YELLOW}Running init_2_system_network_iptables.sh v01${NC}"
+echo -e "${YELLOW}Running ini2sys_network_iptables.sh v02${NC}"
 echo -e "${YELLOW}Configuring iptables firewall and persistence...${NC}"
 
 # Install package with retry when apt/dpkg frontend lock is temporarily held.

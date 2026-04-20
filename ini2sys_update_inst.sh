@@ -6,16 +6,16 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}Running init_2_system_update_inst.sh v04${NC}"
+echo -e "${YELLOW}Running ini2sys_update_inst.sh v05${NC}"
 
 echo -e "${YELLOW}_________________________________________________________________________${NC}"
-echo "1.[1/6].a apt_update_upgrade v04 - Updating system packages..."
+echo "1.[1/7].a apt_update_upgrade v05 - Updating system packages..."
 sudo apt-get update  # Refresh package index
 sudo apt-get upgrade -y  # Upgrade installed packages
 echo "✓ System packages updated successfully"
 
 echo -e "${YELLOW}_________________________________________________________________________${NC}"
-echo "1.[1/6].b install_mc v04 - Installing Midnight Commander (mc)..."
+echo "1.[1/7].b install_mc v05 - Installing Midnight Commander (mc)..."
 echo -e "${YELLOW}Checking installed package list for mc...${NC}"
 if apt list --installed 2>/dev/null | grep -q '^mc/'; then
     echo "✓ mc already installed"

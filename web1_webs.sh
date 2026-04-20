@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web_1_webs.sh v02
+# web1_webs.sh v03
 #
 # Purpose:
 #   Ensure shared /webs directory exists, owned by www-data, and world-writable.
@@ -16,7 +16,7 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running web_1_webs.sh v02${NC}"
+echo -e "${YELLOW}Running web1_webs.sh v03${NC}"
 
 WEBS_DIR="/webs"
 

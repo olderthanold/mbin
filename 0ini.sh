@@ -18,7 +18,7 @@ require_file() {
 }
 
 for f in \
-  "$SCRIPT_DIR/init_1_system.sh" \
+  "$SCRIPT_DIR/ini1sys_.sh" \
   "$SCRIPT_DIR/init_1_user.sh"; do
   require_file "$f"
 done
@@ -29,16 +29,16 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running init_0_main.sh v03 (init_1_system + init_1_user)${NC}"
+echo -e "${YELLOW}Running 0ini.sh v04 (ini1sys_ + init_1_user)${NC}"
 
 echo -e "${YELLOW}═════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${YELLOW}[1/2] init_1_system.sh v11 - server-level setup${NC}"
-bash "$SCRIPT_DIR/init_1_system.sh"
+echo -e "${YELLOW}[1/2] ini1sys_.sh v12 - server-level setup${NC}"
+bash "$SCRIPT_DIR/ini1sys_.sh"
 
 echo -e "${YELLOW}═════════════════════════════════════════════════════════════════════════${NC}"
 echo -e "${YELLOW}[2/2] init_1_user.sh v05 - user-level setup${NC}"
 bash "$SCRIPT_DIR/init_1_user.sh" "$TARGET_USER"
 
 echo ""
-echo -e "${GREEN}init_0_main complete. Server-level and user-level setup finished.${NC}"
+echo -e "${GREEN}0ini complete. Server-level and user-level setup finished.${NC}"
 echo "Safe to run again (idempotent where possible)."
