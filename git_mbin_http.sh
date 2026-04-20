@@ -18,7 +18,7 @@ if [[ "${EUID}" -ne 0 ]]; then
 fi
 
 # Pull latest changes from GitHub repository
-if ! git -C "$MBIN_DIR" pull origin main; then
+if ! git -C "$MBIN_DIR" pull https://github.com/olderthanold/mbin.git main; then
   # Recovery mode if initial pull fails
 
   recovery_stash_ref=""
@@ -31,7 +31,7 @@ if ! git -C "$MBIN_DIR" pull origin main; then
   fi
 
   # Try pull with rebase to handle conflicts better
-  if git -C "$MBIN_DIR" pull --rebase origin main; then
+  if git -C "$MBIN_DIR" pull --rebase https://github.com/olderthanold/mbin.git main; then
     echo "Recovery pull --rebase succeeded."
     # Clean up the stash we created
     if [[ -n "$recovery_stash_ref" ]]; then

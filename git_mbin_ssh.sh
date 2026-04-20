@@ -31,7 +31,7 @@ if ! GIT_SSH_COMMAND="ssh -i /home/ubun2/.ssh/old.key" git -C "$MBIN_DIR" pull g
   fi
 
   # Try pull with rebase to handle conflicts better
-  if git -C "$MBIN_DIR" pull --rebase origin main; then
+  if git -C "$MBIN_DIR" pull --rebase git@github.com:olderthanold/mbin.git main; then
     echo "Recovery pull --rebase succeeded."
     # Clean up the stash we created
     if [[ -n "$recovery_stash_ref" ]]; then
