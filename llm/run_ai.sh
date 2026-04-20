@@ -10,3 +10,5 @@
  -t 6 \
  -c 16384 \
  --port 8080
+
+llama-server -hf ggml-org/gemma-3-1b-it-GGUF:Q4_K_M --host 0.0.0.0 --port 8080
