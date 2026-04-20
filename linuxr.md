@@ -1,6 +1,4 @@
-
-# ==== GIT ========================================================
-## ubuntu!!
+## ==== ssh ======================================================
 nano ~/.ssh/config
 ### put in:
 Host github.com
@@ -20,6 +18,7 @@ add key to ~/.ssh/old.key
 chmod 600 ~/.ssh/old.key
 chmod 600 ~/.ssh/config
 cd ~
+# ==== git ==============================================================
 git clone git@github.com:olderthanold/m.git ~/m
 git config user.email "olderthanold@gmail.com"
 git config user.name "olderthanold"
@@ -36,29 +35,26 @@ git add .
 commit -m "ubuntucommit $(date +"%Y-%m-%d %H:%M:%S")"
 git push
 
-
 ## ==== clone repo
-git clone -b main https://github.com/olderthanold/mbin.git
+git clone -b main https://github.com/olderthanold/mbin.git ~/mm
 ## ==== update repo
-cd mbin && git pull origin main
-## 
-git add -A && git commit -m "update" && git push older-github main
-git add -A && git commit -m "update" && git push older-gitlab main
+git -C ~/mm pull origin main
+## ==== push
+git add -A && git commit -m "update" && git push https://github.com/olderthanold/mbin.git main
+git add -A && git commit -m "update" && git push https://gitlab.com/olderthanold/mbin.git main
 
-# ==== Executables =================================================
+# ==== Executables ======================================================
 ## make executable, single or recursive whole dir
 chmod +x ./*.sh
 chmod -R +x /path/to/dir        # enable execute
 chmod 777 -R /path/to/dir       # rwx to all
 
-# ==== Linux =============================================
+# ==== Linux =========================================================
 ## Update
 sudo apt-get update && sudo apt-get update -y
-
 ## install packages
 sudo apt install nginx
 sudo apt install mc
-
 ## ==== .bashrc =  autoexec
 env # environment variables
 touch # create empty file
@@ -101,6 +97,52 @@ UsePAM yes
 ### then restart shell
 sudo systemctl restart ssh
 
+# ==== MEMORY SWAP ====================================================
+## create
+sudo fallocate -l 5G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+# persist
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+## check
+swapon --show
+free -h
+
+# ==== DISKS ========================================================
+df -h /dev/sda1 # diskfree
+## ==== Disks list mountable
+sudo fdisk -l
+lsblk
+sudo parted -l
+
+# ==== NETWORK ADDRESSES ===========================================
+## emp
+150.136.59.72
+## oldb
+129.159.30.72
+## ocic
+89.168.88.88
+## lada
+92.5.117.49
+##
+oldneues.duckdns.org
+olderbitch.duckdns.org
+olderthanold.duckdns.org
+olderthanold.cloudns.cx
+
+# ==== add to .bashrc ================================================
+echo -e "\033[0;32m =---------- ps -la ----------= \033[0m"
+ps -la
+echo -e "\033[0;32m =---------- echo -e ----------= \033[0m"
+swapon --show
+echo -e "\033[0;32m =---------- free -h ----------= \033[0m"
+free -h
+echo -e "\033[0;32m =---------- df -h /dev/sda1 ----------= \033[0m"
+df -h /dev/sda1
+echo -e "\033[1;33m =---------- .bashrc done ----------= \033[0m"
+
 # ==== PROCESSES ====================================================
 top
 ps all
@@ -120,44 +162,44 @@ tail -f clone.log
 /proc
 tail -f /proc/<pid>/fd/1
 
-# ==== MEMORY SWAP ====================================================
-## create
-sudo fallocate -l 5G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-# persist
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+# ==== nohup ================================================
 
-## check
-swapon --show
-free -h
+# run build detached from terminal, log output to file
+```bash
+nohup /opt/mbin/ai/aibuild.sh > build.log 2>&1 &
+nohup /opt/mbin/ai/aibuild.sh > build.log 2> error.log &
+nohup sudo -E bash -c "export PATH=$PATH; ociamp.sh" > ociamp.log 2>&1 && touch ociamp_script_completed.txt &
+echo $!
+nohup bash -c 'sudo -E bash -c "export PATH=$PATH; ociamp.sh" && touch ociamp_script_completed.txt' > ociamp.log 2>error.log &
+echo $!
+```
+# explanation:
+# nohup      = ignore terminal disconnect (SIGHUP)
+# > build.log = stdout to file
+# 2>&1       = stderr to same file / error.log
+# &          = run in background
 
-# ==== DISKS ========================================================
-## ==== Disks list mountable
-sudo fdisk -l
-df
-lsblk
-sudo parted -l
+# check if running
+pgrep -af aibuild.sh
 
-# ==== NETWORK ADDRESSES ===========================================
-## emp
-157.151.234.209
-olderemp.duckdns.org
-## old
-92.5.32.30
-olderthanold.duckdns.org
-olderthanold.cloudns.cx
-## old2
-89.168.88.88
+# monitor output
+tail -f build.log
 
-# ==== add to .bashrc ================================================
-echo -e "\033[0;32m =---------- ps -la ----------= \033[0m"
-ps -la
-echo -e "\033[0;32m =---------- echo -e ----------= \033[0m"
-swapon --show
-echo -e "\033[0;32m =---------- free -h ----------= \033[0m"
-free -h
-echo -e "\033[0;32m =---------- df -h /dev/sda1 ----------= \033[0m"
-df -h /dev/sda1
-echo -e "\033[1;33m =---------- .bashrc done ----------= \033[0m"
+# stop if needed
+kill -9 <PID>
+
+# ==== tmux ================================================
+# install tmux (only once)
+sudo apt install tmux
+# start a new tmux session named "build"
+tmux new -s build
+# inside tmux: run your build script
+/opt/mbin/ai/aibuild.sh
+# detach from tmux (leave build running)
+## press: Ctrl+b then d
+# later: list tmux sessions
+tmux ls
+# reattach to the session
+tmux attach -t build
+# (optional) kill the session when done
+tmux kill-session -t build
