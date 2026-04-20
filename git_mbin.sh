@@ -18,7 +18,7 @@ if [[ "${EUID}" -ne 0 ]]; then
 fi
 
 # Pull latest changes from GitHub repository
-if ! git -C "$MBIN_DIR" pull git@github.com:olderthanold/m.git main; then
+if ! GIT_SSH_COMMAND="ssh -i /home/ubun2/.ssh/old.key" git -C "$MBIN_DIR" pull git@github.com:olderthanold/mbin.git main; then
   # Recovery mode if initial pull fails
   
   recovery_stash_ref=""
@@ -42,7 +42,7 @@ if ! git -C "$MBIN_DIR" pull git@github.com:olderthanold/m.git main; then
     # Last resort: recreate the directory entirely
     echo "Recovery pull --rebase failed, recreating $MBIN_DIR"
     rm -rf "$MBIN_DIR"
-    git clone -b main git@github.com:olderthanold/m.git "$MBIN_DIR"
+    GIT_SSH_COMMAND="ssh -i /home/ubun2/.ssh/old.key" git clone -b main git@github.com:olderthanold/mbin.git "$MBIN_DIR"
   fi
 fi
 
