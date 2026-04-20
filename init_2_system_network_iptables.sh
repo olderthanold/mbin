@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 ###############################################################################
 # Network firewall setup (iptables + persistence).
 # Safe to re-run: rules are rebuilt deterministically.
 ###############################################################################
 
 echo ""
-echo "Running init_2_system_network_iptables.sh v01"
-echo "Configuring iptables firewall and persistence..."
+echo -e "${YELLOW}Running init_2_system_network_iptables.sh v01${NC}"
+echo -e "${YELLOW}Configuring iptables firewall and persistence...${NC}"
 
 # Install package with retry when apt/dpkg frontend lock is temporarily held.
 apt_install_with_lock_retry() {
@@ -34,7 +39,7 @@ apt_install_with_lock_retry() {
 }
 
 echo ""
-echo "=== CURRENT INPUT CHAIN ==="
+echo -e "${YELLOW}=== CURRENT INPUT CHAIN ===${NC}"
 sudo iptables -L INPUT --line-numbers -v
 
 echo ""
@@ -54,11 +59,11 @@ sudo iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 echo "✓ INPUT firewall rules configured (SSH, HTTP, HTTPS allowed)"
 
 echo ""
-echo "=== CURRENT OUTPUT CHAIN ==="
+echo -e "${YELLOW}=== CURRENT OUTPUT CHAIN ===${NC}"
 sudo iptables -L OUTPUT --line-numbers -v
 
 echo ""
-echo "Configuring OUTPUT rules..."
+echo -e "${YELLOW}Configuring OUTPUT rules...${NC}"
 
 # === OUTPUT CHAIN CONFIGURATION (outbound) ===
 sudo iptables -F OUTPUT  # Flush OUTPUT chain
@@ -67,11 +72,11 @@ sudo iptables -P OUTPUT ACCEPT  # Allow outbound traffic
 echo "✓ OUTPUT firewall rules configured (all outgoing allowed)"
 
 echo ""
-echo "=== FINAL INPUT CHAIN ==="
+echo -e "${YELLOW}=== FINAL INPUT CHAIN ===${NC}"
 sudo iptables -L INPUT -v --line-numbers
 
 echo ""
-echo "=== FINAL OUTPUT CHAIN ==="
+echo -e "${YELLOW}=== FINAL OUTPUT CHAIN ===${NC}"
 sudo iptables -L OUTPUT -v --line-numbers
 
 echo ""
@@ -84,8 +89,8 @@ else
     if apt_install_with_lock_retry iptables-persistent; then
         echo "✓ iptables-persistent installed successfully"
     else
-        echo "⚠ Failed to install iptables-persistent after retries (apt lock may still be active)."
-        echo "  Skipping persistent save for now; re-run later when apt is free."
+        echo -e "${YELLOW}⚠ Failed to install iptables-persistent after retries (apt lock may still be active).${NC}"
+        echo -e "${YELLOW}  Skipping persistent save for now; re-run later when apt is free.${NC}"
         exit 0
     fi
 fi

@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e  # Stop on first error
 
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # web_1_entry_nginx.sh v09
 #
 # Args:
@@ -27,7 +32,7 @@ fi
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 
-echo "Running web_1_entry_nginx.sh v09"
+echo -e "${YELLOW}Running web_1_entry_nginx.sh v09${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 
@@ -36,7 +41,7 @@ OWNER_USER="${SUDO_USER:-${USER:-$(whoami)}}"
 OWNER_GROUP="$(id -gn "$OWNER_USER" 2>/dev/null || echo "$OWNER_USER")"
 
 if [ -f "$NGINX_AVAILABLE" ]; then
-    echo "Config already exists at $NGINX_AVAILABLE. Skipping create step (idempotent)."
+    echo -e "${YELLOW}Config already exists at $NGINX_AVAILABLE. Skipping create step (idempotent).${NC}"
     exit 0
 fi
 
@@ -71,7 +76,7 @@ if [ "$CREATED_WEB_ROOT" = "true" ]; then
         echo "Assigned owner: $OWNER_USER:$OWNER_GROUP"
         echo "Assigned permissions: rwxr-xr-x"
     else
-        echo "Template not found (skip copy): $TEMPLATE_HTML"
+        echo -e "${YELLOW}Template not found (skip copy): $TEMPLATE_HTML${NC}"
     fi
 fi
 

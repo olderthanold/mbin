@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # Ensure sudo group has passwordless sudo rule:
 #   %sudo ALL=(ALL:ALL) NOPASSWD:ALL
 #
@@ -14,17 +19,17 @@ set -euo pipefail
 #            and write rule there
 
 if [[ "${EUID}" -ne 0 ]]; then
-  echo "Error: run as root (use sudo)."
+  echo -e "${RED}Error: run as root (use sudo).${NC}"
   exit 1
 fi
 
-echo "Running init_2_system_paaswordles_sudo.sh v01"
+echo -e "${YELLOW}Running init_2_system_paaswordles_sudo.sh v01${NC}"
 
 SUDOERS_DIR="/etc/sudoers.d"
 RULE_LINE='%sudo ALL=(ALL:ALL) NOPASSWD:ALL'
 
 if [[ ! -d "$SUDOERS_DIR" ]]; then
-  echo "Error: sudoers include directory not found: $SUDOERS_DIR"
+  echo -e "${RED}Error: sudoers include directory not found: $SUDOERS_DIR${NC}"
   exit 1
 fi
 
@@ -38,7 +43,7 @@ has_passwordless_sudo_rule() {
   ' "$file"
 }
 
-echo "[1/5] Listing files in $SUDOERS_DIR ..."
+echo -e "${YELLOW}[1/5] Listing files in $SUDOERS_DIR ...${NC}"
 mapfile -t sudoers_files < <(find "$SUDOERS_DIR" -maxdepth 1 -type f -printf "%f\n" | LC_ALL=C sort)
 
 file_count="${#sudoers_files[@]}"
@@ -51,13 +56,13 @@ else
   base_name="${sudoers_files[file_count-1]}"
 fi
 
-echo "[2/5] Looping through files and checking for passwordless sudo rule..."
+echo -e "${YELLOW}[2/5] Looping through files and checking for passwordless sudo rule...${NC}"
 found_any=0
 last_mmm_file=""
 
 for name in "${sudoers_files[@]}"; do
   file="$SUDOERS_DIR/$name"
-  echo "- Checking: $file"
+  echo -e "${YELLOW}- Checking: $file${NC}"
 
   if [[ "$name" == *mmm ]]; then
     last_mmm_file="$file"  # Keep lexicographically last *mmm due to sorted input.
@@ -70,13 +75,13 @@ for name in "${sudoers_files[@]}"; do
 done
 
 if (( found_any == 1 )); then
-  echo "[3/5] Passwordless sudo rule already present. No changes needed."
-  echo "[4/5] Skipping file creation/append."
-  echo "[5/5] Done."
+  echo -e "${YELLOW}[3/5] Passwordless sudo rule already present. No changes needed.${NC}"
+  echo -e "${YELLOW}[4/5] Skipping file creation/append.${NC}"
+  echo -e "${YELLOW}[5/5] Done.${NC}"
   exit 0
 fi
 
-echo "[3/5] Passwordless sudo rule not found in any file."
+echo -e "${YELLOW}[3/5] Passwordless sudo rule not found in any file.${NC}"
 
 if [[ -n "$last_mmm_file" ]]; then
   target_file="$last_mmm_file"
@@ -96,7 +101,7 @@ fi
 
 chmod 440 "$target_file"
 
-echo "[4/5] Validating sudoers drop-in with visudo..."
+echo -e "${YELLOW}[4/5] Validating sudoers drop-in with visudo...${NC}"
 visudo -cf "$target_file" >/dev/null
 
-echo "[5/5] Done. Ensured passwordless sudo rule in: $target_file"
+echo -e "${YELLOW}[5/5] Done. Ensured passwordless sudo rule in: $target_file${NC}"

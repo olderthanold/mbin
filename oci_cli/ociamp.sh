@@ -41,7 +41,7 @@ while true; do
             echo "Instance created successfully in $AVAILABILITY_DOMAIN."
             exit 0  # Exit the script after successful execution
         else
-            echo "Failed to launch instance in $AVAILABILITY_DOMAIN. Trying the next one..."
+            echo -e "${YELLOW}Failed to launch instance in $AVAILABILITY_DOMAIN. Trying the next one...${NC}"
             sleep 3  # Wait 3 seconds before trying the next domain
         fi
     done

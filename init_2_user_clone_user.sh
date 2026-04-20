@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail  # Stop on errors/unset vars
 
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # Require: new username
 [[ $# -lt 1 ]] && { echo "Usage: sudo bash $0 <new_user> [source_user]"; exit 1; }
 # Must run as root
 [[ $EUID -ne 0 ]] && { echo "Run with sudo/root"; exit 1; }
 
-echo "Running init_2_user_clone_user.sh v01"
+echo -e "${YELLOW}Running init_2_user_clone_user.sh v01${NC}"
 
 NEW_USER="$1"  # New account name
 SOURCE_USER="${2:-${SUDO_USER:-$(id -un)}}"  # Source account

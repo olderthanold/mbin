@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # Reverts user account changes made by init_2_user_clone_user.sh for a cloned user:
 # - removes /etc/sudoers.d/90-<user>-nopasswd when present (legacy cleanup only)
 # - removes the user from system (and home/mail spool)
@@ -30,7 +35,7 @@ USAGE
 
 run_cmd() {
   if [[ "$DRY_RUN" == "true" ]]; then
-    echo "[dry-run] $*"
+    echo -e "${YELLOW}[dry-run] $*${NC}"
   else
     "$@"
   fi
@@ -57,7 +62,7 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 fi
 
 if [[ "$EUID" -ne 0 ]]; then
-  echo "Error: run as root (use sudo)."
+  echo -e "${RED}Error: run as root (use sudo).${NC}"
   exit 1
 fi
 
@@ -111,7 +116,7 @@ if ! getent passwd "$TARGET_USER" >/dev/null 2>&1; then
   exit 0
 fi
 
-echo "Running delete_cloned_user.sh v02"
+echo -e "${YELLOW}Running delete_cloned_user.sh v02${NC}"
 echo "Target user: $TARGET_USER"
 echo "Force mode: $FORCE"
 echo "Dry-run mode: $DRY_RUN"
@@ -125,14 +130,14 @@ if ! has_other_sudo_member && [[ "$FORCE" != "true" ]]; then
   exit 1
 fi
 
-echo "[1/4] stop_user_processes v01"
+echo -e "${YELLOW}[1/4] stop_user_processes v01${NC}"
 if [[ "$DRY_RUN" == "true" ]]; then
-  echo "[dry-run] pkill -u $TARGET_USER"
+  echo -e "${YELLOW}[dry-run] pkill -u $TARGET_USER${NC}"
 else
   pkill -u "$TARGET_USER" 2>/dev/null || true
 fi
 
-echo "[2/4] remove_nopasswd_sudoers v01"
+echo -e "${YELLOW}[2/4] remove_nopasswd_sudoers v01${NC}"
 if [[ -f "$SUDOERS_FILE" ]]; then
   run_cmd rm -f "$SUDOERS_FILE"
   echo "Removed: $SUDOERS_FILE"
@@ -140,11 +145,11 @@ else
   echo "No sudoers override file found for user (skip)."
 fi
 
-echo "[3/4] delete_user_account v01"
+echo -e "${YELLOW}[3/4] delete_user_account v01${NC}"
 run_cmd userdel -r "$TARGET_USER"
 echo "Deleted user and home/mail: $TARGET_USER"
 
-echo "[4/4] cleanup_private_group v01"
+echo -e "${YELLOW}[4/4] cleanup_private_group v01${NC}"
 if getent group "$TARGET_USER" >/dev/null 2>&1; then
   if run_cmd groupdel "$TARGET_USER" 2>/dev/null; then
     echo "Removed private group: $TARGET_USER"
@@ -155,4 +160,4 @@ else
   echo "No matching private group to remove."
 fi
 
-echo "Done. Revert complete for cloned user: $TARGET_USER"
+echo -e "${GREEN}Done. Revert complete for cloned user: $TARGET_USER${NC}"

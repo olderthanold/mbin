@@ -25,6 +25,11 @@
 
 set -euo pipefail
 
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # -----------------------------
 # Default configuration values
 # -----------------------------
@@ -44,7 +49,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "[ERROR] Unknown argument: $1"
+      echo -e "${YELLOW}[ERROR] Unknown argument: $1${NC}"
       echo "Use --help to see available options."
       exit 1
       ;;
@@ -55,15 +60,15 @@ done
 # Simple logger helper
 # -----------------------------
 log() {
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+  echo -e "${YELLOW}[$(date '+%Y-%m-%d %H:%M:%S')] $*${NC}"
 }
 
 # ------------------------------------------------------------
 # Safety check: this script must NOT be run as root
 # ------------------------------------------------------------
 if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
-  echo "[ERROR] Do not run this script with sudo or as root."
-  echo "[ERROR] Run it as your normal user (e.g. ubuntu):"
+  echo -e "${YELLOW}[ERROR] Do not run this script with sudo or as root.${NC}"
+  echo -e "${YELLOW}[ERROR] Run it as your normal user (e.g. ubuntu):${NC}"
   echo "        ./setup_oci_cli_ubuntu.sh --configure"
   echo
   echo "If you already ran with sudo and got /root/lib/oracle-cli conflicts, clean up with:"
@@ -88,7 +93,7 @@ fi
 # Ensure sudo access (needed for package installation)
 # -------------------------------------------------
 if ! command -v sudo >/dev/null 2>&1; then
-  echo "[ERROR] sudo is required but not found."
+  echo -e "${YELLOW}[ERROR] sudo is required but not found.${NC}"
   exit 1
 fi
 
@@ -140,7 +145,7 @@ trap 'rm -f "$INSTALLER_SCRIPT" "$INSTALL_OUTPUT_FILE"' EXIT
 if bash "$INSTALLER_SCRIPT" --accept-all-defaults >"$INSTALL_OUTPUT_FILE" 2>&1; then
   log "OCI CLI installer accepted direct argument style."
 elif grep -q "Install directory '/root/lib/oracle-cli' is not empty" "$INSTALL_OUTPUT_FILE"; then
-  echo "[ERROR] OCI CLI was previously installed as root and left files in /root."
+  echo -e "${YELLOW}[ERROR] OCI CLI was previously installed as root and left files in /root.${NC}"
   echo "Fix and retry as normal user:"
   echo "  sudo rm -rf /root/lib/oracle-cli /root/bin/oci"
   echo "  ./setup_oci_cli_ubuntu.sh --configure"
@@ -148,10 +153,10 @@ elif grep -q "Install directory '/root/lib/oracle-cli' is not empty" "$INSTALL_O
 elif bash "$INSTALLER_SCRIPT" -- --accept-all-defaults >"$INSTALL_OUTPUT_FILE" 2>&1; then
   log "OCI CLI installer accepted separator argument style."
 else
-  echo "[ERROR] OCI CLI installer failed with both known argument styles."
-  echo "[ERROR] Installer output:"
+  echo -e "${YELLOW}[ERROR] OCI CLI installer failed with both known argument styles.${NC}"
+  echo -e "${YELLOW}[ERROR] Installer output:${NC}"
   sed -n '1,120p' "$INSTALL_OUTPUT_FILE"
-  echo "[ERROR] Try manual install test commands:"
+  echo -e "${YELLOW}[ERROR] Try manual install test commands:${NC}"
   echo "  bash $INSTALLER_SCRIPT --help"
   echo "  bash $INSTALLER_SCRIPT --accept-all-defaults"
   exit 1
@@ -205,7 +210,7 @@ if command -v oci >/dev/null 2>&1; then
   log "OCI CLI installed successfully."
   log "OCI CLI version: $(oci --version)"
 else
-  echo "[ERROR] OCI CLI installation finished, but 'oci' command is not in PATH."
+  echo -e "${YELLOW}[ERROR] OCI CLI installation finished, but 'oci' command is not in PATH.${NC}"
   echo "Attempt to find OCI binary manually:"
   echo "  find \"$HOME\" -type f -name oci 2>/dev/null | head"
   echo "Try one of these:"

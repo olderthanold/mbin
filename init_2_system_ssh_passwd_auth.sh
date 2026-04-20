@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # Enforce one effective directive (set to "yes") for each option below
 # in both target SSH config files.
 
@@ -19,7 +24,7 @@ TARGET_FILES=(
   "/etc/ssh/sshd_config.d/60-cloudimg-settings.conf"
 )
 
-echo "Running init_2_system_ssh_passwd_auth.sh v04"
+echo -e "${YELLOW}Running init_2_system_ssh_passwd_auth.sh v04${NC}"
 
 # Optional flag: --force
 # - default (no flag): if initial compliance check passes, exit with no changes.
@@ -41,8 +46,8 @@ report_nonhashed_hits() {
   local label="$1"
 
   echo ""
-  echo "=================================================="
-  echo "[$label] Non-commented hits for all settings of interest"
+  echo -e "${YELLOW}==================================================${NC}"
+  echo -e "${YELLOW}[$label] Non-commented hits for all settings of interest${NC}"
 
   for target_file in "${TARGET_FILES[@]}"; do
     echo ""
@@ -120,12 +125,12 @@ enforce_ssh_auth_directives() {
   local target_file="$1"
 
   if [[ ! -f "$target_file" ]]; then
-    echo "Error: target file not found: $target_file"
+    echo -e "${RED}Error: target file not found: $target_file${NC}"
     return 1
   fi
 
   if [[ ! -w "$target_file" ]]; then
-    echo "Error: target file is not writable: $target_file"
+    echo -e "${RED}Error: target file is not writable: $target_file${NC}"
     echo "Hint: run with sudo if this is a system config file."
     return 1
   fi
@@ -138,10 +143,10 @@ enforce_ssh_auth_directives() {
 
   local backup_file
   backup_file="${target_file}.bak_$(date +%Y%m%d_%H%M%S)"
-  echo "[1/5] Creating backup: $backup_file"
+  echo -e "${YELLOW}[1/5] Creating backup: $backup_file${NC}"
   cp "$target_file" "$backup_file"
 
-  echo "[2/5] Processing directives in sequence..."
+  echo -e "${YELLOW}[2/5] Processing directives in sequence...${NC}"
   for directive in "${DIRECTIVES[@]}"; do
     echo ""
     echo "--- Processing: $directive ---"
@@ -204,7 +209,7 @@ enforce_ssh_auth_directives() {
   done
 
   echo ""
-  echo "[3/5] Validating sshd config syntax with: $SSHD_BIN -t -f $target_file"
+  echo -e "${YELLOW}[3/5] Validating sshd config syntax with: $SSHD_BIN -t -f $target_file${NC}"
   if [[ -x "$SSHD_BIN" ]]; then
     # On freshly booted instances, /run/sshd may not exist yet.
     # Wait non-interactively and poll every 1s.
@@ -227,11 +232,11 @@ enforce_ssh_auth_directives() {
 
     "$SSHD_BIN" -t -f "$target_file"
   else
-    echo "Warning: $SSHD_BIN not found/executable, skipping validation step."
+    echo -e "${YELLOW}Warning: $SSHD_BIN not found/executable, skipping validation step.${NC}"
   fi
 
-  echo "[4/5] Done. All required directives now resolve to 'yes' in $target_file."
-  echo "[5/5] Finished successfully."
+  echo -e "${YELLOW}[4/5] Done. All required directives now resolve to 'yes' in $target_file.${NC}"
+  echo -e "${YELLOW}[5/5] Finished successfully.${NC}"
   echo "Backup kept at: $backup_file"
 }
 
@@ -255,14 +260,14 @@ fi
 
 if (( FORCE == 1 )); then
   echo ""
-  echo "--force enabled: running enforcement even if already compliant."
+  echo -e "${YELLOW}--force enabled: running enforcement even if already compliant.${NC}"
 fi
 
 echo ""
-echo "Running directive enforcement for required files..."
+echo -e "${YELLOW}Running directive enforcement for required files...${NC}"
 for target_file in "${TARGET_FILES[@]}"; do
   echo ""
-  echo "=================================================="
+  echo -e "${YELLOW}==================================================${NC}"
   echo "Target file: $target_file"
 
   # If the drop-in file does not exist yet, create it so the procedure can run.

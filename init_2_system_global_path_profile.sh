@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # init_2_system_global_path_profile.sh v04
 #
 # Purpose:
@@ -14,11 +19,11 @@ set -euo pipefail
 #     to ensure sudo secure_path includes /opt/mbin (no extra arbitrary sudoers file)
 
 if [[ "${EUID}" -ne 0 ]]; then
-  echo "Error: run as root (use sudo)."
+  echo -e "${RED}Error: run as root (use sudo).${NC}"
   exit 1
 fi
 
-echo "Running init_2_system_global_path_profile.sh v04"
+echo -e "${YELLOW}Running init_2_system_global_path_profile.sh v04${NC}"
 
 MBIN_DIR="/opt/mbin"
 PROFILE_FILE="/etc/profile.d/mbin.sh"
@@ -37,15 +42,15 @@ has_passwordless_sudo_rule() {
   ' "$file"
 }
 
-echo "[1/5] Ensuring global mbin directory exists: $MBIN_DIR"
+echo -e "${YELLOW}[1/5] Ensuring global mbin directory exists: $MBIN_DIR${NC}"
 mkdir -p "$MBIN_DIR"
 chmod 755 "$MBIN_DIR"
 
-echo "[2/5] Writing global PATH profile: $PROFILE_FILE"
+echo -e "${YELLOW}[2/5] Writing global PATH profile: $PROFILE_FILE${NC}"
 printf '%s\n' "$PROFILE_LINE" > "$PROFILE_FILE"
 chmod 644 "$PROFILE_FILE"
 
-echo "[3/5] Normalizing root PATH line in $ROOT_BASHRC (non-commented matches only)"
+echo -e "${YELLOW}[3/5] Normalizing root PATH line in $ROOT_BASHRC (non-commented matches only)${NC}"
 touch "$ROOT_BASHRC"
 
 mapfile -t root_matches < <(
@@ -89,7 +94,7 @@ else
   echo "Kept last non-commented match and normalized it; removed older /opt/mbin PATH matches."
 fi
 
-echo "[4/5] Ensuring sudo secure_path includes /opt/mbin (reusing existing passwordless-sudo file)"
+echo -e "${YELLOW}[4/5] Ensuring sudo secure_path includes /opt/mbin (reusing existing passwordless-sudo file)${NC}"
 mapfile -t sudoers_files < <(find "$SUDOERS_DIR" -maxdepth 1 -type f -printf "%f\n" | LC_ALL=C sort)
 
 target_sudoers_file=""
@@ -101,7 +106,7 @@ for name in "${sudoers_files[@]}"; do
 done
 
 if [[ -z "$target_sudoers_file" ]]; then
-  echo "Error: no existing passwordless-sudo file found in $SUDOERS_DIR."
+  echo -e "${RED}Error: no existing passwordless-sudo file found in $SUDOERS_DIR.${NC}"
   echo "Run init_2_system_paaswordles_sudo.sh first, then re-run this script."
   exit 1
 fi
@@ -116,6 +121,6 @@ fi
 chmod 440 "$target_sudoers_file"
 visudo -cf "$target_sudoers_file" >/dev/null
 
-echo "[5/5] Done. Global PATH for users/root/sudo is configured."
+echo -e "${YELLOW}[5/5] Done. Global PATH for users/root/sudo is configured.${NC}"
 echo "New sessions will load: $PROFILE_LINE"
 echo "Sudo secure_path file: $target_sudoers_file"
