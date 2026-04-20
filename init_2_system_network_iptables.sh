@@ -7,7 +7,7 @@ set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 ###############################################################################
 
 echo ""
-echo "Running network_iptables.sh v01"
+echo "Running init_2_system_network_iptables.sh v01"
 echo "Configuring iptables firewall and persistence..."
 
 # Install package with retry when apt/dpkg frontend lock is temporarily held.

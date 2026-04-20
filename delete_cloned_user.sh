@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
-# Reverts user account changes made by clone_user.sh for a cloned user:
+# Reverts user account changes made by init_2_user_clone_user.sh for a cloned user:
 # - removes /etc/sudoers.d/90-<user>-nopasswd when present (legacy cleanup only)
 # - removes the user from system (and home/mail spool)
 # - attempts to remove user private group when safe
@@ -18,9 +18,9 @@ Behavior:
   - Tries to delete matching private group (if no members remain)
 
 Notes:
-  - This is intended to revert users created via clone_user.sh
+  - This is intended to revert users created via init_2_user_clone_user.sh
   - Destructive operation: user home data is permanently removed
-  - Does NOT require clone-marker file (clone_user.sh no longer creates one)
+  - Does NOT require clone-marker file (init_2_user_clone_user.sh no longer creates one)
   - Refuses deletion if it would remove the last sudo-group member
     (important when direct root login is locked)
   - Use --force to override safety checks intentionally

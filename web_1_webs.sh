@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# web_webs.sh v02
+# web_1_webs.sh v02
 #
 # Purpose:
 #   Ensure shared /webs directory exists, owned by www-data, and world-writable.
@@ -11,7 +11,7 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-echo "Running web_webs.sh v02"
+echo "Running web_1_webs.sh v02"
 
 WEBS_DIR="/webs"
 

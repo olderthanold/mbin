@@ -7,7 +7,7 @@ set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 ###############################################################################
 
 echo ""
-echo "Running network_connect.sh v01"
+echo "Running init_2_system_network_connect.sh v01"
 echo "Checking nginx, outbound connectivity, HTTP and HTTPS reachability..."
 
 echo "network_connect.[1/3] nginx_install_check v01 - Installing/checking Nginx web server..."

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e  # Stop on first error
 
-# web_entry_nginx.sh v09
+# web_1_entry_nginx.sh v09
 #
 # Args:
 #   $1 website/domain (optional; default: olderthanold.duckdns.org)
@@ -27,7 +27,7 @@ fi
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 
-echo "Running web_entry_nginx.sh v09"
+echo "Running web_1_entry_nginx.sh v09"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 

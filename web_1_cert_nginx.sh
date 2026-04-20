@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# web_cert_nginx.sh v02
+# web_1_cert_nginx.sh v02
 #
 # Purpose:
 #   Obtain and configure an auto-renewable Let's Encrypt certificate for Nginx.
@@ -106,7 +106,7 @@ fi
 CERT_FULLCHAIN="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 CERT_PRIVKEY="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
 
-echo "Running web_cert_nginx.sh v02"
+echo "Running web_1_cert_nginx.sh v02"
 echo "Target domain: $DOMAIN"
 echo "[1/5] Ensuring certbot + nginx plugin are installed (this may take a while)..."
 apt-get update -y

@@ -18,7 +18,7 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-echo "Running paaswordles_sudo.sh v01"
+echo "Running init_2_system_paaswordles_sudo.sh v01"
 
 SUDOERS_DIR="/etc/sudoers.d"
 RULE_LINE='%sudo ALL=(ALL:ALL) NOPASSWD:ALL'

@@ -16,7 +16,7 @@ require_file() {
 }
 
 for f in \
-  "$SCRIPT_DIR/clone_user.sh"; do
+  "$SCRIPT_DIR/init_2_user_clone_user.sh"; do
   require_file "$f"
 done
 
@@ -31,20 +31,20 @@ if [[ -z "$CURRENT_USER" || "$CURRENT_USER" == "root" ]]; then
   CURRENT_USER="ubuntu"  # Fallback user
 fi
 
-echo "2. Running initusr.sh v05 (user setup) for: $CURRENT_USER"
+echo "2. Running init_1_user.sh v05 (user setup) for: $CURRENT_USER"
 
 echo "_________________________________________________________________________"
 if [[ -n "$TARGET_USER" ]]; then
-  echo "2.[1/1] clone_user.sh v02 - create '$TARGET_USER' cloned from '$CURRENT_USER' (sudo + home + ssh keys)"
+  echo "2.[1/1] init_2_user_clone_user.sh v02 - create '$TARGET_USER' cloned from '$CURRENT_USER' (sudo + home + ssh keys)"
   if id "$TARGET_USER" >/dev/null 2>&1; then
     echo "User '$TARGET_USER' already exists; skipping clone step (idempotent behavior)."
   else
-    bash "$SCRIPT_DIR/clone_user.sh" "$TARGET_USER" "$CURRENT_USER"
+    bash "$SCRIPT_DIR/init_2_user_clone_user.sh" "$TARGET_USER" "$CURRENT_USER"
   fi
 else
-  echo "2.[1/1] clone_user.sh v02 - skipped (no new username provided)"
+  echo "2.[1/1] init_2_user_clone_user.sh v02 - skipped (no new username provided)"
 fi
 
 echo ""
-echo "initusr complete. User-level setup finished."
+echo "init_1_user complete. User-level setup finished."
 echo "Safe to run again (idempotent where possible)."

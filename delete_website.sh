@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# web_cleanup.sh v02
+# delete_website.sh v02
 #
 # Purpose:
-#   Remove Nginx and Let's Encrypt artifacts created for a domain by 0web flow.
+#   Remove Nginx and Let's Encrypt artifacts created for a domain by web_0_main flow.
 #
 # Args:
 #   $1 domain (optional; default: olderthanold.duckdns.org)
@@ -28,7 +28,7 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo "Running web_cleanup.sh v02"
+echo "Running delete_website.sh v02"
 echo "Target domain: $DOMAIN"
 
 WEBSITE_DIR="/webs/$DOMAIN"

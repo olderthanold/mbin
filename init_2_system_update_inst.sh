@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail  # Fail on errors/unset vars/pipeline failures
 
-echo "Running update_inst.sh v04"
+echo "Running init_2_system_update_inst.sh v04"
 
 echo "_________________________________________________________________________"
 echo "1.[1/6].a apt_update_upgrade v04 - Updating system packages..."

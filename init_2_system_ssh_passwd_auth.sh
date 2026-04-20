@@ -19,7 +19,7 @@ TARGET_FILES=(
   "/etc/ssh/sshd_config.d/60-cloudimg-settings.conf"
 )
 
-echo "Running ssh_passwd_auth.sh v04"
+echo "Running init_2_system_ssh_passwd_auth.sh v04"
 
 # Optional flag: --force
 # - default (no flag): if initial compliance check passes, exit with no changes.
