@@ -44,7 +44,13 @@ uv --version
 
 # Handling llama.cpp (CPU Only)
 echo -e "${GREEN}==> Step 4/5: Building/updating llama.cpp from source (CPU only)...${NC}"
-mkdir -p ~/ai
+# Check whether ~/ai exists before creating it.
+if [ -d "$HOME/ai" ]; then
+    echo -e "${GREEN}~/ai already exists.${NC}"
+else
+    echo -e "${GREEN}~/ai not found. Creating it now...${NC}"
+    mkdir -p "$HOME/ai"
+fi
 cd ~/ai
 
 REBUILD_REQUIRED=false
