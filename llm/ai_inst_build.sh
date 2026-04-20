@@ -13,6 +13,10 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}==> Step 1/5: Updating apt package index...${NC}"
 sudo apt update
 
+# Additional SSL development dependency requested explicitly.
+echo -e "${GREEN}==> Installing libssl-dev...${NC}"
+sudo apt install libssl-dev
+
 # Step 2: Install required packages.
 # apt install -y:
 #   -y automatically answers "yes" to prompts for non-interactive installs.
