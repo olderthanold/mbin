@@ -120,6 +120,19 @@ tail -f clone.log
 /proc
 tail -f /proc/<pid>/fd/1
 
+# ==== MEMORY SWAP ====================================================
+## create
+sudo fallocate -l 5G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+# persist
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+## check
+swapon --show
+free -h
+
 # ==== DISKS ========================================================
 ## ==== Disks list mountable
 sudo fdisk -l
@@ -138,14 +151,13 @@ olderthanold.cloudns.cx
 ## old2
 89.168.88.88
 
-# ==== OCI instance =================================================
-https://docs.oracle.com/en-us/iaas/Content/Compute/tutorials/first-linux-instance/overview.htm
-## tenancy: okderthanold
-ocid1.tenancy.oc1..aaaaaaaayd6mxebdj7xpp25xyftvuba2dme5vubiohg3irybx2sitkq2yjna
-## user
-ocid1.user.oc1..aaaaaaaabdu6itjzjdme5r3i5duc5ww2nf7bubg67lca7aumgsxcmjmptifq
-## api key location
-/home/ubun2/.config/oldapi.pem
-## linux install (AI made setup_oci_cli_ubuntu.sh)
-bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)"
-oci --version
+# ==== add to .bashrc ================================================
+echo -e "\033[0;32m =---------- ps -la ----------= \033[0m"
+ps -la
+echo -e "\033[0;32m =---------- echo -e ----------= \033[0m"
+swapon --show
+echo -e "\033[0;32m =---------- free -h ----------= \033[0m"
+free -h
+echo -e "\033[0;32m =---------- df -h /dev/sda1 ----------= \033[0m"
+df -h /dev/sda1
+echo -e "\033[1;33m =---------- .bashrc done ----------= \033[0m"
