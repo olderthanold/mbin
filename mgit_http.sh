@@ -8,7 +8,7 @@
 set -euo pipefail  # Exit on error, undefined variable, or pipeline failure
 
 SCRIPT_NAME="git_mbin_http.sh"
-SCRIPT_VERSION="v02"
+SCRIPT_VERSION="v03"
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -19,13 +19,12 @@ echo -e "${YELLOW}${SEP}${NC}"
 echo -e "${YELLOW}Running $SCRIPT_NAME $SCRIPT_VERSION${NC}"
 echo -e "${YELLOW}${SEP}${NC}"
 
-MBIN_DIR="/opt/mbin"  # Directory containing scripts to manage
+MBIN_DIR="${1:-/opt/mbin}"  # Optional arg; defaults to /opt/mbin
 
-# Check if running as root - required for /opt directory access
-echo -e "${YELLOW}[1/5] Checking privileges (root required for $MBIN_DIR)${NC}"
+# Check privilege level; warn only (do not stop if sudo/root is absent).
+echo -e "${YELLOW}[1/5] Checking privileges (warning-only mode) for $MBIN_DIR${NC}"
 if [[ "${EUID}" -ne 0 ]]; then
-  echo -e "${RED}Error: run as root (use sudo).${NC}"
-  exit 1
+  echo -e "${YELLOW}Warning: not running as root; continuing (sudo may not be needed).${NC}"
 fi
 
 # Pull latest changes from GitHub repository
