@@ -60,7 +60,7 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}1. Running ini1sys_.sh v13 (instance/server setup)${NC}"
+echo -e "${YELLOW}1. Running ini1sys.sh v14 (instance/server setup)${NC}"
 echo "Resolved initi script base path: $INITI_DIR"
 echo "Resolved child scripts and versions:"
 echo "  - $S_UPDATE ${V_UPDATE:-<unknown>}"
@@ -100,5 +100,5 @@ echo "1.[7/7] ini2sys_network_connect.sh ${V_NET:-<unknown>} - run nginx and con
 bash "$S_NET"
 
 echo ""
-echo -e "${GREEN}ini1sys_ complete. Host-level setup finished.${NC}"
+echo -e "${GREEN}ini1sys complete. Host-level setup finished.${NC}"
 echo "Safe to run again (idempotent where possible)."

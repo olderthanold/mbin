@@ -3,9 +3,9 @@
 This document describes the run order started by `0ini.sh`, including step numbering and script versions as printed by the scripts.
 
 ```text
-0ini.sh v06
-├─ [1/2] ini1sys_.sh v13
-│  └─ ini1sys_.sh v13
+0ini.sh v07
+├─ [1/2] ini1sys.sh v14
+│  └─ ini1sys.sh v14
 │     ├─ resolves child scripts from: <repo>/initi/
 │     ├─ 1.[1/7] ini2sys_update_inst.sh v05
 │     │  └─ ini2sys_update_inst.sh v05
@@ -41,7 +41,7 @@ This document describes the run order started by `0ini.sh`, including step numbe
 
 ## Notes
 
-- `0ini.sh` always runs `ini1sys_.sh` first, then `inu1user.sh`.
+- `0ini.sh` always runs `ini1sys.sh` first, then `inu1user.sh`.
 - `inu2_clone_user.sh` is conditionally executed only if a username argument is passed to `0ini.sh`.
 - Stage-2 init scripts are now stored under `initi/`.
 

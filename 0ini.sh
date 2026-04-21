@@ -8,7 +8,7 @@ NC='\033[0m' # No Color
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"  # Script dir
 TARGET_USER="${1:-}"  # Optional cloned user; when empty, clone step is skipped
-S_INI1="$SCRIPT_DIR/ini1sys_.sh"
+S_INI1="$SCRIPT_DIR/ini1sys.sh"
 S_USER="$SCRIPT_DIR/inu1user.sh"
 
 require_file() {
@@ -41,13 +41,13 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running 0ini.sh v06 (ini1sys_ + inu1user)${NC}"
+echo -e "${YELLOW}Running 0ini.sh v07 (ini1sys + inu1user)${NC}"
 echo "Resolved child scripts and versions:"
 echo "  - $S_INI1 ${V_INI1:-<unknown>}"
 echo "  - $S_USER ${V_USER:-<unknown>}"
 
 echo -e "${YELLOW}═════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${YELLOW}[1/2] ini1sys_.sh ${V_INI1:-<unknown>} - server-level setup${NC}"
+echo -e "${YELLOW}[1/2] ini1sys.sh ${V_INI1:-<unknown>} - server-level setup${NC}"
 bash "$S_INI1"
 
 echo -e "${YELLOW}═════════════════════════════════════════════════════════════════════════${NC}"

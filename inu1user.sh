@@ -66,5 +66,5 @@ else
 fi
 
 echo ""
-echo -e "${GREEN}init_1_user complete. User-level setup finished.${NC}"
+echo -e "${GREEN}inu1user complete. User-level setup finished.${NC}"
 echo "Safe to run again (idempotent where possible)."
