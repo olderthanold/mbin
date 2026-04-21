@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_webroot.sh v02
+# web1_webroot.sh v03
 #
 # Purpose:
 #   Ensure website web root exists and has a default index page when missing.
@@ -75,7 +75,7 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running web1_webroot.sh v02${NC}"
+echo -e "${YELLOW}Running web1_webroot.sh v03${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 
@@ -84,6 +84,7 @@ if [[ -d "$WEB_ROOT" ]]; then
   echo "WEB_ROOT already exists, leaving directory as-is: $WEB_ROOT"
 else
   echo -e "${YELLOW}[1/3] Creating web root directory...${NC}"
+  echo -e "${RED}[TRIAGE][web1_webroot.sh v03] mkdir -p $WEB_ROOT${NC}"
   mkdir -p "$WEB_ROOT"
   chown "$OWNER_USER:$OWNER_GROUP" "$WEB_ROOT"
   chmod 755 "$WEB_ROOT"
@@ -101,12 +102,14 @@ elif [[ -f "$TARGET_INDEX_HTM" || -f "$TARGET_INDEX_HTML" ]]; then
 else
   if [[ -f "$CUSTOM_TEMPLATE" ]]; then
     echo "No index found. Copying custom template: $CUSTOM_TEMPLATE -> $TARGET_INDEX_HTM"
+    echo -e "${RED}[TRIAGE][web1_webroot.sh v03] cp $CUSTOM_TEMPLATE $TARGET_INDEX_HTM${NC}"
     cp "$CUSTOM_TEMPLATE" "$TARGET_INDEX_HTM"
     chown "$OWNER_USER:$OWNER_GROUP" "$TARGET_INDEX_HTM"
     chmod 644 "$TARGET_INDEX_HTM"
     echo "Created page from custom template: $TARGET_INDEX_HTM"
   elif [[ -f "$NGINX_TEMPLATE" ]]; then
     echo "Custom template not found. Using nginx default template: $NGINX_TEMPLATE"
+    echo -e "${RED}[TRIAGE][web1_webroot.sh v03] cp $NGINX_TEMPLATE $TARGET_INDEX_HTM${NC}"
     cp "$NGINX_TEMPLATE" "$TARGET_INDEX_HTM"
     sed -i "s|<h1>Welcome to nginx!</h1>|<h1>Welcome to ${OWNER_USER} @ ${DOMAIN} nginx!</h1>|" "$TARGET_INDEX_HTM"
     chown "$OWNER_USER:$OWNER_GROUP" "$TARGET_INDEX_HTM"
