@@ -152,4 +152,4 @@ nginx -t
 systemctl reload nginx
 
 echo -e "${GREEN}Done. Nginx entry and cert artifacts removed for: $DOMAIN${NC}"
-echo "Website content directory intentionally left untouched: sudo rm -r $WEBSITE_DIR"
+echo "Website content directory intentionally left untouched, to delete: sudo rm -r $WEBSITE_DIR"
