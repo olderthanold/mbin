@@ -5,8 +5,10 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
+SCRIPT_NAME="0web.sh"
+SCRIPT_VERSION="v09"
 
-# 0web.sh v08
+# 0web.sh v09
 #
 # Purpose:
 #   Wrapper to set up Nginx website entry + certificate in one run.
@@ -39,6 +41,11 @@ show_help() {
 validate_domain_arg() {
   local domain="${1:-}"
   [[ -n "$domain" && "$domain" == *.* ]]
+}
+
+get_script_version() {
+  local script_path="$1"
+  awk '/^# [[:alnum:]_.-]+ v[0-9]+/ {print $3; exit}' "$script_path"
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
@@ -75,18 +82,26 @@ if [[ ! -f "$WEB_CERT_SCRIPT" ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running 0web.sh v08${NC}"
+WEB_WEBS_VERSION="$(get_script_version "$WEB_WEBS_SCRIPT")"
+WEB_CERT_VERSION="$(get_script_version "$WEB_CERT_SCRIPT")"
+WEB_ENTRY_VERSION="$(get_script_version "$WEB_ENTRY_SCRIPT")"
+
+echo -e "${YELLOW}Running ${SCRIPT_NAME} ${SCRIPT_VERSION}${NC}"
 echo "Domain arg: $DOMAIN"
 echo "Web root arg: ${WEB_ROOT:-<auto:/webs/$DOMAIN>}"
 echo "Script base path (script location): $WEBI_DIR"
+echo "Resolved child scripts and versions:"
+echo "  - $WEB_WEBS_SCRIPT ${WEB_WEBS_VERSION:-<unknown>}"
+echo "  - $WEB_CERT_SCRIPT ${WEB_CERT_VERSION:-<unknown>}"
+echo "  - $WEB_ENTRY_SCRIPT ${WEB_ENTRY_VERSION:-<unknown>}"
 
-echo -e "${YELLOW}[1/3] Running web1_webs.sh ...${NC}"
+echo -e "${YELLOW}[1/3] Running web1_webs.sh ${WEB_WEBS_VERSION:-<unknown>} ...${NC}"
 bash "$WEB_WEBS_SCRIPT" "$DOMAIN"
 
-echo -e "${YELLOW}[2/3] Running web1_cert_nginx.sh ...${NC}"
+echo -e "${YELLOW}[2/3] Running web1_cert_nginx.sh ${WEB_CERT_VERSION:-<unknown>} ...${NC}"
 bash "$WEB_CERT_SCRIPT" "$DOMAIN"
 
-echo -e "${YELLOW}[3/3] Running web1_entry_nginx.sh ...${NC}"
+echo -e "${YELLOW}[3/3] Running web1_entry_nginx.sh ${WEB_ENTRY_VERSION:-<unknown>} ...${NC}"
 if [[ -n "$WEB_ROOT" ]]; then
   bash "$WEB_ENTRY_SCRIPT" "$DOMAIN" "$WEB_ROOT"
 else

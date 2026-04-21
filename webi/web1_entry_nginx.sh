@@ -6,11 +6,14 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_entry_nginx.sh v12
+# web1_entry_nginx.sh v13
 #
 # Args:
 #   $1 website/domain (required; must contain a dot, e.g. something.cz)
-#   $2 web root path (optional; default: /webs/<website>)
+#   $2 web root path (optional)
+#      - absolute path (starts with /): used as-is
+#      - relative name/path: resolved under /webs/<arg>
+#      - omitted: defaults to /webs/<website>
 #
 # Behavior:
 #   1) Resolve domain and web root.
@@ -54,7 +57,11 @@ if ! validate_domain_arg "$DOMAIN"; then
 fi
 
 if [ -n "${2:-}" ]; then
-    WEB_ROOT="$2"
+    if [[ "$2" == /* ]]; then
+        WEB_ROOT="$2"
+    else
+        WEB_ROOT="/webs/$2"
+    fi
 else
     WEB_ROOT="/webs/$DOMAIN"
 fi
@@ -62,7 +69,7 @@ fi
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 
-echo -e "${YELLOW}Running web1_entry_nginx.sh v12${NC}"
+echo -e "${YELLOW}Running web1_entry_nginx.sh v13${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 
