@@ -5,9 +5,10 @@ ps -f
 ## ==== nohup 
 ### Run in background even if console closes
 ```bash
-nohup sudo -E bash -c "export PATH=$PATH; ociamp.sh" > ociamp.log 2>&1 && touch ociamp_script_completed.txt &
-echo $!
 nohup bash -c 'sudo -E bash -c "export PATH=$PATH; ociamp.sh" && touch ociamp_script_completed.txt' > ociamp.log 2>error.log &
+echo $!
+# ----- or ------
+nohup sudo -E bash -c "export PATH=$PATH; ociamp.sh" > ociamp.log 2>&1 && touch ociamp_script_completed.txt &
 echo $!
 ```
 ### Check later:

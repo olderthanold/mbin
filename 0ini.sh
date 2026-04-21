@@ -8,6 +8,8 @@ NC='\033[0m' # No Color
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"  # Script dir
 TARGET_USER="${1:-}"  # Optional cloned user; when empty, clone step is skipped
+S_INI1="$SCRIPT_DIR/ini1sys_.sh"
+S_USER="$SCRIPT_DIR/inu1user.sh"
 
 require_file() {
   local f="$1"
@@ -17,11 +19,21 @@ require_file() {
   fi
 }
 
+get_script_version() {
+  local script_path="$1"
+  local v
+  v="$(grep -Eom1 '^# [[:alnum:]_.-]+ v[0-9]+|Running [[:alnum:]_.-]+ v[0-9]+' "$script_path" | grep -Eo 'v[0-9]+' | head -n1 || true)"
+  echo "$v"
+}
+
 for f in \
-  "$SCRIPT_DIR/ini1sys_.sh" \
-  "$SCRIPT_DIR/init_1_user.sh"; do
+  "$S_INI1" \
+  "$S_USER"; do
   require_file "$f"
 done
+
+V_INI1="$(get_script_version "$S_INI1")"
+V_USER="$(get_script_version "$S_USER")"
 
 if [[ "$EUID" -ne 0 ]]; then
   echo -e "${RED}Error: run as root (use sudo), e.g.:${NC}"
@@ -29,15 +41,18 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running 0ini.sh v04 (ini1sys_ + init_1_user)${NC}"
+echo -e "${YELLOW}Running 0ini.sh v06 (ini1sys_ + inu1user)${NC}"
+echo "Resolved child scripts and versions:"
+echo "  - $S_INI1 ${V_INI1:-<unknown>}"
+echo "  - $S_USER ${V_USER:-<unknown>}"
 
 echo -e "${YELLOW}═════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${YELLOW}[1/2] ini1sys_.sh v12 - server-level setup${NC}"
-bash "$SCRIPT_DIR/ini1sys_.sh"
+echo -e "${YELLOW}[1/2] ini1sys_.sh ${V_INI1:-<unknown>} - server-level setup${NC}"
+bash "$S_INI1"
 
 echo -e "${YELLOW}═════════════════════════════════════════════════════════════════════════${NC}"
-echo -e "${YELLOW}[2/2] init_1_user.sh v05 - user-level setup${NC}"
-bash "$SCRIPT_DIR/init_1_user.sh" "$TARGET_USER"
+echo -e "${YELLOW}[2/2] inu1user.sh ${V_USER:-<unknown>} - user-level setup${NC}"
+bash "$S_USER" "$TARGET_USER"
 
 echo ""
 echo -e "${GREEN}0ini complete. Server-level and user-level setup finished.${NC}"

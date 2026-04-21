@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 # Must run as root
 [[ $EUID -ne 0 ]] && { echo "Run with sudo/root"; exit 1; }
 
-echo -e "${YELLOW}Running init_2_user_clone_user.sh v01${NC}"
+echo -e "${YELLOW}Running inu2_clone_user.sh v01${NC}"
 
 NEW_USER="$1"  # New account name
 SOURCE_USER="${2:-${SUDO_USER:-$(id -un)}}"  # Source account
