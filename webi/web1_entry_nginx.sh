@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_entry_nginx.sh v11
+# web1_entry_nginx.sh v12
 #
 # Args:
 #   $1 website/domain (required; must contain a dot, e.g. something.cz)
@@ -17,7 +17,7 @@ NC='\033[0m' # No Color
 #   2) Create web root only if missing (leave existing directory untouched).
 #   3) If web root was newly created, copy nginx default index template into it
 #      and personalize heading with username + domain.
-#   4) Write domain nginx site config and enable it.
+#   4) Auto-heal by removing existing domain nginx entries, then recreate them.
 #   5) Remove default enabled nginx site link to avoid default site taking traffic.
 #   6) Validate and reload nginx.
 
@@ -62,7 +62,7 @@ fi
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 
-echo -e "${YELLOW}Running web1_entry_nginx.sh v11${NC}"
+echo -e "${YELLOW}Running web1_entry_nginx.sh v12${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 
@@ -70,9 +70,19 @@ CREATED_WEB_ROOT="false"  # Tracks whether this run created WEB_ROOT.
 OWNER_USER="${SUDO_USER:-${USER:-$(whoami)}}"
 OWNER_GROUP="$(id -gn "$OWNER_USER" 2>/dev/null || echo "$OWNER_USER")"
 
+echo -e "${YELLOW}Autoheal: removing existing Nginx domain entries before recreate...${NC}"
+if [ -L "$NGINX_ENABLED" ] || [ -e "$NGINX_ENABLED" ]; then
+    sudo rm -f "$NGINX_ENABLED"
+    echo "Removed old enabled entry: $NGINX_ENABLED"
+else
+    echo "Enabled entry not present (skip): $NGINX_ENABLED"
+fi
+
 if [ -f "$NGINX_AVAILABLE" ]; then
-    echo -e "${YELLOW}Config already exists at $NGINX_AVAILABLE. Skipping create step (idempotent).${NC}"
-    exit 0
+    sudo rm -f "$NGINX_AVAILABLE"
+    echo "Removed old available config: $NGINX_AVAILABLE"
+else
+    echo "Available config not present (skip): $NGINX_AVAILABLE"
 fi
 
 if [ -d "$WEB_ROOT" ]; then
@@ -137,12 +147,8 @@ server {
 }
 EOF
 
-if [ -e "$NGINX_ENABLED" ]; then
-    echo "Symlink or file already exists in sites-enabled: $NGINX_ENABLED"
-else
-    sudo ln -s "$NGINX_AVAILABLE" "$NGINX_ENABLED"  # Enable site
-    echo "Symlink created: $NGINX_ENABLED -> $NGINX_AVAILABLE"
-fi
+sudo ln -s "$NGINX_AVAILABLE" "$NGINX_ENABLED"  # Enable site
+echo "Symlink created: $NGINX_ENABLED -> $NGINX_AVAILABLE"
 
 DEFAULT_ENABLED="/etc/nginx/sites-enabled/default"
 if [ -e "$DEFAULT_ENABLED" ]; then
