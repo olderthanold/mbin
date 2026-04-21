@@ -6,10 +6,10 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_entry_nginx.sh v10
+# web1_entry_nginx.sh v11
 #
 # Args:
-#   $1 website/domain (optional; default: olderthanold.duckdns.org)
+#   $1 website/domain (required; must contain a dot, e.g. something.cz)
 #   $2 web root path (optional; default: /webs/<website>)
 #
 # Behavior:
@@ -21,7 +21,37 @@ NC='\033[0m' # No Color
 #   5) Remove default enabled nginx site link to avoid default site taking traffic.
 #   6) Validate and reload nginx.
 
-DOMAIN="${1:-olderthanold.duckdns.org}"
+show_help() {
+    echo "Usage: $0 <domain> [web_root]"
+    echo ""
+    echo "Domain rule: must contain '.' (dot)."
+    echo "Examples:"
+    echo "  $0 something.cz"
+    echo "  $0 something.cz /webs/something.cz"
+}
+
+validate_domain_arg() {
+    local domain="${1:-}"
+    [[ -n "$domain" && "$domain" == *.* ]]
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    show_help
+    exit 0
+fi
+
+if [[ "$#" -lt 1 || "$#" -gt 2 ]]; then
+    show_help
+    exit 1
+fi
+
+DOMAIN="$1"
+
+if ! validate_domain_arg "$DOMAIN"; then
+    echo -e "${RED}Error: invalid domain '$DOMAIN' (must contain '.').${NC}"
+    show_help
+    exit 1
+fi
 
 if [ -n "${2:-}" ]; then
     WEB_ROOT="$2"
@@ -32,7 +62,7 @@ fi
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 
-echo -e "${YELLOW}Running web1_entry_nginx.sh v10${NC}"
+echo -e "${YELLOW}Running web1_entry_nginx.sh v11${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 

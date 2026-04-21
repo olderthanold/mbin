@@ -6,34 +6,87 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# delete_website.sh v02
+# delete_website.sh v03
 #
 # Purpose:
 #   Remove Nginx and Let's Encrypt artifacts created for a domain by web_0_main flow.
 #
 # Args:
-#   $1 domain (optional; default: olderthanold.duckdns.org)
+#   $1 domain (optional)
 #
 # Notes:
 #   - Leaves website content directory untouched (default: /webs/<domain>).
 #   - Removes domain Nginx site config/symlink and certificate/renewal traces.
 
-DEFAULT_DOMAIN="olderthanold.duckdns.org"
-DOMAIN="${1:-$DEFAULT_DOMAIN}"
+show_help() {
+  echo "Usage: $0 <domain>"
+  echo "Usage: $0 --help"
+  echo "Usage: $0 -h"
+  echo ""
+  echo "Examples:"
+  echo "  sudo $0 example.com"
+  echo "  $0 --help"
+}
+
+list_existing_websites() {
+  local sites_dir="/etc/nginx/sites-available"
+  local enabled_dir="/etc/nginx/sites-enabled"
+
+  echo -e "${YELLOW}Existing websites in ${sites_dir}:${NC}"
+
+  if [[ ! -d "$sites_dir" ]]; then
+    echo -e "${YELLOW}Not found (skip): $sites_dir${NC}"
+    return
+  fi
+
+  shopt -s nullglob
+  local site_paths=("$sites_dir"/*)
+  shopt -u nullglob
+
+  local found=0
+  local site_name
+  for site_path in "${site_paths[@]}"; do
+    site_name="$(basename "$site_path")"
+
+    # Skip nginx default entry so output focuses on user websites.
+    if [[ "$site_name" == "default" ]]; then
+      continue
+    fi
+
+    found=1
+    if [[ -e "$enabled_dir/$site_name" ]]; then
+      echo "  - $site_name (enabled)"
+    else
+      echo "  - $site_name"
+    fi
+  done
+
+  if [[ "$found" -eq 0 ]]; then
+    echo "  - none"
+  fi
+}
 
 if [[ "$#" -gt 1 ]]; then
-  echo "Usage: $0 [domain]"
-  echo "Example: $0"
-  echo "Example: $0 example.com"
+  show_help
   exit 1
 fi
+
+if [[ "$#" -eq 0 || "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  echo -e "${YELLOW}delete_website.sh help${NC}"
+  show_help
+  echo ""
+  list_existing_websites
+  exit 0
+fi
+
+DOMAIN="$1"
 
 if [[ "$EUID" -ne 0 ]]; then
   echo -e "${RED}Error: run as root (use sudo).${NC}"
   exit 1
 fi
 
-echo -e "${YELLOW}Running delete_website.sh v02${NC}"
+echo -e "${YELLOW}Running delete_website.sh v03${NC}"
 echo "Target domain: $DOMAIN"
 
 WEBSITE_DIR="/webs/$DOMAIN"
@@ -99,4 +152,4 @@ nginx -t
 systemctl reload nginx
 
 echo -e "${GREEN}Done. Nginx entry and cert artifacts removed for: $DOMAIN${NC}"
-echo "Website content directory intentionally left untouched: $WEBSITE_DIR"
+echo "Website content directory intentionally left untouched: sudo rm -r $WEBSITE_DIR"

@@ -6,21 +6,29 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_cert_nginx.sh v03
+# web1_cert_nginx.sh v04
 #
 # Purpose:
 #   Obtain and configure an auto-renewable Let's Encrypt certificate for Nginx.
 #
 # Behavior:
-#   1) Accept optional domain argument.
-#      - If not provided, defaults to olderthanold.duckdns.org ("duck").
+#   1) Accept required domain argument (must contain a dot).
 #   2) Check whether certificate files already exist for the domain.
 #   3) If missing, request/install cert via certbot nginx plugin.
 #   4) Test nginx config and test cert renewal flow.
 #   5) Enable and start certbot.timer for automatic renewal.
 
-DEFAULT_DOMAIN="olderthanold.duckdns.org"
-DOMAIN="${1:-$DEFAULT_DOMAIN}"
+show_help() {
+  echo "Usage: $0 <domain>"
+  echo ""
+  echo "Domain rule: must contain '.' (dot)."
+  echo "Example: $0 something.cz"
+}
+
+validate_domain_arg() {
+  local domain="${1:-}"
+  [[ -n "$domain" && "$domain" == *.* ]]
+}
 
 # Retry tuning for transient certbot failures
 MAX_RETRIES=5
@@ -96,10 +104,21 @@ retry_certbot_command() {
   return 1
 }
 
-if [[ "$#" -gt 1 ]]; then
-  echo "Usage: $0 [domain]"
-  echo "Example: $0"
-  echo "Example: $0 example.com"
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  show_help
+  exit 0
+fi
+
+if [[ "$#" -ne 1 ]]; then
+  show_help
+  exit 1
+fi
+
+DOMAIN="$1"
+
+if ! validate_domain_arg "$DOMAIN"; then
+  echo -e "${RED}Error: invalid domain '$DOMAIN' (must contain '.').${NC}"
+  show_help
   exit 1
 fi
 
@@ -111,7 +130,7 @@ fi
 CERT_FULLCHAIN="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 CERT_PRIVKEY="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
 
-echo -e "${YELLOW}Running web1_cert_nginx.sh v03${NC}"
+echo -e "${YELLOW}Running web1_cert_nginx.sh v04${NC}"
 echo "Target domain: $DOMAIN"
 echo -e "${YELLOW}[1/5] Ensuring certbot + nginx plugin are installed (this may take a while)...${NC}"
 apt-get update -y
