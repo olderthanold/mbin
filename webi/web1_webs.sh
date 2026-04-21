@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_webs.sh v06
+# web1_webs.sh v07
 #
 # Purpose:
 #   Ensure shared /webs directory exists, owned by www-data, and world-writable.
@@ -46,12 +46,13 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running web1_webs.sh v06${NC}"
+echo -e "${YELLOW}Running web1_webs.sh v07${NC}"
 echo "Domain arg: $DOMAIN"
 
 WEBS_DIR="/webs"
 
 echo -e "${YELLOW}[1/3] Ensuring directory exists: $WEBS_DIR${NC}"
+echo -e "${RED}[TRIAGE][web1_webs.sh v07] mkdir -p $WEBS_DIR${NC}"
 mkdir -p "$WEBS_DIR"
 
 echo -e "${YELLOW}[2/3] Setting owner: chown www-data:www-data $WEBS_DIR${NC}"
