@@ -2,20 +2,49 @@
 set -euo pipefail
 
 SCRIPT_NAME="git_web.sh"
-SCRIPT_VERSION="v01"
+SCRIPT_VERSION="v02"
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+show_help() {
+  echo "Usage: $0 <domain|absolute_web_dir> [git_remote]"
+  echo ""
+  echo "Examples:"
+  echo "  $0 example.com"
+  echo "  $0 /webs/example.com"
+  echo "  $0 example.com https://github.com/olderthanold/web.git"
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  show_help
+  exit 0
+fi
+
+if [[ "$#" -lt 1 ]]; then
+  show_help
+  exit 1
+fi
+
 echo -e "${YELLOW}${SEP}${NC}"
 echo -e "${YELLOW}Running $SCRIPT_NAME $SCRIPT_VERSION${NC}"
 echo -e "${YELLOW}${SEP}${NC}"
 
-# Default values (can be overridden by arguments)
-DOMAIN="${1:-oldneues.duckdns.org}"
-WEB_DIR="/webs/$DOMAIN"
+# Resolve target directory from required argument:
+# - Absolute Ubuntu path (starts with /): use as-is
+# - Any other value: treat as domain and prepend /webs/
+INPUT_TARGET="$1"
+if [[ "$INPUT_TARGET" == /* ]]; then
+  WEB_DIR="$INPUT_TARGET"
+  DOMAIN="$(basename "$WEB_DIR")"
+else
+  DOMAIN="$INPUT_TARGET"
+  WEB_DIR="/webs/$DOMAIN"
+fi
+
+# Optional second argument for Git remote URL.
 GIT_LINK="${2:-https://github.com/olderthanold/web.git}"
 
 if [[ "${EUID}" -ne 0 ]]; then
