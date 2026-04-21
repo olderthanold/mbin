@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_entry_nginx.sh v13
+# web1_entry_nginx.sh v14
 #
 # Args:
 #   $1 website/domain (required; must contain a dot, e.g. something.cz)
@@ -17,12 +17,10 @@ NC='\033[0m' # No Color
 #
 # Behavior:
 #   1) Resolve domain and web root.
-#   2) Create web root only if missing (leave existing directory untouched).
-#   3) If web root was newly created, copy nginx default index template into it
-#      and personalize heading with username + domain.
-#   4) Auto-heal by removing existing domain nginx entries, then recreate them.
-#   5) Remove default enabled nginx site link to avoid default site taking traffic.
-#   6) Validate and reload nginx.
+#   2) Auto-heal by removing existing domain nginx entries, then recreate them.
+#   3) Write domain nginx site config and enable it.
+#   4) Remove default enabled nginx site link to avoid default site taking traffic.
+#   5) Validate and reload nginx.
 
 show_help() {
     echo "Usage: $0 <domain> [web_root]"
@@ -69,13 +67,9 @@ fi
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 
-echo -e "${YELLOW}Running web1_entry_nginx.sh v13${NC}"
+echo -e "${YELLOW}Running web1_entry_nginx.sh v14${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
-
-CREATED_WEB_ROOT="false"  # Tracks whether this run created WEB_ROOT.
-OWNER_USER="${SUDO_USER:-${USER:-$(whoami)}}"
-OWNER_GROUP="$(id -gn "$OWNER_USER" 2>/dev/null || echo "$OWNER_USER")"
 
 echo -e "${YELLOW}Autoheal: removing existing Nginx domain entries before recreate...${NC}"
 if [ -L "$NGINX_ENABLED" ] || [ -e "$NGINX_ENABLED" ]; then
@@ -90,41 +84,6 @@ if [ -f "$NGINX_AVAILABLE" ]; then
     echo "Removed old available config: $NGINX_AVAILABLE"
 else
     echo "Available config not present (skip): $NGINX_AVAILABLE"
-fi
-
-if [ -d "$WEB_ROOT" ]; then
-    # Existing page directory: keep as-is.
-    echo "WEB_ROOT already exists, leaving directory as-is: $WEB_ROOT"
-else
-    # Missing page directory: create it and mark as newly created.
-    sudo mkdir -p "$WEB_ROOT"  # Create web root only if missing
-    sudo chown "$OWNER_USER:$OWNER_GROUP" "$WEB_ROOT"
-    sudo chmod 755 "$WEB_ROOT"
-    echo "Created WEB_ROOT: $WEB_ROOT"
-    echo "Assigned owner: $OWNER_USER:$OWNER_GROUP"
-    echo "Assigned permissions: rwxr-xr-x"
-    CREATED_WEB_ROOT="true"
-fi
-
-# Only seed default page content when directory was created by this run.
-if [ "$CREATED_WEB_ROOT" = "true" ]; then
-    TEMPLATE_HTML="/var/www/html/index.nginx-debian.html"
-    TARGET_HTML="$WEB_ROOT/index.htm"
-    USERNAME_VALUE="$OWNER_USER"
-
-    if [ -f "$TEMPLATE_HTML" ]; then
-        echo "New web root created. Copying default nginx page template..."
-        sudo cp "$TEMPLATE_HTML" "$TARGET_HTML"
-        # Personalize default heading in copied template.
-        sudo sed -i "s|<h1>Welcome to nginx!</h1>|<h1>Welcome to ${USERNAME_VALUE} @ ${DOMAIN} nginx!</h1>|" "$TARGET_HTML"
-        sudo chown "$OWNER_USER:$OWNER_GROUP" "$TARGET_HTML"
-        sudo chmod 755 "$TARGET_HTML"
-        echo "Created customized page: $TARGET_HTML"
-        echo "Assigned owner: $OWNER_USER:$OWNER_GROUP"
-        echo "Assigned permissions: rwxr-xr-x"
-    else
-        echo -e "${YELLOW}Template not found (skip copy): $TEMPLATE_HTML${NC}"
-    fi
 fi
 
 # Write Nginx site config
