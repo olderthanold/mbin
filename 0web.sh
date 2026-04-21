@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# 0web.sh v07
+# 0web.sh v08
 #
 # Purpose:
 #   Wrapper to set up Nginx website entry + certificate in one run.
@@ -20,8 +20,9 @@ NC='\033[0m' # No Color
 #   - Calls web1_cert_nginx.sh second
 #   - Calls web1_entry_nginx.sh with domain + optional web root third
 
-# Resolve child scripts relative to the directory where 0web.sh is executed from.
-WEBI_DIR="./webi"
+# Resolve child scripts strictly from the webi subdirectory next to this script.
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+WEBI_DIR="$SCRIPT_DIR/webi"
 WEB_WEBS_SCRIPT="$WEBI_DIR/web1_webs.sh"
 WEB_ENTRY_SCRIPT="$WEBI_DIR/web1_entry_nginx.sh"
 WEB_CERT_SCRIPT="$WEBI_DIR/web1_cert_nginx.sh"
@@ -74,10 +75,10 @@ if [[ ! -f "$WEB_CERT_SCRIPT" ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running 0web.sh v07${NC}"
+echo -e "${YELLOW}Running 0web.sh v08${NC}"
 echo "Domain arg: $DOMAIN"
 echo "Web root arg: ${WEB_ROOT:-<auto:/webs/$DOMAIN>}"
-echo "Script base path (run dir relative): $WEBI_DIR"
+echo "Script base path (script location): $WEBI_DIR"
 
 echo -e "${YELLOW}[1/3] Running web1_webs.sh ...${NC}"
 bash "$WEB_WEBS_SCRIPT" "$DOMAIN"
