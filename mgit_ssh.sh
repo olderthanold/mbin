@@ -8,7 +8,7 @@
 set -euo pipefail  # Exit on error, undefined variable, or pipeline failure
 
 SCRIPT_NAME="git_mbin_ssh.sh"
-SCRIPT_VERSION="v05"
+SCRIPT_VERSION="v06"
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -81,6 +81,53 @@ ensure_user_in_group() {
   echo -e "${GREEN}Added user '$user' to group '$group' (${source_label}).${NC}"
 }
 
+resolve_owner_group() {
+  OWNER_USER="${ASSIGN_USER:-${SUDO_USER:-$USER}}"
+
+  if ! id "$OWNER_USER" >/dev/null 2>&1; then
+    echo -e "${RED}Error: ownership target user '$OWNER_USER' does not exist.${NC}"
+    return 1
+  fi
+
+  OWNER_GROUP="$(id -gn "$OWNER_USER")"
+  echo -e "${YELLOW}Ownership target resolved: $OWNER_USER:$OWNER_GROUP${NC}"
+}
+
+normalize_repo_ownership() {
+  local repo_dir="$1"
+  local phase_label="$2"
+
+  [[ ! -e "$repo_dir" ]] && return 0
+
+  local current_owner current_group
+  current_owner="$(stat -c '%U' "$repo_dir")"
+  current_group="$(stat -c '%G' "$repo_dir")"
+
+  echo -e "${YELLOW}[$phase_label] Ownership check for $repo_dir | current=$current_owner:$current_group | target=$OWNER_USER:$OWNER_GROUP${NC}"
+
+  if [[ "$current_owner" == "$OWNER_USER" && "$current_group" == "$OWNER_GROUP" ]]; then
+    echo -e "${GREEN}[$phase_label] Ownership already matches target.${NC}"
+    return 0
+  fi
+
+  if [[ "${EUID}" -ne 0 ]]; then
+    echo -e "${RED}Error: cannot normalize ownership without sudo.${NC}"
+    echo -e "${RED}Current: $current_owner:$current_group | Required: $OWNER_USER:$OWNER_GROUP | Path: $repo_dir${NC}"
+    echo -e "${RED}Run with sudo (optionally -n $OWNER_USER) and retry.${NC}"
+    return 1
+  fi
+
+  # chown -R recursively applies the requested user:group ownership to repo path.
+  echo -e "${YELLOW}[$phase_label] Running: chown -R $OWNER_USER:$OWNER_GROUP $repo_dir${NC}"
+  chown -R "$OWNER_USER:$OWNER_GROUP" "$repo_dir"
+
+  # chmod -R g+rwX grants group rw and adds execute only where appropriate.
+  echo -e "${YELLOW}[$phase_label] Running: chmod -R g+rwX $repo_dir${NC}"
+  chmod -R g+rwX "$repo_dir"
+
+  echo -e "${GREEN}[$phase_label] Ownership/permissions normalization complete for $repo_dir.${NC}"
+}
+
 ASSIGN_USER=""
 POSITIONAL_ARGS=()
 SYNC_USERS=()
@@ -128,6 +175,11 @@ fi
 
 INPUT_LOCAL_PATH="${POSITIONAL_ARGS[0]:-}"
 INPUT_REMOTE_REPO="${POSITIONAL_ARGS[1]:-}"
+
+OWNER_USER=""
+OWNER_GROUP=""
+
+resolve_owner_group || exit 1
 
 echo -e "${YELLOW}${SEP}${NC}"
 echo -e "${YELLOW}Running $SCRIPT_NAME $SCRIPT_VERSION${NC}"
@@ -284,6 +336,11 @@ fi
 # Pull latest changes from GitHub repository
 echo -e "${YELLOW}[6/8] Pulling latest changes into $MBIN_DIR${NC}"
 
+# For existing repositories, enforce expected owner/group before git touches the path.
+if [[ -d "$MBIN_DIR/.git" ]]; then
+  normalize_repo_ownership "$MBIN_DIR" "pre-git" || exit 1
+fi
+
 if [[ ! -d "$MBIN_DIR/.git" ]]; then
   echo -e "${YELLOW}Target is not a git repository yet. Cloning main branch.${NC}"
   run_git_cmd clone -b main "$GIT_LINK" "$MBIN_DIR"
@@ -316,9 +373,18 @@ elif ! run_git_cmd -C "$MBIN_DIR" pull "$GIT_LINK" main; then
   else
     # Last resort: recreate the directory entirely
     echo -e "${YELLOW}Recovery pull --rebase failed, recreating $MBIN_DIR${NC}"
+    if [[ "${EUID}" -ne 0 ]]; then
+      echo -e "${RED}Error: fallback recreate requires sudo/root due potential ownership mismatch in $MBIN_DIR.${NC}"
+      exit 1
+    fi
     rm -rf "$MBIN_DIR"
     run_git_cmd clone -b main "$GIT_LINK" "$MBIN_DIR"
   fi
+fi
+
+# Normalize ownership/permissions again after clone/pull/recovery.
+if [[ -d "$MBIN_DIR" ]]; then
+  normalize_repo_ownership "$MBIN_DIR" "post-git" || exit 1
 fi
 
 # If running with sudo, re-check target directory group after repo operations.
