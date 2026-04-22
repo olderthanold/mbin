@@ -51,6 +51,7 @@ else
     echo -e "${GREEN}~/ai not found. Creating it now...${NC}"
     mkdir -p "$HOME/ai"
 fi
+echo "cd ~/ai"
 cd ~/ai
 
 REBUILD_REQUIRED=false
