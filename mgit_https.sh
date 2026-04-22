@@ -168,17 +168,27 @@ fi
 
 # Ensure group-write permission on parent/target directories.
 # chmod g+w => add group write bit while preserving other existing mode bits.
-echo -e "${YELLOW}Ensuring group-write permission on parent directory: $PARENT_DIR${NC}"
-if ! chmod g+w "$PARENT_DIR"; then
-  echo -e "${RED}Error: failed to set group write on $PARENT_DIR (chmod g+w). Please run with sudo.${NC}"
-  exit 1
+if [[ -w "$PARENT_DIR" ]]; then
+  echo -e "${GREEN}Parent directory is already writable: $PARENT_DIR${NC}"
+elif [[ ! -d "$WEB_DIR" ]]; then
+  echo -e "${YELLOW}Parent directory is not writable and target does not exist yet. Attempting chmod g+w on: $PARENT_DIR${NC}"
+  if ! chmod g+w "$PARENT_DIR"; then
+    echo -e "${RED}Error: failed to set group write on $PARENT_DIR (chmod g+w). Please run with sudo.${NC}"
+    exit 1
+  fi
+else
+  echo -e "${YELLOW}Parent directory is not writable ($PARENT_DIR), but target exists so continuing. Fallback clone may require sudo if recreate is needed.${NC}"
 fi
 
 if [[ -d "$WEB_DIR" ]]; then
-  echo -e "${YELLOW}Ensuring group-write permission on target directory: $WEB_DIR${NC}"
-  if ! chmod g+w "$WEB_DIR"; then
-    echo -e "${RED}Error: failed to set group write on $WEB_DIR (chmod g+w). Please run with sudo.${NC}"
-    exit 1
+  if [[ -w "$WEB_DIR" ]]; then
+    echo -e "${GREEN}Target directory is already writable: $WEB_DIR${NC}"
+  else
+    echo -e "${YELLOW}Target directory is not writable. Attempting chmod g+w on: $WEB_DIR${NC}"
+    if ! chmod g+w "$WEB_DIR"; then
+      echo -e "${RED}Error: failed to set group write on $WEB_DIR (chmod g+w). Please run with sudo.${NC}"
+      exit 1
+    fi
   fi
 else
   echo -e "${YELLOW}Target directory not present yet; group-write permission will be applied after git operations.${NC}"
@@ -281,9 +291,14 @@ fi
 # Ensure target directory is group-writable after pull/clone/recovery flow.
 echo -e "${YELLOW}Ensuring group-write permission on target directory after git operations: $WEB_DIR${NC}"
 if [[ -d "$WEB_DIR" ]]; then
-  if ! chmod g+w "$WEB_DIR"; then
-    echo -e "${RED}Error: failed to set group write on $WEB_DIR after git operations (chmod g+w). Please run with sudo.${NC}"
-    exit 1
+  if [[ -w "$WEB_DIR" ]]; then
+    echo -e "${GREEN}Target directory is writable after git operations: $WEB_DIR${NC}"
+  else
+    echo -e "${YELLOW}Target directory is still not writable after git operations. Attempting chmod g+w.${NC}"
+    if ! chmod g+w "$WEB_DIR"; then
+      echo -e "${RED}Error: failed to set group write on $WEB_DIR after git operations (chmod g+w). Please run with sudo.${NC}"
+      exit 1
+    fi
   fi
 else
   echo -e "${RED}Error: target directory missing after git operations: $WEB_DIR${NC}"
