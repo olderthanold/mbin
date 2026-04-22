@@ -1,22 +1,15 @@
 #!/usr/bin/env bash
-# =============================================================================
-# git_mbin_ssh.sh - Automated repository management for /opt/mbin directory
-# Purpose: Keeps track of and updates multiple scripts/tools stored in /opt/mbin
-# Author: olderthanold (via m.git repository)
-# =============================================================================
+set -euo pipefail
 
-set -euo pipefail  # Exit on error, undefined variable, or pipeline failure
-
-SCRIPT_NAME="git_mbin_ssh.sh"
-SCRIPT_VERSION="v05"
+SCRIPT_NAME="git_https.sh"
+SCRIPT_VERSION="v03"
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 DEFAULT_LOCAL_PATH="/opt/mbin"
-DEFAULT_REMOTE_REPO="git@github.com:olderthanold/mbin.git"
-SSH_KEY_PATH="/home/ubun2/.ssh/old.key"
+DEFAULT_REMOTE_REPO="https://github.com/olderthanold/web.git"
 
 show_help() {
   echo "Usage: $0 [-h|--help] [-n <user>] [local_path] [remote_repo]"
@@ -26,21 +19,18 @@ show_help() {
   echo "               - absolute path: use as-is"
   echo "               - relative path: resolved under HOME"
   echo "               - omitted: defaults to $DEFAULT_LOCAL_PATH"
-  echo "  remote_repo  Optional Git remote URL/path"
+  echo "  remote_repo  Optional HTTPS Git remote URL/path"
   echo "               - omitted: defaults to $DEFAULT_REMOTE_REPO"
   echo ""
   echo "Flags:"
-  echo "  -n <user>    Ensure <user> belongs to the group of local_path parent"
+  echo "  -n <user>    Add extra user for sudo-only group sync checks"
   echo "  -h, --help   Show this help and exit"
 }
 
-# Wrapper to run git commands with SSH key only for SSH-style remotes.
+# Wrapper to run git commands over HTTPS.
+# GIT_TERMINAL_PROMPT=1 allows interactive auth prompt for private repositories.
 run_git_cmd() {
-  if [[ "$GIT_LINK" == git@* || "$GIT_LINK" == ssh://* ]]; then
-    GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH" git "$@"
-  else
-    git "$@"
-  fi
+  GIT_TERMINAL_PROMPT=1 git "$@"
 }
 
 append_unique_user() {
@@ -138,68 +128,32 @@ echo -e "${YELLOW}${SEP}${NC}"
 # - absolute arg: use as-is
 # - relative arg: resolve under HOME
 if [[ -z "$INPUT_LOCAL_PATH" ]]; then
-  MBIN_DIR="$DEFAULT_LOCAL_PATH"
-  echo -e "${YELLOW}[1/8] No local path provided. Using default: $MBIN_DIR${NC}"
+  WEB_DIR="$DEFAULT_LOCAL_PATH"
+  echo -e "${YELLOW}[1/8] No local path provided. Using default: $WEB_DIR${NC}"
 elif [[ "$INPUT_LOCAL_PATH" == /* ]]; then
-  MBIN_DIR="$INPUT_LOCAL_PATH"
-  echo -e "${YELLOW}[1/8] Using absolute local path: $MBIN_DIR${NC}"
+  WEB_DIR="$INPUT_LOCAL_PATH"
+  echo -e "${YELLOW}[1/8] Using absolute local path: $WEB_DIR${NC}"
 else
-  MBIN_DIR="${HOME%/}/$INPUT_LOCAL_PATH"
-  echo -e "${YELLOW}[1/8] Relative path resolved under HOME: $MBIN_DIR${NC}"
+  WEB_DIR="${HOME%/}/$INPUT_LOCAL_PATH"
+  echo -e "${YELLOW}[1/8] Relative path resolved under HOME: $WEB_DIR${NC}"
 fi
 
 # Resolve remote repository:
-# - no arg: default mbin SSH repo
+# - no arg: default web HTTPS repo
 # - provided: use as-is
 GIT_LINK="${INPUT_REMOTE_REPO:-$DEFAULT_REMOTE_REPO}"
 echo -e "${YELLOW}[2/8] Using remote repository: $GIT_LINK${NC}"
-
-# Validate SSH key presence/permissions for SSH remotes:
-# - if key is missing, stop early
-# - if permissions are too open, fix to 600 and continue
-if [[ "$GIT_LINK" == git@* || "$GIT_LINK" == ssh://* ]]; then
-  echo -e "${YELLOW}Validating SSH key file: $SSH_KEY_PATH${NC}"
-
-  if [[ ! -f "$SSH_KEY_PATH" ]]; then
-    echo -e "${RED}Error: SSH key not found at $SSH_KEY_PATH${NC}"
-    echo -e "${RED}Please provide the key file, then run again.${NC}"
-    exit 1
-  fi
-
-  if [[ ! -r "$SSH_KEY_PATH" ]]; then
-    echo -e "${RED}Error: SSH key exists but is not readable: $SSH_KEY_PATH${NC}"
-    echo -e "${RED}Please fix read permissions (or run with sudo), then run again.${NC}"
-    exit 1
-  fi
-
-  KEY_MODE="$(stat -c '%a' "$SSH_KEY_PATH" 2>/dev/null || true)"
-  if [[ -z "$KEY_MODE" ]]; then
-    echo -e "${RED}Error: unable to read SSH key permissions for $SSH_KEY_PATH${NC}"
-    exit 1
-  fi
-
-  if [[ "$KEY_MODE" != "600" ]]; then
-    echo -e "${YELLOW}SSH key permissions are $KEY_MODE (expected 600). Fixing...${NC}"
-    if chmod 600 "$SSH_KEY_PATH"; then
-      echo -e "${GREEN}SSH key permissions fixed to 600. Continuing.${NC}"
-    else
-      echo -e "${RED}Error: failed to set SSH key permissions to 600. Please run with sudo.${NC}"
-      exit 1
-    fi
-  else
-    echo -e "${GREEN}SSH key permissions are correct (600).${NC}"
-  fi
-fi
+echo -e "${YELLOW}HTTPS mode: public repos work without login; private repos may prompt for credentials/token.${NC}"
 
 # Check write access before any git operation.
 echo -e "${YELLOW}[3/8] Checking write access for target path${NC}"
-if [[ -e "$MBIN_DIR" ]]; then
-  if [[ ! -w "$MBIN_DIR" ]]; then
-    echo -e "${RED}Error: no write access to $MBIN_DIR. Please run with sudo.${NC}"
+if [[ -e "$WEB_DIR" ]]; then
+  if [[ ! -w "$WEB_DIR" ]]; then
+    echo -e "${RED}Error: no write access to $WEB_DIR. Please run with sudo.${NC}"
     exit 1
   fi
 else
-  PARENT_DIR="$(dirname "$MBIN_DIR")"
+  PARENT_DIR="$(dirname "$WEB_DIR")"
   if [[ ! -d "$PARENT_DIR" ]]; then
     echo -e "${YELLOW}Parent directory does not exist: $PARENT_DIR${NC}"
     echo -e "${RED}Error: cannot prepare target path. Please run with sudo.${NC}"
@@ -218,7 +172,7 @@ fi
 # - ensure users are in parent-dir group now, and target-dir group when available
 echo -e "${YELLOW}[4/8] Processing group sync for sudo caller and optional -n user${NC}"
 if [[ -n "${SUDO_USER:-}" ]]; then
-  LOCAL_PARENT_DIR="$(dirname "$MBIN_DIR")"
+  LOCAL_PARENT_DIR="$(dirname "$WEB_DIR")"
   append_unique_user "$SUDO_USER"
   append_unique_user "$ASSIGN_USER"
 
@@ -233,11 +187,11 @@ if [[ -n "${SUDO_USER:-}" ]]; then
       ensure_user_in_group "$sync_user" "$REPO_PARENT_GROUP" "parent:$LOCAL_PARENT_DIR" || exit 1
     done
 
-    if [[ -d "$MBIN_DIR" ]]; then
-      TARGET_DIR_GROUP="$(stat -c '%G' "$MBIN_DIR")"
-      echo -e "${YELLOW}Target path: $MBIN_DIR | Group: $TARGET_DIR_GROUP${NC}"
+    if [[ -d "$WEB_DIR" ]]; then
+      TARGET_DIR_GROUP="$(stat -c '%G' "$WEB_DIR")"
+      echo -e "${YELLOW}Target path: $WEB_DIR | Group: $TARGET_DIR_GROUP${NC}"
       for sync_user in "${SYNC_USERS[@]}"; do
-        ensure_user_in_group "$sync_user" "$TARGET_DIR_GROUP" "target:$MBIN_DIR" || exit 1
+        ensure_user_in_group "$sync_user" "$TARGET_DIR_GROUP" "target:$WEB_DIR" || exit 1
       done
     else
       echo -e "${YELLOW}Target directory does not exist yet; target-group sync will run after git operations.${NC}"
@@ -253,24 +207,24 @@ if [[ "${EUID}" -ne 0 ]]; then
   echo -e "${YELLOW}Info: running as non-root user.${NC}"
 fi
 
-# Pull latest changes from GitHub repository
-echo -e "${YELLOW}[6/8] Pulling latest changes into $MBIN_DIR${NC}"
+# Pull latest changes from repository
+echo -e "${YELLOW}[6/8] Pulling latest changes into $WEB_DIR${NC}"
 
-if [[ ! -d "$MBIN_DIR/.git" ]]; then
+if [[ ! -d "$WEB_DIR/.git" ]]; then
   echo -e "${YELLOW}Target is not a git repository yet. Cloning main branch.${NC}"
-  run_git_cmd clone -b main "$GIT_LINK" "$MBIN_DIR"
-elif ! run_git_cmd -C "$MBIN_DIR" pull "$GIT_LINK" main; then
+  run_git_cmd clone -b main "$GIT_LINK" "$WEB_DIR"
+elif ! run_git_cmd -C "$WEB_DIR" pull "$GIT_LINK" main; then
   # Recovery mode if initial pull fails
   echo -e "${YELLOW}Initial pull failed. Entering recovery flow: stash + pull --rebase + fallback clone${NC}"
 
   recovery_stash_ref=""
-  recovery_stash_msg="git_gbin_autostash_$(date +%Y%m%d_%H%M%S)"
+  recovery_stash_msg="git_web_autostash_$(date +%Y%m%d_%H%M%S)"
 
   # Only stash if there are local changes to preserve
   echo -e "${YELLOW}[7/8] Checking local changes before recovery${NC}"
-  if [[ -n "$(git -C "$MBIN_DIR" status --porcelain)" ]]; then
-    git -C "$MBIN_DIR" stash push -u -m "$recovery_stash_msg"
-    recovery_stash_ref="$(git -C "$MBIN_DIR" stash list | awk -v msg="$recovery_stash_msg" '$0 ~ msg {print $1; exit}')"
+  if [[ -n "$(git -C "$WEB_DIR" status --porcelain)" ]]; then
+    git -C "$WEB_DIR" stash push -u -m "$recovery_stash_msg"
+    recovery_stash_ref="$(git -C "$WEB_DIR" stash list | awk -v msg="$recovery_stash_msg" '$0 ~ msg {print $1; exit}')"
     echo -e "${GREEN}Created recovery stash: ${recovery_stash_ref:-<unknown>}${NC}"
   else
     echo -e "${YELLOW}No local changes detected; stash not needed.${NC}"
@@ -278,28 +232,28 @@ elif ! run_git_cmd -C "$MBIN_DIR" pull "$GIT_LINK" main; then
 
   # Try pull with rebase to handle conflicts better
   echo -e "${YELLOW}[8/8] Attempting recovery pull --rebase${NC}"
-  if run_git_cmd -C "$MBIN_DIR" pull --rebase "$GIT_LINK" main; then
+  if run_git_cmd -C "$WEB_DIR" pull --rebase "$GIT_LINK" main; then
     echo -e "${GREEN}Recovery pull --rebase succeeded.${NC}"
     # Clean up the stash we created
     if [[ -n "$recovery_stash_ref" ]]; then
-      git -C "$MBIN_DIR" stash drop "$recovery_stash_ref" >/dev/null || true
+      git -C "$WEB_DIR" stash drop "$recovery_stash_ref" >/dev/null || true
       echo -e "${GREEN}Dropped recovery stash: $recovery_stash_ref${NC}"
     fi
   else
     # Last resort: recreate the directory entirely
-    echo -e "${YELLOW}Recovery pull --rebase failed, recreating $MBIN_DIR${NC}"
-    rm -rf "$MBIN_DIR"
-    run_git_cmd clone -b main "$GIT_LINK" "$MBIN_DIR"
+    echo -e "${YELLOW}Recovery pull --rebase failed, recreating $WEB_DIR${NC}"
+    rm -rf "$WEB_DIR"
+    run_git_cmd clone -b main "$GIT_LINK" "$WEB_DIR"
   fi
 fi
 
 # If running with sudo, re-check target directory group after repo operations.
 if [[ -n "${SUDO_USER:-}" && "${#SYNC_USERS[@]}" -gt 0 ]]; then
-  if [[ -d "$MBIN_DIR" ]]; then
-    TARGET_DIR_GROUP_POST="$(stat -c '%G' "$MBIN_DIR")"
-    echo -e "${YELLOW}Post-update target path: $MBIN_DIR | Group: $TARGET_DIR_GROUP_POST${NC}"
+  if [[ -d "$WEB_DIR" ]]; then
+    TARGET_DIR_GROUP_POST="$(stat -c '%G' "$WEB_DIR")"
+    echo -e "${YELLOW}Post-update target path: $WEB_DIR | Group: $TARGET_DIR_GROUP_POST${NC}"
     for sync_user in "${SYNC_USERS[@]}"; do
-      ensure_user_in_group "$sync_user" "$TARGET_DIR_GROUP_POST" "target-post:$MBIN_DIR" || exit 1
+      ensure_user_in_group "$sync_user" "$TARGET_DIR_GROUP_POST" "target-post:$WEB_DIR" || exit 1
     done
   else
     echo -e "${YELLOW}Post-update target directory missing; skipping target-group sync.${NC}"
@@ -307,6 +261,7 @@ if [[ -n "${SUDO_USER:-}" && "${#SYNC_USERS[@]}" -gt 0 ]]; then
 fi
 
 # Restore executable permissions on all scripts after update
-echo -e "${YELLOW}Restoring executable permission on shell scripts in $MBIN_DIR${NC}"
-chmod +x "$MBIN_DIR"/*.sh 2>/dev/null || true
+echo -e "${YELLOW}Restoring executable permission on shell scripts in $WEB_DIR${NC}"
+chmod +x "$WEB_DIR"/*.sh 2>/dev/null || true
 echo -e "${GREEN}Done: $SCRIPT_NAME workflow complete.${NC}"
+

@@ -29,13 +29,16 @@ get_script_version() {
 }
 
 S_CLONE_USER="$INITI_DIR/inu2_clone_user.sh"
+S_MGIT_HTTPS="$SCRIPT_DIR/mgit_https.sh"
 
 for f in \
-  "$S_CLONE_USER"; do
+  "$S_CLONE_USER" \
+  "$S_MGIT_HTTPS"; do
   require_file "$f"
 done
 
 V_CLONE_USER="$(get_script_version "$S_CLONE_USER")"
+V_MGIT_HTTPS="$(get_script_version "$S_MGIT_HTTPS")"
 
 if [[ "$EUID" -ne 0 ]]; then
   echo -e "${RED}Error: run as root (use sudo), e.g.:${NC}"
@@ -48,23 +51,30 @@ if [[ -z "$CURRENT_USER" || "$CURRENT_USER" == "root" ]]; then
   CURRENT_USER="ubuntu"  # Fallback user
 fi
 
-echo -e "${YELLOW}2. Running inu1user.sh v07 (user setup) for: $CURRENT_USER${NC}"
+echo -e "${YELLOW}2. Running inu1user.sh v08 (user setup) for: $CURRENT_USER${NC}"
 echo "Resolved initi script base path: $INITI_DIR"
 echo "Resolved child script and version:"
 echo "  - $S_CLONE_USER ${V_CLONE_USER:-<unknown>}"
+echo "  - $S_MGIT_HTTPS ${V_MGIT_HTTPS:-<unknown>}"
 
 echo -e "${YELLOW}_________________________________________________________________________${NC}"
 if [[ -n "$TARGET_USER" ]]; then
-  echo "2.[1/1] inu2_clone_user.sh ${V_CLONE_USER:-<unknown>} - create '$TARGET_USER' cloned from '$CURRENT_USER' (sudo + home + ssh keys)"
+  echo "2.[1/2] inu2_clone_user.sh ${V_CLONE_USER:-<unknown>} - create '$TARGET_USER' cloned from '$CURRENT_USER' (sudo + home + ssh keys)"
   if id "$TARGET_USER" >/dev/null 2>&1; then
     echo -e "${YELLOW}User '$TARGET_USER' already exists; skipping clone step (idempotent behavior).${NC}"
   else
     bash "$S_CLONE_USER" "$TARGET_USER" "$CURRENT_USER"
   fi
 else
-  echo "2.[1/1] inu2_clone_user.sh ${V_CLONE_USER:-<unknown>} - skipped (no new username provided)"
+  echo "2.[1/2] inu2_clone_user.sh ${V_CLONE_USER:-<unknown>} - skipped (no new username provided)"
 fi
 
-echo ""
-echo -e "${GREEN}inu1user complete. User-level setup finished.${NC}"
-echo "Safe to run again (idempotent where possible)."
+# As requested, run mgit_https.sh as the last command in inu1user.sh.
+echo "2.[2/2] mgit_https.sh ${V_MGIT_HTTPS:-<unknown>} - refresh local mbin repository via HTTPS (final step)"
+if [[ -n "$TARGET_USER" ]]; then
+  echo "Passing -n $TARGET_USER to mgit_https.sh (target user present)."
+  bash "$S_MGIT_HTTPS" -n "$TARGET_USER"
+else
+  echo "Running mgit_https.sh without -n (no target user provided)."
+  bash "$S_MGIT_HTTPS"
+fi
