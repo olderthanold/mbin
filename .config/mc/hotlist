@@ -1,0 +1,3 @@
+ENTRY "/opt/mbin" URL "/opt/mbin"
+ENTRY "/webs" URL "/webs"
+ENTRY "/etc/nginx/sites-enabled" URL "/etc/nginx/sites-enabled"

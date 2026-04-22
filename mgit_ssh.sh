@@ -193,13 +193,13 @@ fi
 
 # Check write access before any git operation.
 echo -e "${YELLOW}[3/8] Checking write access for target path${NC}"
+PARENT_DIR="$(dirname "$MBIN_DIR")"
 if [[ -e "$MBIN_DIR" ]]; then
   if [[ ! -w "$MBIN_DIR" ]]; then
     echo -e "${RED}Error: no write access to $MBIN_DIR. Please run with sudo.${NC}"
     exit 1
   fi
 else
-  PARENT_DIR="$(dirname "$MBIN_DIR")"
   if [[ ! -d "$PARENT_DIR" ]]; then
     echo -e "${YELLOW}Parent directory does not exist: $PARENT_DIR${NC}"
     echo -e "${RED}Error: cannot prepare target path. Please run with sudo.${NC}"
@@ -210,6 +210,24 @@ else
     echo -e "${RED}Error: no write access to parent directory $PARENT_DIR. Please run with sudo.${NC}"
     exit 1
   fi
+fi
+
+# Ensure group-write permission on parent/target directories.
+# chmod g+w => add group write bit while preserving other existing mode bits.
+echo -e "${YELLOW}Ensuring group-write permission on parent directory: $PARENT_DIR${NC}"
+if ! chmod g+w "$PARENT_DIR"; then
+  echo -e "${RED}Error: failed to set group write on $PARENT_DIR (chmod g+w). Please run with sudo.${NC}"
+  exit 1
+fi
+
+if [[ -d "$MBIN_DIR" ]]; then
+  echo -e "${YELLOW}Ensuring group-write permission on target directory: $MBIN_DIR${NC}"
+  if ! chmod g+w "$MBIN_DIR"; then
+    echo -e "${RED}Error: failed to set group write on $MBIN_DIR (chmod g+w). Please run with sudo.${NC}"
+    exit 1
+  fi
+else
+  echo -e "${YELLOW}Target directory not present yet; group-write permission will be applied after git operations.${NC}"
 fi
 
 # Optional user/group synchronization (sudo-only):
@@ -304,6 +322,18 @@ if [[ -n "${SUDO_USER:-}" && "${#SYNC_USERS[@]}" -gt 0 ]]; then
   else
     echo -e "${YELLOW}Post-update target directory missing; skipping target-group sync.${NC}"
   fi
+fi
+
+# Ensure target directory is group-writable after pull/clone/recovery flow.
+echo -e "${YELLOW}Ensuring group-write permission on target directory after git operations: $MBIN_DIR${NC}"
+if [[ -d "$MBIN_DIR" ]]; then
+  if ! chmod g+w "$MBIN_DIR"; then
+    echo -e "${RED}Error: failed to set group write on $MBIN_DIR after git operations (chmod g+w). Please run with sudo.${NC}"
+    exit 1
+  fi
+else
+  echo -e "${RED}Error: target directory missing after git operations: $MBIN_DIR${NC}"
+  exit 1
 fi
 
 # Restore executable permissions on all scripts after update
