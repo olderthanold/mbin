@@ -1,0 +1,1 @@
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/gemma-3-1b-it-GGUF:Q3_K_S --reasoning off --temp 0.7 --no-mmproj
