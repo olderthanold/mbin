@@ -3,27 +3,50 @@
 ai/llama.cpp/build/bin/
 -n 512 respons size
 -c 8192 context
---temp 0.7 temperature
+--temp 0.9 temperature
+
+1. Qwen 0.8B (best)
+2. SmolLM (if available)
+3. Gemma 1B
+4. TinyLlama
 
 ```bash
 # ===== gemma ========================================================
+
 ## ---- gemma 3 1B ------------------------------*OK* 
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/gemma-3-1b-it-GGUF:Q3_K_S --reasoning off --temp 0.7 --no-mmproj
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/gemma-3-1b-it-GGUF:Q3_K_S --reasoning off --temp 0.9 --no-mmproj
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/gemma-3-1b-it-GGUF:Q3_K_M --reasoning off --temp 0.9 --no-mmproj
+
+# #### BIG ###########################################
 ## ---- gemma 3 2B
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/gemma-2-2b-it-GGUF:Q3_K_S --reasoning off --temp 0.7 
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/gemma-2-2b-it-GGUF:Q3_K_S --reasoning off --temp 0.9 
 ## ---- gemma 4 E2B NOT FEASIBLE
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf daniloreddy/gemma-4-E2B-it_GGUF:Q4_K_S --reasoning off -n 512 --temp 0.7 --no-mmproj
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf daniloreddy/gemma-4-E2B-it_GGUF:Q4_K_S --reasoning off -n 512 --temp 0.9 --no-mmproj
 ## ---- gemma 4 E4B  NO WAY
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf daniloreddy/gemma-4-E4B-it_GGUF:Q4_K_S -p "User: Hello! Assistant:" -n 512 --temp 0.7
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf daniloreddy/gemma-4-E4B-it_GGUF:Q4_K_S -p "User: Hello! Assistant:" -n 512 --temp 0.9
 
 # ===== Qwen 3.5 ========================================================
-## ---- Qwen 3.5 0.8B ---- non thinking ---------*OK*
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q3_K_S  --reasoning off -n 512 --temp 0.7 --no-mmproj
+## ---- Qwen 3.5 0.8B ---- non thinking ---------*too bad*
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/Qwen3.5-0.8B-GGUF:Q4_K_M --reasoning off --temp 0.9 --no-mmproj
+## ---- Qwen 3.5 0.8B ---- non thinking ---------*too bad*
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q4_K_M  --reasoning off -n 512 --temp 0.9 --no-mmproj
+
+## ---- Qwen 3.5 0.8B ---- non thinking ---------*too bad*
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/Qwen3.5-0.8B-GGUF:Q3_K_M --reasoning off --temp 0.9 --no-mmproj
+## ---- Qwen 3.5 0.8B ---- non thinking ---------*too bad*
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q3_K_M  --reasoning off -n 512 --temp 0.9 --no-mmproj
+
+--ctx-size 512
+--threads 2
+
+
+
+# #### BIG ###########################################
 ## ---- Qwen 3.5 2B
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-2B-GGUF:Q3_K_S  --reasoning off -n 512 --temp 0.7 --no-mmproj
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-2B-GGUF:Q3_K_S  --reasoning off -n 512 --temp 0.9 --no-mmproj
 ## ---- Qwen 3.5 0.8B ---- THINKING
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf Jackrong/Qwen3.5-0.8B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:Q3_K_S  --reasoning off -n 512 --temp 0.7 --no-mmproj
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf Jackrong/Qwen3.5-0.8B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:Q3_K_S  --reasoning off -n 512 --temp 0.7 --no-mmproj
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf Jackrong/Qwen3.5-0.8B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:Q3_K_S  --reasoning off -n 512 --temp 0.9 --no-mmproj
+/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf Jackrong/Qwen3.5-0.8B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:Q3_K_S  --reasoning off -n 512 --temp 0.9 --no-mmproj
 ```
 # ==== Server local =================================================
 ``` bash
