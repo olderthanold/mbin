@@ -16,6 +16,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 DEFAULT_LOCAL_PATH="/opt/mbin"
 DEFAULT_REMOTE_REPO="git@github.com:olderthanold/mbin.git"
+DEFAULT_GITHUB_OWNER="olderthanold"
 SSH_KEY_PATH="/home/ubun2/.ssh/old.key"
 
 show_help() {
@@ -28,10 +29,58 @@ show_help() {
   echo "               - omitted: defaults to $DEFAULT_LOCAL_PATH"
   echo "  remote_repo  Optional Git remote URL/path"
   echo "               - omitted: defaults to $DEFAULT_REMOTE_REPO"
+  echo "               - short alias (e.g. 'mbin'): expands to git@github.com:${DEFAULT_GITHUB_OWNER}/<alias>.git"
+  echo ""
+  echo "Examples:"
+  echo "  $0"
+  echo "  $0 mm"
+  echo "  $0 mm git@github.com:${DEFAULT_GITHUB_OWNER}/mbin.git"
+  echo "  $0 mm mbin"
   echo ""
   echo "Flags:"
   echo "  -n <user>    Ensure <user> belongs to the group of local_path parent"
   echo "  -h, --help   Show this help and exit"
+}
+
+normalize_remote_repo() {
+  local raw_remote="$1"
+
+  if [[ -z "$raw_remote" ]]; then
+    GIT_LINK="$DEFAULT_REMOTE_REPO"
+    return 0
+  fi
+
+  # Accept explicit remote forms as-is:
+  # - SSH scp-like: git@host:org/repo.git
+  # - SSH URL: ssh://...
+  # - HTTP(S) URL: http://... or https://...
+  # - Local path (absolute, relative, existing filesystem path)
+  # - Any value containing '/' or ':' (covers host/path and local repo patterns)
+  if [[ "$raw_remote" == git@* || "$raw_remote" == ssh://* || "$raw_remote" == http://* || "$raw_remote" == https://* ]]; then
+    GIT_LINK="$raw_remote"
+    return 0
+  fi
+
+  if [[ "$raw_remote" == /* || "$raw_remote" == ./* || "$raw_remote" == ../* || -e "$raw_remote" ]]; then
+    GIT_LINK="$raw_remote"
+    return 0
+  fi
+
+  if [[ "$raw_remote" == *"/"* || "$raw_remote" == *":"* || "$raw_remote" == *.git ]]; then
+    GIT_LINK="$raw_remote"
+    return 0
+  fi
+
+  # Bare token shorthand (e.g. "mbin") is treated as GitHub repo alias.
+  if [[ "$raw_remote" =~ ^[A-Za-z0-9._-]+$ ]]; then
+    GIT_LINK="git@github.com:${DEFAULT_GITHUB_OWNER}/${raw_remote}.git"
+    echo -e "${YELLOW}Remote alias '$raw_remote' expanded to: $GIT_LINK${NC}"
+    return 0
+  fi
+
+  echo -e "${RED}Error: unsupported remote format '$raw_remote'.${NC}"
+  echo -e "${RED}Use a full remote URL/path or a simple alias like 'mbin'.${NC}"
+  return 1
 }
 
 # Wrapper to run git commands with SSH key only for SSH-style remotes.
@@ -202,8 +251,10 @@ fi
 
 # Resolve remote repository:
 # - no arg: default mbin SSH repo
-# - provided: use as-is
-GIT_LINK="${INPUT_REMOTE_REPO:-$DEFAULT_REMOTE_REPO}"
+# - explicit URL/path: use as-is
+# - short alias token (e.g. "mbin"): expand to git@github.com:<owner>/<alias>.git
+GIT_LINK=""
+normalize_remote_repo "$INPUT_REMOTE_REPO" || exit 1
 echo -e "${YELLOW}[2/8] Using remote repository: $GIT_LINK${NC}"
 
 # Validate SSH key presence/permissions for SSH remotes:
