@@ -7,7 +7,7 @@
 
 set -euo pipefail  # Exit on error, undefined variable, or pipeline failure
 
-SCRIPT_NAME="git_mbin_ssh.sh"
+SCRIPT_NAME="mgit_oldssh.sh"
 SCRIPT_VERSION="v04"
 SEP="======================================================================"
 GREEN='\033[0;32m'
