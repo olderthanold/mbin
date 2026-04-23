@@ -168,9 +168,8 @@ tail -f /proc/<pid>/fd/1
 ```bash
 nohup /opt/mbin/ai/aibuild.sh > build.log 2>&1 &
 nohup /opt/mbin/ai/aibuild.sh > build.log 2> error.log &
-nohup sudo -E bash -c "export PATH=$PATH; ociamp.sh" > ociamp.log 2>&1 && touch ociamp_script_completed.txt &
-echo $!
-nohup bash -c 'sudo -E bash -c "export PATH=$PATH; ociamp.sh" && touch ociamp_script_completed.txt' > ociamp.log 2>error.log &
+
+nohup bash -c 'sudo -E bash -c "export PATH=$PATH; ociamp.sh" && touch ociamp_script_completed.txt' > ociamp02.log 2>&1 &
 echo $!
 ```
 # explanation:
