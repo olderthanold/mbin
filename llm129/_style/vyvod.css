@@ -1,0 +1,52 @@
+BODY		{
+	background-color : Black;
+	MARGIN-LEFT: 0px;
+	MARGIN-TOP: 30px;
+	MARGIN-RIGHT: 0px;
+	BORDER-RIGHT: 0px ;
+}
+P	{
+	FONT-SIZE: 12pt;
+	MARGIN-BOTTOM: 0px;
+	MARGIN-TOP: 0px;
+	font-family:Tahoma;
+	COLOR:#CCCCCC;
+	LINE-HEIGHT: normal;
+	margin-left : 20;
+}
+H1	{
+	FONT-SIZE: 22pt;
+	MARGIN-BOTTOM: 6px;
+	MARGIN-TOP: 2px;
+	font-family:Tahoma;
+	COLOR:#CCCCCC;
+	TEXT-INDENT: 0px;
+	TEXT-ALIGN: left;
+	margin-left : 20;
+}
+H2	{
+	FONT-SIZE: 13pt;
+	MARGIN-BOTTOM: 2px;
+	MARGIN-TOP: 4px;
+	font-family:Tahoma;
+	COLOR:#CCCCCC;
+	TEXT-INDENT: 0px;
+	TEXT-ALIGN: left;
+	margin-left : 30;
+}
+ A			{
+	font-family: Tahoma;
+	TEXT-INDENT: 0px;
+	TEXT-ALIGN: left;
+	TEXT-DECORATION: none;
+}
+HR			{
+	COLOR: Silver;
+	MARGIN-BOTTOM: 1px;
+	MARGIN-TOP: 1px;
+}
+A:link		{	COLOR:#ffffff	; LINE-HEIGHT: 100%	}
+A:visited	{	COLOR:#999999	;LINE-HEIGHT: 100%	}
+A:hover		{	COLOR:#ffffff	;LINE-HEIGHT: 100%;FONT-SIZE: 12pt	}
+A:active	{	COLOR:#ffffff	;LINE-HEIGHT: 100%	;FONT-WEIGHT: bold	}
+

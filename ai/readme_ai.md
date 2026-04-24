@@ -67,6 +67,7 @@ ai/llama.cpp/build/bin/
 /home/ubun2/ai/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 127.0.0.1 --port 8080
 /home/ubun2/ai/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 129.159.30.72 --port 80
 
+/home/ubun2/ai/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 0.0.0.0 --port 80
 
 ~/ai/llama.cpp/build/bin/llama-server \
  -m ~/ai/models/gemma-4-E4B-it-GGUF \

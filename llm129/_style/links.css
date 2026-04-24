@@ -1,0 +1,54 @@
+BODY		{
+	background-color : Black;
+	BORDER-RIGHT: #cccccc 3px solid;
+}
+P		{
+	COLOR: Silver;
+	FONT-SIZE: 12pt;
+	font-family : Tahoma;
+	MARGIN-LEFT: 10px;
+	MARGIN-BOTTOM: 0px;
+	MARGIN-TOP: 2px
+}
+H1		{
+	COLOR: White;
+	FONT-SIZE: 14pt;
+	font-family : Tahoma;
+	MARGIN-LEFT: 5px;
+	MARGIN-BOTTOM: 12px;
+	MARGIN-TOP: 2px;
+	text-align : center;
+}
+H2		{
+	COLOR:#990000;
+	FONT-SIZE: 13pt;
+	font-family : Tahoma;
+	MARGIN-LEFT: 5px;
+}
+H3		{
+	COLOR:#990000;
+	FONT-SIZE: 13pt;
+	font-family : Tahoma;
+	MARGIN-LEFT: 5px;
+}
+HR		{
+	COLOR: Silver;
+	MARGIN-BOTTOM: 1px;
+	MARGIN-TOP: 1px;
+	width : 108%;
+}
+A {
+	font-family : Tahoma;
+	line-height: 100%;
+	text-decoration : none;
+}
+A:link		{	COLOR:#CCCCCC;}
+A:visited	{	COLOR:#999999;}
+A:active	{	COLOR: #cccccc;}
+A:hover		{
+	COLOR: White;
+	FONT-SIZE: 12pt;
+	FONT-WEIGHT: bold
+}
+FONT		{	 Tahoma, Arial, Helvetica, }
+

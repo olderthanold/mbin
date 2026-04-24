@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>llm129</title>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1e1e1e;
+            color: #f0f0f0;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #directory-input {
+            min-width: 220px;
+            padding: 9px 10px;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 6px;
+            background: #2563eb;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #status {
+            margin: 12px 0 16px;
+            color: #cbd5e1;
+        }
+
+        #links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #links li {
+            margin: 8px 0;
+        }
+
+        #links a {
+            display: block;
+            padding: 10px;
+            border-left: 4px solid #3b82f6;
+            background: #2b2b2b;
+            color: #e2e8f0;
+            text-decoration: none;
+        }
+
+        #links a:hover {
+            background: #3a3a3a;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="page-title">HTML Files Index</h1>
+    <div class="controls">
+        <label for="directory-input">Directory:</label>
+        <input id="directory-input" type="text" value="/" placeholder="/">
+        <button id="refresh-list" type="button">Refresh remote list</button>
+    </div>
+    <p id="status">Loading .htm/.html files from server directory...</p>
+    <ul id="links"></ul>
+
+    <!-- Local script only (no external dependencies). -->
+    <script src="index.js" defer></script>
+</body>
+</html>
+

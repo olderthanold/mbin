@@ -1,0 +1,1 @@
+# /home/ubun2/ai/llama.cpp/build/bin

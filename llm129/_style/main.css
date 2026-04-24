@@ -1,0 +1,38 @@
+BODY		{
+	background-color : Black;
+	margin-left : 20;
+}
+P			{
+	COLOR:#CCCCCC;
+	FONT-SIZE: 12pt;
+	font-family:Tahoma;
+	margin-bottom : 3;
+	margin-top : 1;
+	text-indent : 0;
+}
+H1			{
+	COLOR:#CCCCCC;
+	font-family : Tahoma;
+	font-style : 22;
+	margin-top : 6;
+	margin-bottom : 2;
+}
+H2			{
+	COLOR:#990000;
+	font-size : 13;
+	margin-top : 4;
+	margin-bottom : 2;
+}
+HR			{
+	COLOR: #cccccc;
+	margin-top : 1;
+	margin-bottom : 1;
+}
+A:link		{	COLOR:#ffffff	}
+A:visited	{	COLOR:#999999	}
+A:hover		{
+	COLOR:#ffffff;
+	font-size : 12;
+}
+A:active	{	COLOR:#ffffff	}
+
