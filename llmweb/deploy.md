@@ -1,57 +1,47 @@
-# Deploy llama.cpp behind nginx on `olderthanold.duckdns.org`
+# Split deployment: web server + separate llama.cpp server
 
-This guide lets you run:
-- your normal website on `/`
-- llama.cpp Web UI + OpenAI-like API on `/llama/`
+This document is for your **2-server architecture** (not single-VM):
 
-It solves your VM conflict by **not** running both on port 80 directly.
-Instead:
-- `nginx` stays public on `80/443`
-- `llama-server` runs private on `127.0.0.1:8080`
+- **Public web/nginx server**
+  - IP: `89.168.88.88`
+  - Domain: `olderthanold.duckdns.org`
+  - Exposes: `https://olderthanold.duckdns.org/` and proxied `https://olderthanold.duckdns.org/llama/`
+
+- **LLM server (llama.cpp host)**
+  - IP: `129.159.30.72`
+  - Domain: `llm129.duckdns.org`
+  - Runs `llama-server`
+
+Goal:
+- Keep your website on `https://olderthanold.duckdns.org/`
+- Expose llama UI + OpenAI-like API through:
+  - `https://olderthanold.duckdns.org/llama/`
+  - `https://olderthanold.duckdns.org/llama/v1/...`
 
 ---
 
-## 0) Architecture (what and why)
+## 0) Traffic flow (clear picture)
 
 ```text
-Internet (web/phone/other app)
-  -> https://olderthanold.duckdns.org/
-      nginx (80/443 public)
-        /         -> your existing website files
-        /llama/   -> proxy to http://127.0.0.1:8080/
-                         llama-server (private, local only)
+Client (phone / other web app)
+  -> https://olderthanold.duckdns.org/llama/v1/...
+     (89.168.88.88, public nginx)
+       -> reverse proxy to llm backend on second host
+          -> https://llm129.duckdns.org/   (129.159.30.72)
+             -> llama-server
 ```
-
-Why this is better:
-- avoids port-80 conflict (`nginx` vs `llama-server`)
-- keeps TLS/domain handling in one place (nginx)
-- keeps llama backend hidden from direct internet access
 
 ---
 
-## 1) Run llama-server as a systemd service (local bind only)
+## 1) Configure llama server host (129.159.30.72)
 
-> You currently run `llama-server` on `--port 80`. Change to `127.0.0.1:8080`.
+Run llama on LLM host only.
+
+### 1A) Start test command manually first
 
 ```bash
-# ===== colors for progress messages =====
-GREEN='\033[0;32m'   # success
-YELLOW='\033[1;33m'  # in-progress
-RED='\033[0;31m'     # errors (reserved)
-NC='\033[0m'         # reset
-
-echo -e "${YELLOW}[1/6] Writing /etc/systemd/system/llama-server.service ...${NC}"
-sudo tee /etc/systemd/system/llama-server.service >/dev/null <<'EOF'
-[Unit]
-Description=llama.cpp server (LFM2.5-VL-450M)
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=simple
-User=ubun2
-WorkingDirectory=/home/ubun2/ai/llama.cpp
-ExecStart=/home/ubun2/ai/llama.cpp/build/bin/llama-server \
+# Starts llama-server on port 8080, listening on all interfaces for remote nginx proxy access.
+/home/ubun2/ai/llama.cpp/build/bin/llama-server \
   -hf ZuzeTt/LFM2.5-VL-450M-GGUF \
   -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf \
   --reasoning off \
@@ -60,50 +50,73 @@ ExecStart=/home/ubun2/ai/llama.cpp/build/bin/llama-server \
   --jinja \
   --repeat-penalty 1.05 \
   -c 8192 \
-  --host 127.0.0.1 \
+  --host 0.0.0.0 \
   --port 8080
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-echo -e "${YELLOW}[2/6] Reloading systemd daemon to pick up new unit...${NC}"
-sudo systemctl daemon-reload
-
-echo -e "${YELLOW}[3/6] Enabling + starting llama-server at boot and now...${NC}"
-sudo systemctl enable --now llama-server.service
-
-echo -e "${YELLOW}[4/6] Checking service status...${NC}"
-sudo systemctl status llama-server.service --no-pager
-
-echo -e "${YELLOW}[5/6] Testing local root endpoint...${NC}"
-curl -sS http://127.0.0.1:8080/ | head -n 5
-
-echo -e "${YELLOW}[6/6] Testing local health endpoint...${NC}"
-curl -sS http://127.0.0.1:8080/health
-
-echo -e "${GREEN}llama-server local backend setup complete.${NC}"
 ```
 
-### Important flags explained
-- `-hf` = Hugging Face model repository.
-- `-hff` = exact GGUF file inside that repo.
-- `--host 127.0.0.1` = bind only to local loopback (not internet).
-- `--port 8080` = backend port for nginx reverse proxy.
-- `-c 8192` = context window size.
-- `Restart=always` = auto-restart on crash.
+### 1B) Quick local checks on LLM host
+
+```bash
+# Confirms process is listening on 8080.
+sudo ss -ltnp | grep 8080 || true
+
+# Basic health probes against local listener.
+curl -sS http://127.0.0.1:8080/ | head -n 5
+curl -sS http://127.0.0.1:8080/health
+```
+
+### 1C) Optional systemd on LLM host
+
+Use script already created:
+
+```bash
+# Creates/starts systemd unit for llama-server.
+bash /opt/mbin/llmweb/llama_systemd_service.sh
+```
+
+If using split-server mode, make sure service uses remote-bind host (`0.0.0.0` or private NIC IP),
+not `127.0.0.1`, otherwise web server cannot reach it.
 
 ---
 
-## 2) Configure nginx reverse proxy on `/llama/`
+## 2) Configure public nginx server (89.168.88.88)
 
-Edit your active nginx site config for `olderthanold.duckdns.org` and add this inside the correct `server { ... }` block:
+Edit nginx config for `olderthanold.duckdns.org` and add this in the active `server {}` block.
+
+### Option A (recommended): proxy to domain over HTTPS upstream
 
 ```nginx
 location /llama/ {
-    proxy_pass http://127.0.0.1:8080/;
+    # Forward /llama/* traffic to remote LLM server domain.
+    proxy_pass https://llm129.duckdns.org/;
+    proxy_http_version 1.1;
+
+    # Preserve request/client context.
+    proxy_set_header Host llm129.duckdns.org;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # Generation and streaming can be long.
+    proxy_read_timeout 3600;
+    proxy_send_timeout 3600;
+    send_timeout 3600;
+
+    # Allow larger prompts.
+    client_max_body_size 64m;
+
+    # Upgrade headers (safe for streaming/websocket-like behavior).
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+```
+
+### Option B: proxy directly to IP/port over HTTP
+
+```nginx
+location /llama/ {
+    # Use this only if LLM host does not expose TLS upstream.
+    proxy_pass http://129.159.30.72:8080/;
     proxy_http_version 1.1;
 
     proxy_set_header Host $host;
@@ -111,112 +124,122 @@ location /llama/ {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
 
-    # long generation/streaming support
     proxy_read_timeout 3600;
     proxy_send_timeout 3600;
     send_timeout 3600;
-
-    # allow larger prompt payloads
     client_max_body_size 64m;
 
-    # optional compatibility for upgraded connections
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
 }
 ```
 
-Then validate and reload nginx:
+Validate + reload nginx:
 
 ```bash
-echo -e "${YELLOW}[nginx] Testing nginx config syntax before reload...${NC}"
+# Syntax test before reload.
 sudo nginx -t
 
-echo -e "${YELLOW}[nginx] Reloading nginx without dropping active connections...${NC}"
+# Apply config without hard restart.
 sudo systemctl reload nginx
 
-echo -e "${GREEN}[nginx] Reload complete.${NC}"
+# Confirm nginx healthy.
+sudo systemctl status nginx --no-pager
 ```
 
 ---
 
-## 3) Firewall / security expectations
+## 3) Firewall and network rules (important)
 
-Publicly exposed:
+### Web server (89.168.88.88)
+
+Public inbound open:
 - `80/tcp`
 - `443/tcp`
 
-Must stay private:
-- `8080/tcp` (do not expose directly)
+### LLM server (129.159.30.72)
 
-If using UFW:
+Allow inbound from web server IP (`89.168.88.88`) to llama port `8080`.
+Prefer allow-list (not public-open to world).
+
+Example with UFW on LLM host:
 
 ```bash
-echo -e "${YELLOW}[ufw] Opening HTTP/HTTPS and denying backend 8080...${NC}"
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
+# Allow only web server to hit llama backend port.
+sudo ufw allow from 89.168.88.88 to any port 8080 proto tcp
+
+# Optional: deny everyone else on 8080.
 sudo ufw deny 8080/tcp
+
+# Show effective rules.
 sudo ufw status verbose
 ```
 
 ---
 
-## 4) Validate endpoints
+## 4) Validation checklist (both servers + external)
 
-### From VM
+### 4A) On LLM server (129.159.30.72)
 
 ```bash
-echo -e "${YELLOW}[check] Local llama backend...${NC}"
-curl -I http://127.0.0.1:8080/
+# Service status + logs.
+sudo systemctl status llama-server.service --no-pager
+sudo journalctl -u llama-server.service -n 100 --no-pager
 
-echo -e "${YELLOW}[check] Public website root through domain...${NC}"
-curl -I https://olderthanold.duckdns.org/
+# Listener and health checks.
+sudo ss -ltnp | grep 8080 || true
+curl -sS http://127.0.0.1:8080/health
+```
 
-echo -e "${YELLOW}[check] Public llama route through nginx...${NC}"
+### 4B) On web/nginx server (89.168.88.88)
+
+```bash
+# Verify web server can reach remote llm endpoint.
+curl -I https://llm129.duckdns.org/
+# or if using direct HTTP upstream:
+curl -I http://129.159.30.72:8080/
+
+# Verify public routed endpoint.
 curl -I https://olderthanold.duckdns.org/llama/
 ```
 
-### OpenAI-like API test (chat completions)
+### 4C) External client test (from your laptop/phone)
 
 ```bash
-echo -e "${YELLOW}[api] Testing OpenAI-compatible chat/completions endpoint...${NC}"
+# OpenAI-compatible endpoint test through public web domain.
 curl -sS https://olderthanold.duckdns.org/llama/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "local-model",
     "messages": [
-      {"role":"system","content":"You are a concise assistant."},
-      {"role":"user","content":"Say hello in one short sentence."}
+      {"role":"system","content":"You are concise."},
+      {"role":"user","content":"Say hello from split-server setup."}
     ],
     "temperature": 0.7
   }'
 ```
 
-Notes:
-- Base URL for clients: `https://olderthanold.duckdns.org/llama/v1`
-- Typical endpoint: `/chat/completions`
-
 ---
 
-## 5) How to call from your other web / phone app
+## 5) OpenAI-compatible client settings
 
-Use OpenAI-compatible client settings:
+For your other web app / phone app, use:
 
 - `base_url`: `https://olderthanold.duckdns.org/llama/v1`
-- `api_key`: any placeholder if client library requires one (unless you add auth)
-- `model`: use value accepted by your llama-server build/model route (often any label works with llama.cpp-compatible servers)
+- endpoint: `/chat/completions`
+- `api_key`: placeholder if your SDK requires one (unless you add auth)
 
-Example (JavaScript fetch):
+Example JS:
 
 ```js
 const res = await fetch("https://olderthanold.duckdns.org/llama/v1/chat/completions", {
   method: "POST",
   headers: {
     "Content-Type": "application/json"
-    // "Authorization": "Bearer YOUR_KEY" // only if you add auth/protection
   },
   body: JSON.stringify({
     model: "local-model",
-    messages: [{ role: "user", content: "Hello from phone web app" }],
+    messages: [{ role: "user", content: "Hello from phone" }],
     temperature: 0.7
   })
 });
@@ -226,56 +249,17 @@ console.log(data);
 
 ---
 
-## 6) Optional hardening (recommended on public internet)
-
-Because `olderthanold.duckdns.org` is public, add protection.
-
-### Option A: Basic Auth on `/llama/`
+## 6) Operations quick commands
 
 ```bash
-echo -e "${YELLOW}[auth] Installing htpasswd tool (apache2-utils)...${NC}"
-sudo apt update
-sudo apt install -y apache2-utils
+# llama service control (run on LLM server)
+sudo systemctl stop llama-server.service
+sudo systemctl disable llama-server.service
+sudo systemctl restart llama-server.service
+sudo systemctl status llama-server.service --no-pager
+sudo journalctl -u llama-server.service -n 100 --no-pager
 
-echo -e "${YELLOW}[auth] Creating password file for user 'llmuser'...${NC}"
-sudo htpasswd -c /etc/nginx/.htpasswd_llama llmuser
-```
-
-Then inside `location /llama/`:
-
-```nginx
-auth_basic "Restricted LLM";
-auth_basic_user_file /etc/nginx/.htpasswd_llama;
-```
-
-Reload:
-
-```bash
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-### Option B: IP allow-list (if you have static trusted IPs)
-
-```nginx
-location /llama/ {
-    allow 1.2.3.4;   # your trusted public IP
-    deny all;
-    proxy_pass http://127.0.0.1:8080/;
-    ...
-}
-```
-
----
-
-## 7) Operations quick commands
-
-```bash
-# service control
-sudo systemctl restart llama-server
-sudo systemctl status llama-server --no-pager
-sudo journalctl -u llama-server -n 100 --no-pager
-
-# nginx control
+# nginx control (run on web server)
 sudo nginx -t
 sudo systemctl reload nginx
 sudo systemctl status nginx --no-pager
@@ -283,8 +267,11 @@ sudo systemctl status nginx --no-pager
 
 ---
 
-## Result you should see
+## Expected final URLs
 
-- `https://olderthanold.duckdns.org/` -> your normal site
-- `https://olderthanold.duckdns.org/llama/` -> llama.cpp web UI
-- `https://olderthanold.duckdns.org/llama/v1/chat/completions` -> OpenAI-like API endpoint
+- Main website: `https://olderthanold.duckdns.org/`
+- Llama UI via proxy: `https://olderthanold.duckdns.org/llama/`
+- OpenAI-like API via proxy: `https://olderthanold.duckdns.org/llama/v1/chat/completions`
+
+Upstream LLM host direct URL remains:
+- `https://llm129.duckdns.org/` (or `http://129.159.30.72:8080/` if you run HTTP-only upstream)

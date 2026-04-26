@@ -112,5 +112,7 @@ curl -sS "http://${BIND_HOST}:${BIND_PORT}/health" || true
 echo
 echo -e "${GREEN}Done. llama-server is managed by systemd.${NC}"
 echo -e "${YELLOW}Useful commands:${NC}"
+echo "  sudo systemctl stop ${SERVICE_NAME}.service"
+echo "  sudo systemctl disable ${SERVICE_NAME}.service"
 echo "  sudo systemctl restart ${SERVICE_NAME}.service"
 echo "  sudo journalctl -u ${SERVICE_NAME}.service -n 100 --no-pager"
