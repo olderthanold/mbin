@@ -36,3 +36,11 @@ A:hover		{
 }
 A:active	{	COLOR:#ffffff	}
 
+DIV			{
+	COLOR:#CCCCCC;
+	FONT-SIZE: 12pt;
+	font-family:Tahoma;
+	margin-bottom : 3;
+	margin-top : 1;
+	text-indent : 0;
+}
