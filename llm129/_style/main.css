@@ -1,6 +1,10 @@
 BODY		{
 	background-color : Black;
 	margin-left : 20;
+	COLOR:#CCCCCC;
+	FONT-SIZE: 12pt;
+	font-family:Tahoma;
+	text-indent : 0;
 }
 P			{
 	COLOR:#CCCCCC;

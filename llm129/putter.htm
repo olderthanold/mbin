@@ -10,18 +10,368 @@ content="text/html; charset=utf8">
     <p>
     <input id="question" type="text" placeholder="Write your question" size="50">
     <button id="askBtn" type="button">Submit</button>
+    <span style="color:#CCCCCC; margin-left:10px;">
+        Temp:
+        <input id="temperatureInput" type="number" min="0" max="2" step="0.1" value="0.7" style="width:70px;">
+        Max tokens:
+        <input id="maxTokensInput" type="number" min="1" step="1" placeholder="auto" style="width:90px;">
+        Stream:
+        <input id="streamInput" type="checkbox">
+        Reasoning:
+        <select id="reasoningEffortSelect">
+            <option value="">default</option>
+            <option value="none">none</option>
+            <option value="minimal">minimal</option>
+            <option value="low">low</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+            <option value="xhigh">xhigh</option>
+        </select>
+        Verbosity:
+        <select id="verbositySelect">
+            <option value="">default</option>
+            <option value="low">low</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+        </select>
+    </span>
+    <div style="margin-top:10px; color:#CCCCCC;">
+        <button id="addColumnBtn" type="button">Add column</button>
+        <span id="modelColumns"></span>
+    </div>
+    <div id="answers" style="margin-top:10px;"></div>
     <script src="https://js.puter.com/v2/"></script>
     <script>
-        document.getElementById("askBtn").addEventListener("click", () => {
-            const q = document.getElementById("question").value.trim();
+        const questionInput = document.getElementById("question");
+        const askBtn = document.getElementById("askBtn");
+        const answersEl = document.getElementById("answers");
+        const addColumnBtn = document.getElementById("addColumnBtn");
+        const modelColumnsEl = document.getElementById("modelColumns");
+        const temperatureInput = document.getElementById("temperatureInput");
+        const maxTokensInput = document.getElementById("maxTokensInput");
+        const streamInput = document.getElementById("streamInput");
+        const reasoningEffortSelect = document.getElementById("reasoningEffortSelect");
+        const verbositySelect = document.getElementById("verbositySelect");
+        let providersCache = [];
+        const modelHealthCache = new Map();
+
+        function extractAnswerText(response) {
+            if (typeof response === "string") return response;
+            if (response?.message?.content) return String(response.message.content);
+            if (response?.text) return String(response.text);
+            return JSON.stringify(response);
+        }
+
+        function extractErrorText(error) {
+            if (!error) return "Unknown error";
+            if (typeof error === "string") return error;
+            if (error?.message && typeof error.message === "string") return error.message;
+            if (error?.error?.message && typeof error.error.message === "string") return error.error.message;
+            try {
+                return JSON.stringify(error);
+            } catch (e) {
+                return String(error);
+            }
+        }
+
+        function extractTokenUsage(response) {
+            const usage = response?.usage || response?.message?.usage || response?.meta?.usage;
+            if (!usage) return "n/a";
+
+            if (typeof usage.total_tokens === "number") return String(usage.total_tokens);
+
+            const prompt = Number(usage.prompt_tokens ?? usage.input_tokens ?? 0);
+            const completion = Number(usage.completion_tokens ?? usage.output_tokens ?? 0);
+            const total = prompt + completion;
+            if (Number.isFinite(total) && total > 0) return String(total);
+
+            return "n/a";
+        }
+
+        function buildOptionsFromControls() {
+            const options = {
+                stream: streamInput.checked
+            };
+
+            const temperature = Number(temperatureInput.value);
+            if (!Number.isNaN(temperature)) options.temperature = temperature;
+
+            const maxTokens = Number(maxTokensInput.value);
+            if (!Number.isNaN(maxTokens) && maxTokens > 0) options.max_tokens = maxTokens;
+
+            if (reasoningEffortSelect.value) options.reasoning_effort = reasoningEffortSelect.value;
+            if (verbositySelect.value) options.text_verbosity = verbositySelect.value;
+
+            return options;
+        }
+
+        function refreshModelDropdownMarks(columnEl) {
+            const providerSelect = columnEl.querySelector(".providerSelect");
+            const modelSelect = columnEl.querySelector(".modelSelect");
+            const provider = providerSelect?.value || "all";
+            if (!modelSelect) return;
+
+            Array.from(modelSelect.options).forEach((option) => {
+                const model = option.value || "";
+                const baseLabel = option.dataset.baseLabel || option.textContent;
+                option.dataset.baseLabel = baseLabel;
+
+                if (!model || provider === "all") {
+                    option.textContent = baseLabel;
+                    return;
+                }
+
+                const key = `${provider}|${model}`;
+                const status = modelHealthCache.get(key);
+                if (status === "ok") option.textContent = `✅ ${baseLabel}`;
+                else if (status === "nok") option.textContent = `❌ ${baseLabel}`;
+                else option.textContent = baseLabel;
+            });
+        }
+
+        function getColumnModelKey(columnEl) {
+            const providerSelect = columnEl.querySelector(".providerSelect");
+            const modelSelect = columnEl.querySelector(".modelSelect");
+            const provider = providerSelect?.value || "";
+            const model = modelSelect?.value || "";
+            return `${provider}|${model}`;
+        }
+
+        async function runHealthCheckForModel(provider, model, force = false) {
+            const key = `${provider}|${model}`;
+            if (!force && modelHealthCache.has(key)) return modelHealthCache.get(key);
+
+            try {
+                await puter.ai.chat("ping", true, {
+                    model,
+                    stream: false,
+                    max_tokens: 4
+                });
+                modelHealthCache.set(key, "ok");
+                return "ok";
+            } catch (error) {
+                modelHealthCache.set(key, "nok");
+                return "nok";
+            }
+        }
+
+        async function checkAllModelsInColumn(columnEl, force = false) {
+            const providerSelect = columnEl.querySelector(".providerSelect");
+            const modelSelect = columnEl.querySelector(".modelSelect");
+            const checkBtn = columnEl.querySelector(".checkColumnBtn");
+            const provider = providerSelect.value || "all";
+
+            if (provider === "all") {
+                refreshModelDropdownMarks(columnEl);
+                return;
+            }
+
+            const modelValues = Array.from(modelSelect.options)
+                .map((o) => o.value)
+                .filter(Boolean);
+            if (!modelValues.length) return;
+
+            if (checkBtn) checkBtn.textContent = "checking...";
+            await Promise.allSettled(modelValues.map((model) => runHealthCheckForModel(provider, model, force)));
+            refreshModelDropdownMarks(columnEl);
+            if (checkBtn) checkBtn.textContent = "check";
+        }
+
+        async function ensureProvidersLoaded() {
+            try {
+                providersCache = await puter.ai.listModelProviders();
+            } catch (error) {
+                providersCache = [];
+            }
+        }
+
+        async function populateProviderSelect(providerSelect) {
+            providerSelect.innerHTML = "";
+
+            const allOption = document.createElement("option");
+            allOption.value = "";
+            allOption.textContent = "all";
+            providerSelect.appendChild(allOption);
+
+            providersCache.forEach((provider) => {
+                const option = document.createElement("option");
+                option.value = provider;
+                option.textContent = provider;
+                providerSelect.appendChild(option);
+            });
+        }
+
+        async function loadModelsForColumn(columnEl, initialModel = "") {
+            const providerSelect = columnEl.querySelector(".providerSelect");
+            const modelSelect = columnEl.querySelector(".modelSelect");
+            const provider = providerSelect.value || null;
+            modelSelect.innerHTML = "<option>loading...</option>";
+
+            try {
+                const models = await puter.ai.listModels(provider);
+                modelSelect.innerHTML = "";
+
+                models.forEach((model) => {
+                    const modelId = model?.id || "";
+                    if (!modelId) return;
+                    const option = document.createElement("option");
+                    option.value = modelId;
+                    option.textContent = model.provider ? `${modelId} (${model.provider})` : modelId;
+                    option.dataset.baseLabel = option.textContent;
+                    modelSelect.appendChild(option);
+                });
+
+                const defaultModel = "gpt-5-nano";
+                const hasInitial = initialModel && Array.from(modelSelect.options).some((o) => o.value === initialModel);
+                const hasDefault = Array.from(modelSelect.options).some((o) => o.value === defaultModel);
+                if (hasInitial) modelSelect.value = initialModel;
+                else if (hasDefault) modelSelect.value = defaultModel;
+            } catch (error) {
+                modelSelect.innerHTML = "";
+                const fallback = document.createElement("option");
+                fallback.value = "gpt-5-nano";
+                fallback.textContent = "gpt-5-nano";
+                fallback.dataset.baseLabel = fallback.textContent;
+                modelSelect.appendChild(fallback);
+            }
+
+            refreshModelDropdownMarks(columnEl);
+        }
+
+        async function addModelColumn(initialProvider = "", initialModel = "") {
+            const columnEl = document.createElement("span");
+            columnEl.className = "model-column";
+            columnEl.style.marginLeft = "10px";
+            columnEl.innerHTML = `
+                Provider:
+                <select class="providerSelect"></select>
+                Model:
+                <select class="modelSelect"></select>
+                <button type="button" class="checkColumnBtn">check</button>
+                <button type="button" class="removeColumnBtn">exit</button>
+            `;
+
+            modelColumnsEl.appendChild(columnEl);
+
+            const providerSelect = columnEl.querySelector(".providerSelect");
+            await populateProviderSelect(providerSelect);
+
+            if (initialProvider && Array.from(providerSelect.options).some((o) => o.value === initialProvider)) {
+                providerSelect.value = initialProvider;
+            }
+
+            await loadModelsForColumn(columnEl, initialModel);
+            providerSelect.addEventListener("change", async () => {
+                await loadModelsForColumn(columnEl);
+                await checkAllModelsInColumn(columnEl, false);
+            });
+
+            const modelSelect = columnEl.querySelector(".modelSelect");
+            modelSelect.addEventListener("change", () => {
+                refreshModelDropdownMarks(columnEl);
+            });
+
+            const checkBtn = columnEl.querySelector(".checkColumnBtn");
+            checkBtn.addEventListener("click", () => {
+                checkAllModelsInColumn(columnEl, true);
+            });
+
+            const removeBtn = columnEl.querySelector(".removeColumnBtn");
+            removeBtn.addEventListener("click", () => {
+                columnEl.remove();
+                const remaining = modelColumnsEl.querySelectorAll(".model-column").length;
+                if (!remaining) addModelColumn("", "gpt-5-nano");
+            });
+
+            checkAllModelsInColumn(columnEl, false);
+        }
+
+        function submitQuestion() {
+            const q = questionInput.value.trim();
             if (!q) return;
 
-            puter.ai.chat(q, {
-                model: "gpt-5-nano"
-            }).then(response => {
-                puter.print(response);
+            const columns = Array.from(modelColumnsEl.querySelectorAll(".model-column"));
+            if (!columns.length) return;
+
+            const itemEl = document.createElement("div");
+            itemEl.style.border = "1px solid #666";
+            itemEl.style.padding = "8px";
+            itemEl.style.marginBottom = "8px";
+            itemEl.style.color = "#CCCCCC";
+
+            const qEl = document.createElement("div");
+            qEl.textContent = "Q: " + q;
+
+            const responsesEl = document.createElement("div");
+            responsesEl.style.marginTop = "6px";
+            responsesEl.style.display = "flex";
+            responsesEl.style.flexWrap = "wrap";
+            responsesEl.style.gap = "8px";
+
+            itemEl.appendChild(qEl);
+            itemEl.appendChild(responsesEl);
+            answersEl.prepend(itemEl);
+
+            const baseOptions = buildOptionsFromControls();
+
+            columns.forEach((columnEl) => {
+                const providerSelect = columnEl.querySelector(".providerSelect");
+                const modelSelect = columnEl.querySelector(".modelSelect");
+                const provider = providerSelect.value || "all";
+                const model = modelSelect.value || "gpt-5-nano";
+
+                const resultEl = document.createElement("div");
+                resultEl.style.border = "1px solid #555";
+                resultEl.style.padding = "6px";
+                resultEl.style.flex = "1 1 320px";
+                resultEl.style.minWidth = "260px";
+                resultEl.style.boxSizing = "border-box";
+
+                const labelEl = document.createElement("div");
+                labelEl.textContent = `Model: ${model} | Provider: ${provider}`;
+                labelEl.style.color = "#FFD966";
+                labelEl.style.fontWeight = "bold";
+
+                const aEl = document.createElement("div");
+                aEl.style.whiteSpace = "pre-wrap";
+                aEl.style.marginTop = "4px";
+                aEl.textContent = "A: Loading...";
+
+                resultEl.appendChild(labelEl);
+                resultEl.appendChild(aEl);
+                responsesEl.appendChild(resultEl);
+
+                const startedAt = performance.now();
+
+                puter.ai.chat(q, {
+                    ...baseOptions,
+                    model
+                }).then(response => {
+                    const elapsedSec = ((performance.now() - startedAt) / 1000).toFixed(2);
+                    const tokens = extractTokenUsage(response);
+                    labelEl.textContent = `Model: ${model} | Provider: ${provider} | Time: ${elapsedSec}s | Tokens: ${tokens}`;
+                    aEl.textContent = "A: " + extractAnswerText(response);
+                }).catch(error => {
+                    const elapsedSec = ((performance.now() - startedAt) / 1000).toFixed(2);
+                    labelEl.textContent = `Model: ${model} | Provider: ${provider} | Time: ${elapsedSec}s | Tokens: n/a`;
+                    aEl.textContent = "A: Error: " + extractErrorText(error);
+                });
             });
+
+        }
+
+        askBtn.addEventListener("click", submitQuestion);
+        questionInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") submitQuestion();
         });
+        addColumnBtn.addEventListener("click", () => {
+            addModelColumn();
+        });
+
+        (async () => {
+            await ensureProvidersLoaded();
+            await addModelColumn("", "gpt-5-nano");
+        })();
     </script>
     </p>
 </body>
