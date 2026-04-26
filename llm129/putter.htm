@@ -7,13 +7,22 @@ content="text/html; charset=utf8">
 
 <html>
 <body>
+    <p>
+    <input id="question" type="text" placeholder="Write your question" size="50">
+    <button id="askBtn" type="button">Submit</button>
     <script src="https://js.puter.com/v2/"></script>
     <script>
-        puter.ai.chat("Explain machine learning in simple terms", {
-            model: "gpt-5-nano"
-        }).then(response => {
-            puter.print(response);
+        document.getElementById("askBtn").addEventListener("click", () => {
+            const q = document.getElementById("question").value.trim();
+            if (!q) return;
+
+            puter.ai.chat(q, {
+                model: "gpt-5-nano"
+            }).then(response => {
+                puter.print(response);
+            });
         });
     </script>
+    </p>
 </body>
 </html>
