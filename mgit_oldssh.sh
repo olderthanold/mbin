@@ -7,17 +7,14 @@
 
 set -euo pipefail  # Exit on error, undefined variable, or pipeline failure
 
-SCRIPT_NAME="mgit_oldssh.sh"
-SCRIPT_VERSION="v04"
-SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}${SEP}${NC}"
-echo -e "${YELLOW}Running $SCRIPT_NAME $SCRIPT_VERSION${NC}"
-echo -e "${YELLOW}${SEP}${NC}"
+echo -e "${YELLOW}======================================================================${NC}"
+echo -e "${YELLOW}Running mgit_oldssh.sh - v04"
+echo -e "${YELLOW}======================================================================${NC}"
 
 MBIN_DIR="${1:-/opt/mbin}"
 
