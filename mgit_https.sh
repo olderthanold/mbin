@@ -2,13 +2,14 @@
 set -euo pipefail
 
 SCRIPT_NAME="git_https.sh"
-SCRIPT_VERSION="v05"
+SCRIPT_VERSION="v06"
+# mgit_https.sh v06
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
-DEFAULT_LOCAL_PATH="/opt/mbin"
+DEFAULT_LOCAL_PATH="/m/mbin"
 DEFAULT_REMOTE_REPO="https://github.com/olderthanold/web.git"
 DEFAULT_GITHUB_OWNER="olderthanold"
 
@@ -225,7 +226,7 @@ echo -e "${YELLOW}Running $SCRIPT_NAME $SCRIPT_VERSION${NC}"
 echo -e "${YELLOW}${SEP}${NC}"
 
 # Resolve local path:
-# - no arg: default /opt/mbin
+# - no arg: default /m/mbin
 # - absolute arg: use as-is
 # - relative arg: resolve under HOME
 if [[ -z "$INPUT_LOCAL_PATH" ]]; then
@@ -426,4 +427,3 @@ fi
 echo -e "${YELLOW}Restoring executable permission on shell scripts in $WEB_DIR${NC}"
 chmod +x "$WEB_DIR"/*.sh 2>/dev/null || true
 echo -e "${GREEN}Done: $SCRIPT_NAME workflow complete.${NC}"
-

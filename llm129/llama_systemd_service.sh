@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# llama_systemd_service.sh v01
 set -euo pipefail
 
 # ==============================================================================
@@ -20,8 +21,8 @@ NC='\033[0m'
 # ----- Configurable values (edit if needed) -----
 SERVICE_NAME="llama-server"
 LLAMA_USER="ubun2"
-LLAMA_WORKDIR="/home/ubun2/ai/llama.cpp"
-LLAMA_BIN="/home/ubun2/ai/llama.cpp/build/bin/llama-server"
+LLAMA_WORKDIR="/m/llama.cpp"
+LLAMA_BIN="/m/llama.cpp/build/bin/llama-server"
 
 # Model source on Hugging Face and exact GGUF filename.
 MODEL_HF="ZuzeTt/LFM2.5-VL-450M-GGUF"
@@ -43,6 +44,7 @@ if [[ "${1:-}" == "--write-only" ]]; then
   WRITE_ONLY="true"
 fi
 
+echo -e "${YELLOW}Running llama_systemd_service.sh v01${NC}"
 echo -e "${YELLOW}[0/6] Pre-flight checks...${NC}"
 
 # Check required binaries before proceeding.
@@ -63,6 +65,7 @@ sudo tee "/etc/systemd/system/${SERVICE_NAME}.service" >/dev/null <<EOF_SERVICE
 Description=llama.cpp server (${MODEL_FILE})
 After=network-online.target
 Wants=network-online.target
+RequiresMountsFor=/m
 
 [Service]
 Type=simple

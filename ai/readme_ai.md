@@ -2,7 +2,7 @@
 # ==== CLI =================================================
 ai/llama.cpp/build/bin/
 ```bash
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli \
+/m/llama.cpp/build/bin/llama-cli \
   -hf unsloth/LFM2.5-1.2B-Instruct-GGUF:Q3_K_M \
   --jinja \
   --temp 0.6 \
@@ -30,53 +30,53 @@ ai/llama.cpp/build/bin/
 ```bash
 # ===== models up to 650M ========================================================
 # fast ok bad cs
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192
 # slow like qwen, brief
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/gemma-3-270m-it-qat-GGUF:Q8_0 --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf unsloth/gemma-3-270m-it-qat-GGUF:Q8_0 --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192
 #not too good, fast
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/SmolLM2-360M-Instruct-GGUF:Q8_0 --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf bartowski/SmolLM2-360M-Instruct-GGUF:Q8_0 --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192
 #slow like qwen, ok
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf LiquidAI/LFM2-700M-GGUF:Q6_K --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf LiquidAI/LFM2-700M-GGUF:Q6_K --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192
 
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/Qwen3.5-0.8B-GGUF:Q4_K_M --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q4_K_M  --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf Jackrong/Qwopus3.5-0.8B-v3-GGUF:Q4_K_M --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf unsloth/Qwen3.5-0.8B-GGUF:Q4_K_M --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q4_K_M  --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf Jackrong/Qwopus3.5-0.8B-v3-GGUF:Q4_K_M --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
 
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/LFM2.5-1.2B-Instruct-GGUF:Q3_K_M --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf unsloth/LFM2.5-1.2B-Instruct-GGUF:Q3_K_M --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192
 # ===== gemma ========================================================
 ## **** gemma 3 1B ------------------------------*OK* slow
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/gemma-3-1b-it-GGUF:Q4_K_S --reasoning off --temp 0.7 --no-mmproj
+/m/llama.cpp/build/bin/llama-cli -hf unsloth/gemma-3-1b-it-GGUF:Q4_K_S --reasoning off --temp 0.7 --no-mmproj
 ## ---- gemma 3 2B
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/gemma-2-2b-it-GGUF:Q3_K_S --reasoning off --temp 0.7 
+/m/llama.cpp/build/bin/llama-cli -hf bartowski/gemma-2-2b-it-GGUF:Q3_K_S --reasoning off --temp 0.7
 ## ---- gemma 4 E2B NOT FEASIBLE
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf daniloreddy/gemma-4-E2B-it_GGUF:Q4_K_S --reasoning off -n 512 --temp 0.7 --no-mmproj
+/m/llama.cpp/build/bin/llama-cli -hf daniloreddy/gemma-4-E2B-it_GGUF:Q4_K_S --reasoning off -n 512 --temp 0.7 --no-mmproj
 ## ---- gemma 4 E4B  NO WAY
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf daniloreddy/gemma-4-E4B-it_GGUF:Q4_K_S -p "User: Hello! Assistant:" -n 512 --temp 0.7
+/m/llama.cpp/build/bin/llama-cli -hf daniloreddy/gemma-4-E4B-it_GGUF:Q4_K_S -p "User: Hello! Assistant:" -n 512 --temp 0.7
 # ===== Qwen 3.5 ========================================================
 ## **** Qwen 3.5 0.8B ---- non thinking ---------*too bad*
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf unsloth/Qwen3.5-0.8B-GGUF:Q4_K_M --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q4_K_M  --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf Jackrong/Qwopus3.5-0.8B-v3-GGUF:Q4_K_M --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf unsloth/Qwen3.5-0.8B-GGUF:Q4_K_M --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q4_K_M  --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
+/m/llama.cpp/build/bin/llama-cli -hf Jackrong/Qwopus3.5-0.8B-v3-GGUF:Q4_K_M --reasoning off --temp 0.7 --no-mmproj --jinja --repeat-penalty 1.05 -c 8192
 ## ---- Qwen 3.5 2B
-/home/ubun2/ai/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-2B-GGUF:Q3_K_S  --reasoning off -n 512 --temp 0.7 --no-mmproj
+/m/llama.cpp/build/bin/llama-cli -hf bartowski/Qwen_Qwen3.5-2B-GGUF:Q3_K_S  --reasoning off -n 512 --temp 0.7 --no-mmproj
 ## ---- Qwen 3.5 0.8B ---- THINKING
 ```
 # ==== Server local =================================================
 
 ``` bash
-/home/ubun2/ai/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 127.0.0.1 --port 8080
-/home/ubun2/ai/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 129.159.30.72 --port 80
+/m/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 127.0.0.1 --port 8080
+/m/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 129.159.30.72 --port 80
 
-/home/ubun2/ai/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 0.0.0.0 --port 80
+/m/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 0.0.0.0 --port 80
 
-~/ai/llama.cpp/build/bin/llama-server \
- -m ~/ai/models/gemma-4-E4B-it-GGUF \
+/m/llama.cpp/build/bin/llama-server \
+ -m /m/models/gemma-4-E4B-it-GGUF \
  -t 6 \
  -c 8192 \
  --port 8080
 
-~/ai/llama.cpp/build/bin/llama-server \
- -m ~/ai/models/Jackrong_Qwen3.5-4B-Neo-Q5_K_M.gguf \
+/m/llama.cpp/build/bin/llama-server \
+ -m /m/models/Jackrong_Qwen3.5-4B-Neo-Q5_K_M.gguf \
  -t 6 \
  -c 16384 \
  --port 8080
@@ -91,13 +91,13 @@ llama-server -hf Jackrong/Qwen3.5-0.8B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:
 ```
 # ==== Server public =================================================
 ## ---- web llm local 10.0.159.254
-/home/ubun2/ai/llama.cpp/build/bin/llama-server -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q3_K_S --no-mmproj --host 10.0.159.254 --port 8080 --reasoning off
+/m/llama.cpp/build/bin/llama-server -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q3_K_S --no-mmproj --host 10.0.159.254 --port 8080 --reasoning off
 
 ## ---- web 129 remote 129.159.30.72
-/home/ubun2/ai/llama.cpp/build/bin/llama-server -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q3_K_S --no-mmproj --host 129.159.30.72 --port 80 --reasoning off
+/m/llama.cpp/build/bin/llama-server -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q3_K_S --no-mmproj --host 129.159.30.72 --port 80 --reasoning off
 
 # ===== API 
-/home/ubun2/ai/llama.cpp/build/bin/llama-server \
+/m/llama.cpp/build/bin/llama-server \
   -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q3_K_S \
   --host 127.0.0.1 \
   --port 8080 \
@@ -114,7 +114,7 @@ llama-server -hf Jackrong/Qwen3.5-0.8B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:
 ## just run buildrun
 # run build detached from terminal, log output to file
 ```bash
-nohup bash -c 'sudo -E bash -c "export PATH=$PATH; /opt/mbin/ai/aibuild.sh" && touch aibuild_script_completed.txt' > aibuild.log 2>aibuild.log &
+nohup bash -c 'sudo -E bash -c "export PATH=$PATH; /m/mbin/ai/build_llama.sh" && touch aibuild_script_completed.txt' > aibuild.log 2>aibuild.log &
 echo $!
 
 # explanation:
@@ -124,7 +124,7 @@ echo $!
 # &          = run in background
 
 # check if running
-pgrep -af aibuild.sh
+pgrep -af build_llama.sh
 # monitor output
 tail -f build.log
 # stop if needed
@@ -137,7 +137,7 @@ sudo apt install tmux
 # start a new tmux session named "build"
 tmux new -s aibuild
 # inside tmux: run your build script
-/opt/mbin/ai/aibuild.sh
+/m/mbin/ai/build_llama.sh
 # detach from tmux (leave build running)
 ## press: Ctrl+b then d
 # later: list tmux sessions

@@ -41,7 +41,7 @@ Run llama on LLM host only.
 
 ```bash
 # Starts llama-server on port 8080, listening on all interfaces for remote nginx proxy access.
-/home/ubun2/ai/llama.cpp/build/bin/llama-server \
+/m/llama.cpp/build/bin/llama-server \
   -hf ZuzeTt/LFM2.5-VL-450M-GGUF \
   -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf \
   --reasoning off \
@@ -71,7 +71,7 @@ Use script already created:
 
 ```bash
 # Creates/starts systemd unit for llama-server.
-bash /opt/mbin/llmweb/llama_systemd_service.sh
+bash /m/mbin/llm129/llama_systemd_service.sh
 ```
 
 If using split-server mode, make sure service uses remote-bind host (`0.0.0.0` or private NIC IP),

@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 # =============================================================================
-# git_mbin_ssh.sh - Automated repository management for /opt/mbin directory
-# Purpose: Keeps track of and updates multiple scripts/tools stored in /opt/mbin
+# git_mbin_ssh.sh - Automated repository management for /m/mbin directory
+# Purpose: Keeps track of and updates multiple scripts/tools stored in /m/mbin
 # Author: olderthanold (via m.git repository)
 # =============================================================================
 
 set -euo pipefail  # Exit on error, undefined variable, or pipeline failure
 
 SCRIPT_NAME="git_mbin_ssh.sh"
-SCRIPT_VERSION="v07"
+SCRIPT_VERSION="v08"
+# mgit_ssh.sh v08
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
-DEFAULT_LOCAL_PATH="/opt/mbin"
+DEFAULT_LOCAL_PATH="/m/mbin"
 DEFAULT_REMOTE_REPO="git@github.com:olderthanold/mbin.git"
 DEFAULT_GITHUB_OWNER="olderthanold"
 SSH_KEY_PATH="/home/ubun2/.ssh/old.key"
@@ -235,7 +236,7 @@ echo -e "${YELLOW}Running $SCRIPT_NAME $SCRIPT_VERSION${NC}"
 echo -e "${YELLOW}${SEP}${NC}"
 
 # Resolve local path:
-# - no arg: default /opt/mbin
+# - no arg: default /m/mbin
 # - absolute arg: use as-is
 # - relative arg: resolve under HOME
 if [[ -z "$INPUT_LOCAL_PATH" ]]; then

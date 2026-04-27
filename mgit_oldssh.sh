@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
+# mgit_oldssh.sh v05
 # =============================================================================
-# git_mbin_ssh.sh - Automated repository management for /opt/mbin directory
-# Purpose: Keeps track of and updates multiple scripts/tools stored in /opt/mbin
+# git_mbin_ssh.sh - Automated repository management for /m/mbin directory
+# Purpose: Keeps track of and updates multiple scripts/tools stored in /m/mbin
 # Author: olderthanold (via m.git repository)
 # =============================================================================
 
@@ -13,10 +14,10 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${YELLOW}======================================================================${NC}"
-echo -e "${YELLOW}Running mgit_oldssh.sh - v04"
+echo -e "${YELLOW}Running mgit_oldssh.sh - v05"
 echo -e "${YELLOW}======================================================================${NC}"
 
-MBIN_DIR="${1:-/opt/mbin}"
+MBIN_DIR="${1:-/m/mbin}"
 
 # Check privilege level; warn only (do not stop if sudo/root is absent).
 echo -e "${YELLOW}[1/5] Checking privileges (warning-only mode) for $MBIN_DIR${NC}"

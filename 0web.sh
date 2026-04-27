@@ -6,9 +6,9 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 SCRIPT_NAME="0web.sh"
-SCRIPT_VERSION="v10"
+SCRIPT_VERSION="v11"
 
-# 0web.sh v10
+# 0web.sh v11
 #
 # Purpose:
 #   Wrapper to set up Nginx website entry + certificate in one run.
@@ -30,6 +30,9 @@ WEB_WEBS_SCRIPT="$WEBI_DIR/web1_webs.sh"
 WEB_ROOT_SCRIPT="$WEBI_DIR/web1_webroot.sh"
 WEB_ENTRY_SCRIPT="$WEBI_DIR/web1_entry_nginx.sh"
 WEB_CERT_SCRIPT="$WEBI_DIR/web1_cert_nginx.sh"
+WEB_BASE_NAME="webs"
+WEB_BASE_DIR="${WEB_BASE_DIR:-/m/${WEB_BASE_NAME}}"
+export WEB_BASE_DIR
 
 show_help() {
   echo "Usage: $0 <domain> [web_root]"
@@ -37,7 +40,7 @@ show_help() {
   echo "Domain rule: must contain '.' (dot)."
   echo "Examples:"
   echo "  $0 something.cz"
-  echo "  $0 something.cz /webs/something.cz"
+  echo "  $0 something.cz $WEB_BASE_DIR/something.cz"
 }
 
 validate_domain_arg() {
@@ -96,7 +99,7 @@ WEB_ENTRY_VERSION="$(get_script_version "$WEB_ENTRY_SCRIPT")"
 
 echo -e "${YELLOW}Running ${SCRIPT_NAME} ${SCRIPT_VERSION}${NC}"
 echo "Domain arg: $DOMAIN"
-echo "Web root arg: ${WEB_ROOT:-<auto:/webs/$DOMAIN>}"
+echo "Web root arg: ${WEB_ROOT:-<auto:$WEB_BASE_DIR/$DOMAIN>}"
 echo "Script base path (script location): $WEBI_DIR"
 echo "Resolved child scripts and versions:"
 echo "  - $WEB_WEBS_SCRIPT ${WEB_WEBS_VERSION:-<unknown>}"

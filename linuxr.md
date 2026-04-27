@@ -166,8 +166,8 @@ tail -f /proc/<pid>/fd/1
 
 # run build detached from terminal, log output to file
 ```bash
-nohup /opt/mbin/ai/aibuild.sh > build.log 2>&1 &
-nohup /opt/mbin/ai/aibuild.sh > build.log 2> error.log &
+nohup /m/mbin/ai/build_llama.sh > build.log 2>&1 &
+nohup /m/mbin/ai/build_llama.sh > build.log 2> error.log &
 
 nohup bash -c 'sudo -E bash -c "export PATH=$PATH; ociamp.sh" && touch ociamp_script_completed.txt' > ociamp02.log 2>&1 &
 echo $!
@@ -179,7 +179,7 @@ echo $!
 # &          = run in background
 
 # check if running
-pgrep -af aibuild.sh
+pgrep -af build_llama.sh
 
 # monitor output
 tail -f build.log
@@ -193,7 +193,7 @@ sudo apt install tmux
 # start a new tmux session named "build"
 tmux new -s build
 # inside tmux: run your build script
-/opt/mbin/ai/aibuild.sh
+/m/mbin/ai/build_llama.sh
 # detach from tmux (leave build running)
 ## press: Ctrl+b then d
 # later: list tmux sessions

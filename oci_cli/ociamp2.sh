@@ -1,4 +1,26 @@
-# ociamp.sh v01
+#!/usr/bin/env bash
+# ociamp2.sh v02
+set -uo pipefail
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+SSH_AUTHORIZED_KEYS_FILE="${SSH_AUTHORIZED_KEYS_FILE:-/m/mbin/old.pub}"
+
+echo -e "${YELLOW}Running ociamp2.sh v02${NC}"
+
+if ! command -v oci >/dev/null 2>&1; then
+    echo -e "${RED}Error: OCI CLI command not found: oci${NC}"
+    exit 1
+fi
+
+if [[ ! -r "$SSH_AUTHORIZED_KEYS_FILE" ]]; then
+    echo -e "${RED}Error: SSH public key file not readable: $SSH_AUTHORIZED_KEYS_FILE${NC}"
+    exit 1
+fi
+
 # Define the availability domains ----------------------------------------- <UPDATE> -------------------------------------------
 AD1="sYfx:EU-FRANKFURT-1-AD-1"
 AD2="sYfx:EU-FRANKFURT-1-AD-2"
@@ -35,11 +57,11 @@ while true; do
             --image-id "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaasoblespfnzqa67jnq4psbpnbal4mlh2tpwnlhnhvmkhzuqbrxu4a" \
             --instance-options '{"are_legacy_imds_endpoints_disabled": false}' \
             --shape-config '{"memory_in_gbs": 24, "ocpus": 4}' \
-            --ssh-authorized-keys-file /m/mbin/old.pub
+            --ssh-authorized-keys-file "$SSH_AUTHORIZED_KEYS_FILE"
             #--ssh-authorized-keys "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGuCF0uiflr/lzzD8Ha5VPKhMt9O7BGl4uwrV2TFnjDq"
 
         if [ $? -eq 0 ]; then
-            echo "Instance created successfully in $AVAILABILITY_DOMAIN."
+            echo -e "${GREEN}Instance created successfully in $AVAILABILITY_DOMAIN.${NC}"
             exit 0  # Exit the script after successful execution
         else
             echo -e "${YELLOW}Failed to launch instance in $AVAILABILITY_DOMAIN. Trying the next one...${NC}"

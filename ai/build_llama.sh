@@ -1,13 +1,20 @@
 #!/bin/bash
+# build_llama.sh v01
 # Exit immediately if any command fails.
 set -e
 
 # Ensure local bin is in PATH (where uv and other user-local tools are installed).
 export PATH="$HOME/.local/bin:$PATH"
+LLAMA_DIR="${LLAMA_DIR:-/m/llama.cpp}"
+LLAMA_PARENT="$(dirname "$LLAMA_DIR")"
+OWNER_USER="${SUDO_USER:-${USER:-$(whoami)}}"
+OWNER_GROUP="$(id -gn "$OWNER_USER" 2>/dev/null || echo "$OWNER_USER")"
 
 # Green color code
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
+
+echo -e "${GREEN}Running build_llama.sh v01${NC}"
 
 # Step 1: Refresh apt package index metadata.
 echo -e "${GREEN}==> Step 1/5: Updating apt package index...${NC}"
@@ -44,20 +51,25 @@ uv --version
 
 # Handling llama.cpp (CPU Only)
 echo -e "${GREEN}==> Step 4/5: Building/updating llama.cpp from source (CPU only)...${NC}"
-# Check whether ~/ai exists before creating it.
-if [ -d "$HOME/ai" ]; then
-    echo -e "${GREEN}~/ai already exists.${NC}"
+# Check whether target path exists before creating it.
+if [ -d "$LLAMA_DIR" ]; then
+    echo -e "${GREEN}$LLAMA_DIR already exists.${NC}"
 else
-    echo -e "${GREEN}~/ai not found. Creating it now...${NC}"
-    mkdir -p "$HOME/ai"
+    echo -e "${GREEN}$LLAMA_DIR not found. Creating it now...${NC}"
+    sudo mkdir -p "$LLAMA_DIR"
+    sudo chown "$OWNER_USER:$OWNER_GROUP" "$LLAMA_DIR"
 fi
-cd ~/ai
+
+if [ ! -w "$LLAMA_DIR" ]; then
+    echo -e "${GREEN}$LLAMA_DIR is not writable by $OWNER_USER. Fixing ownership...${NC}"
+    sudo chown -R "$OWNER_USER:$OWNER_GROUP" "$LLAMA_DIR"
+fi
 
 REBUILD_REQUIRED=false
 
-if [ -d "llama.cpp" ]; then
+if [ -d "$LLAMA_DIR/.git" ]; then
     echo -e "${GREEN}llama.cpp folder exists, checking for updates...${NC}"
-    cd llama.cpp
+    cd "$LLAMA_DIR"
     BEFORE=$(git rev-parse HEAD 2>/dev/null || echo "none")
     git pull
     AFTER=$(git rev-parse HEAD)
@@ -68,8 +80,9 @@ if [ -d "llama.cpp" ]; then
     fi
 else
     echo -e "${GREEN}Cloning llama.cpp...${NC}"
-    git clone https://github.com/ggerganov/llama.cpp
-    cd llama.cpp
+    sudo mkdir -p "$LLAMA_PARENT"
+    git clone https://github.com/ggerganov/llama.cpp "$LLAMA_DIR"
+    cd "$LLAMA_DIR"
     REBUILD_REQUIRED=true
 fi
 
@@ -93,5 +106,5 @@ fi
 
 echo -e "${GREEN}==> Step 5/5: Final binary output paths${NC}"
 echo -e "${GREEN}Binaries are located at:${NC}"
-echo "$HOME/ai/llama.cpp/build/bin/llama-server"
-echo "$HOME/ai/llama.cpp/build/bin/llama-cli"
+echo "$LLAMA_DIR/build/bin/llama-server"
+echo "$LLAMA_DIR/build/bin/llama-cli"

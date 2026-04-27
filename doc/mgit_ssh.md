@@ -21,7 +21,7 @@ This document explains what `mgit_ssh.sh` does, how arguments are interpreted, a
 Inside the script itself:
 
 ```bash
-SCRIPT_VERSION="v05"
+SCRIPT_VERSION="v08"
 ```
 
 So the script version is stored directly in the file, not in a separate version database.
@@ -44,7 +44,7 @@ bash mgit_ssh.sh [-h|--help] [-n <user>] [local_path] [remote_repo]
   - when running with `sudo`, adds an extra user to group-sync checks (in addition to sudo caller)
 
 - `local_path` (optional)
-  - if omitted: `/opt/mbin`
+  - if omitted: `/m/mbin`
   - if absolute (starts with `/`): used as-is
   - if relative: resolved under `$HOME`
 
@@ -177,19 +177,19 @@ sudo bash mgit_ssh.sh mytools/mbin
 Absolute path + custom remote:
 
 ```bash
-sudo bash mgit_ssh.sh /opt/mbin git@github.com:olderthanold/mbin.git
+sudo bash mgit_ssh.sh /m/mbin git@github.com:olderthanold/mbin.git
 ```
 
 Ensure user is in parent-dir group:
 
 ```bash
-sudo bash mgit_ssh.sh -n ubun2 /opt/mbin
+sudo bash mgit_ssh.sh -n ubun2 /m/mbin
 ```
 
 Sudo caller is always synced too (with or without `-n`):
 
 ```bash
-sudo bash mgit_ssh.sh /opt/mbin
+sudo bash mgit_ssh.sh /m/mbin
 ```
 
 ---

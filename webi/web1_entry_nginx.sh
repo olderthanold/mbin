@@ -6,14 +6,14 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_entry_nginx.sh v14
+# web1_entry_nginx.sh v15
 #
 # Args:
 #   $1 website/domain (required; must contain a dot, e.g. something.cz)
 #   $2 web root path (optional)
 #      - absolute path (starts with /): used as-is
-#      - relative name/path: resolved under /webs/<arg>
-#      - omitted: defaults to /webs/<website>
+#      - relative name/path: resolved under /m web base + <arg>
+#      - omitted: defaults to /m web base + <website>
 #
 # Behavior:
 #   1) Resolve domain and web root.
@@ -23,12 +23,14 @@ NC='\033[0m' # No Color
 #   5) Validate and reload nginx.
 
 show_help() {
+    local web_base_name="webs"
+    local web_base_dir="${WEB_BASE_DIR:-/m/${web_base_name}}"
     echo "Usage: $0 <domain> [web_root]"
     echo ""
     echo "Domain rule: must contain '.' (dot)."
     echo "Examples:"
     echo "  $0 something.cz"
-    echo "  $0 something.cz /webs/something.cz"
+    echo "  $0 something.cz $web_base_dir/something.cz"
 }
 
 validate_domain_arg() {
@@ -47,6 +49,8 @@ if [[ "$#" -lt 1 || "$#" -gt 2 ]]; then
 fi
 
 DOMAIN="$1"
+WEB_BASE_NAME="webs"
+WEB_BASE_DIR="${WEB_BASE_DIR:-/m/${WEB_BASE_NAME}}"
 
 if ! validate_domain_arg "$DOMAIN"; then
     echo -e "${RED}Error: invalid domain '$DOMAIN' (must contain '.').${NC}"
@@ -58,16 +62,16 @@ if [ -n "${2:-}" ]; then
     if [[ "$2" == /* ]]; then
         WEB_ROOT="$2"
     else
-        WEB_ROOT="/webs/$2"
+        WEB_ROOT="$WEB_BASE_DIR/$2"
     fi
 else
-    WEB_ROOT="/webs/$DOMAIN"
+    WEB_ROOT="$WEB_BASE_DIR/$DOMAIN"
 fi
 
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 
-echo -e "${YELLOW}Running web1_entry_nginx.sh v14${NC}"
+echo -e "${YELLOW}Running web1_entry_nginx.sh v15${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 

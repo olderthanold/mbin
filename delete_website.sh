@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# delete_website.sh v03
+# delete_website.sh v04
 #
 # Purpose:
 #   Remove Nginx and Let's Encrypt artifacts created for a domain by web_0_main flow.
@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 #   $1 domain (optional)
 #
 # Notes:
-#   - Leaves website content directory untouched (default: /webs/<domain>).
+#   - Leaves website content directory untouched (default: /m web base + <domain>).
 #   - Removes domain Nginx site config/symlink and certificate/renewal traces.
 
 show_help() {
@@ -86,10 +86,12 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running delete_website.sh v03${NC}"
+echo -e "${YELLOW}Running delete_website.sh v04${NC}"
 echo "Target domain: $DOMAIN"
 
-WEBSITE_DIR="/webs/$DOMAIN"
+WEB_BASE_NAME="webs"
+WEB_BASE_DIR="${WEB_BASE_DIR:-/m/${WEB_BASE_NAME}}"
+WEBSITE_DIR="$WEB_BASE_DIR/$DOMAIN"
 
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"

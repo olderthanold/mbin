@@ -1,4 +1,4 @@
-/home/ubun2/ai/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 0.0.0.0 --port 8080
+/m/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 0.0.0.0 --port 8080
 
 this vm can'r run llama.cpp and web server at the same time.
 i'd like to expose openai like api connection to call from my other web, phone and access this llama server
@@ -34,12 +34,13 @@ sudo tee /etc/systemd/system/llama-server.service >/dev/null <<'EOF'
 Description=llama.cpp server (LFM2.5-VL-450M)
 After=network-online.target
 Wants=network-online.target
+RequiresMountsFor=/m
 
 [Service]
 Type=simple
 User=ubun2
-WorkingDirectory=/home/ubun2/ai/llama.cpp
-ExecStart=/home/ubun2/ai/llama.cpp/build/bin/llama-server \
+WorkingDirectory=/m/llama.cpp
+ExecStart=/m/llama.cpp/build/bin/llama-server \
   -hf ZuzeTt/LFM2.5-VL-450M-GGUF \
   -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf \
   --reasoning off \
@@ -73,12 +74,13 @@ sudo tee /etc/systemd/system/llama-server.service >/dev/null <<'EOF'
 Description=llama.cpp server (LFM2.5-VL-450M)
 After=network-online.target
 Wants=network-online.target
+RequiresMountsFor=/m
 
 [Service]
 Type=simple
 User=ubun2
-WorkingDirectory=/home/ubun2/ai/llama.cpp
-ExecStart=/home/ubun2/ai/llama.cpp/build/bin/llama-server \
+WorkingDirectory=/m/llama.cpp
+ExecStart=/m/llama.cpp/build/bin/llama-server \
   -hf ZuzeTt/LFM2.5-VL-450M-GGUF \
   -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf \
   --reasoning off \
