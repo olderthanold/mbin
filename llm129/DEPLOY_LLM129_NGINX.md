@@ -1,9 +1,16 @@
-/home/ubun2/ai/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 0.0.0.0 --port 80
+/home/ubun2/ai/llama.cpp/build/bin/llama-server -hf ZuzeTt/LFM2.5-VL-450M-GGUF -hff LFM2.5-VL-450M-imatrix-Q8_0.gguf --reasoning off --temp 0.7 --no-mmproj  --jinja --repeat-penalty 1.05 -c 8192 --host 0.0.0.0 --port 8080
 
 this vm can'r run llama.cpp and web server at the same time.
 i'd like to expose openai like api connection to call from my other web, phone and access this llama server
 
-and access available web ui too. I have domain olderthanold.duckdns.org
+and access available web ui too. I have domain olderthanold.duckdns.org:
+web public ngnix
+89.168.88.88
+https://olderthanold.duckdns.org/llama/ 
+
+and llama.cpp ran here
+129.159.30.72
+https://llm129.duckdns.org/ 
 
 # ############################################################################
 
