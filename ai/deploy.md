@@ -117,6 +117,7 @@ LLAMA_BASE_URL=https://<domain>/llama bash /m/mbin/ai/llama_control.sh chat gemm
 default 10-minute wait with `LLAMA_LOAD_TIMEOUT=<seconds>`.
 `chat <prompt>` uses the single currently loaded model; pass `chat <model> <prompt>`
 when you want to choose explicitly.
+`list` prints local router IDs plus status, quant, HF repo, and HF file or alias.
 Use `models` for the raw router JSON when debugging.
 
 Raw API examples:

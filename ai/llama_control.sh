@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# llama_control.sh v04
+# llama_control.sh v06
 set -euo pipefail
 
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
@@ -72,7 +72,76 @@ model_object_from_json() {
 model_objects_from_json() {
   local json="$1"
 
+  if command -v python3 >/dev/null 2>&1; then
+    printf '%s' "$json" |
+      python3 -c 'import json, sys
+import re
+
+quant_re = re.compile(r"(?i)(?:^|[-_.:])((?:IQ[0-9](?:_[A-Z0-9]+)+|Q[0-9](?:_[A-Z0-9]+)+|F16|BF16))(?:\.gguf)?(?:$|[-_.:])")
+
+def arg_value(args, name):
+    for index, value in enumerate(args[:-1]):
+        if value == name:
+            return args[index + 1]
+    return ""
+
+def preset_value(preset, name):
+    prefix = name + " = "
+    for line in preset.splitlines():
+        if line.startswith(prefix):
+            return line[len(prefix):].strip()
+    return ""
+
+def split_repo_quant(hf_repo):
+    if ":" not in hf_repo:
+        return hf_repo, ""
+    repo, suffix = hf_repo.rsplit(":", 1)
+    if quant_re.match(suffix):
+        return repo, suffix.upper()
+    return hf_repo, ""
+
+def extract_quant(*values):
+    for value in values:
+        if not value:
+            continue
+        match = quant_re.search(str(value))
+        if match:
+            return match.group(1).upper()
+    return ""
+
+def alias_values(aliases):
+    values = []
+    for alias in aliases:
+        if isinstance(alias, dict):
+            values.append(str(alias.get("id") or alias.get("name") or alias))
+        else:
+            values.append(str(alias))
+    return values
+
+payload = json.load(sys.stdin)
+for item in payload.get("data", []):
+    status = item.get("status") or {}
+    args = status.get("args") or []
+    preset = status.get("preset") or ""
+    aliases = alias_values(item.get("aliases") or [])
+    hf_repo = arg_value(args, "--hf-repo") or preset_value(preset, "hf-repo")
+    hf_file = arg_value(args, "--hf-file") or preset_value(preset, "hf-file")
+    hf_repo, repo_quant = split_repo_quant(hf_repo)
+    quant = repo_quant or extract_quant(hf_file, *aliases, hf_repo)
+    print(json.dumps({
+        "id": item.get("id", ""),
+        "status": {"value": status.get("value", "unknown")},
+        "hf_repo": hf_repo,
+        "hf_file": hf_file,
+        "quant": quant,
+        "aliases": ", ".join(aliases),
+    }, separators=(",", ":")))'
+    return
+  fi
+
   printf '%s' "$json" |
+    sed 's/^{"data":\[//' |
+    sed 's/\],"object":"list"}$//' |
     sed 's/},{"id"/}\
 {"id"/g'
 }
@@ -81,7 +150,7 @@ model_id_from_object() {
   local object="$1"
 
   printf '%s' "$object" |
-    sed -n 's/.*"id":"\([^"]*\)".*/\1/p'
+    sed -n 's/^{"id":"\([^"]*\)".*/\1/p'
 }
 
 model_status_from_object() {
@@ -89,6 +158,14 @@ model_status_from_object() {
 
   printf '%s' "$object" |
     sed -n 's/.*"status":{"value":"\([^"]*\)".*/\1/p'
+}
+
+model_field_from_object() {
+  local object="$1"
+  local field="$2"
+
+  printf '%s' "$object" |
+    sed -n "s/.*\"${field}\":\"\([^\"]*\)\".*/\1/p"
 }
 
 get_model_status() {
@@ -122,15 +199,29 @@ list_models() {
   local object
   local id
   local status
+  local quant
+  local hf_repo
+  local hf_file
+  local detail
 
   json="$(get_models_json)"
-  printf '%-12s %s\n' "MODEL" "STATUS"
+  printf '%-20s %-10s %-8s %-46s %s\n' "MODEL" "STATUS" "QUANT" "HF_REPO" "HF_FILE/ALIAS"
 
   while IFS= read -r object; do
     id="$(model_id_from_object "$object")"
     status="$(model_status_from_object "$object")"
     [[ -n "$id" ]] || continue
-    printf '%-12s %s\n' "$id" "${status:-unknown}"
+    quant="$(model_field_from_object "$object" "quant")"
+    hf_repo="$(model_field_from_object "$object" "hf_repo")"
+    hf_file="$(model_field_from_object "$object" "hf_file")"
+    detail="${hf_file:-$(model_field_from_object "$object" "aliases")}"
+
+    printf '%-20s %-10s %-8s %-46s %s\n' \
+      "$id" \
+      "${status:-unknown}" \
+      "${quant:--}" \
+      "${hf_repo:--}" \
+      "${detail:--}"
   done < <(model_objects_from_json "$json")
 }
 
@@ -217,12 +308,32 @@ is_known_model() {
 
 status_model() {
   local model="${1:-}"
+  local json
+  local object
   local status
+  local quant
+  local hf_repo
+  local hf_file
 
   require_model "status" "$model"
 
-  status="$(get_model_status "$model" || true)"
-  echo "${model}: ${status:-unknown}"
+  json="$(get_models_json)"
+  object="$(model_object_from_json "$json" "$model")"
+  if [[ -z "$object" ]]; then
+    echo "${model}: missing"
+    return 1
+  fi
+
+  status="$(model_status_from_object "$object")"
+  quant="$(model_field_from_object "$object" "quant")"
+  hf_repo="$(model_field_from_object "$object" "hf_repo")"
+  hf_file="$(model_field_from_object "$object" "hf_file")"
+
+  echo "model: ${model}"
+  echo "status: ${status:-unknown}"
+  echo "quant: ${quant:--}"
+  echo "hf_repo: ${hf_repo:--}"
+  echo "hf_file: ${hf_file:--}"
 }
 
 wait_for_model_ready() {

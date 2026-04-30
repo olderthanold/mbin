@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modely</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #101418;
+            --panel: #151c24;
+            --panel-2: #0b1117;
+            --line: #2f3d4c;
+            --text: #e8edf3;
+            --muted: #aab6c3;
+            --accent: #4ea1ff;
+            --ok: #5dd39e;
+            --warn: #ffcc66;
+            --bad: #ff7b7b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.45;
+        }
+
+        main {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 22px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 16px;
+        }
+
+        h1,
+        h2 {
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 28px;
+        }
+
+        h2 {
+            font-size: 19px;
+            margin-bottom: 12px;
+        }
+
+        a {
+            color: var(--accent);
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .top-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .button-link {
+            display: inline-block;
+            padding: 9px 12px;
+            border-radius: 6px;
+            background: #1f4f86;
+            color: #fff;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .button-link:hover {
+            background: #2768b0;
+        }
+
+        section {
+            margin: 18px 0;
+            padding: 16px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .metric {
+            min-height: 76px;
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel-2);
+        }
+
+        .metric strong {
+            display: block;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            color: #dbeafe;
+            background: #172231;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        code {
+            display: inline-block;
+            padding: 2px 5px;
+            border-radius: 4px;
+            background: #020617;
+            color: #b7f7c9;
+            font-family: Consolas, "Liberation Mono", monospace;
+            font-size: 0.95em;
+        }
+
+        pre {
+            overflow-x: auto;
+            margin: 0;
+            padding: 12px;
+            border-radius: 6px;
+            background: #020617;
+            color: #b7f7c9;
+        }
+
+        .status {
+            display: inline-block;
+            min-width: 80px;
+            padding: 3px 7px;
+            border-radius: 999px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .status-primary {
+            background: rgba(93, 211, 158, 0.16);
+            color: var(--ok);
+        }
+
+        .status-test {
+            background: rgba(78, 161, 255, 0.16);
+            color: #9ecbff;
+        }
+
+        .status-risk {
+            background: rgba(255, 204, 102, 0.16);
+            color: var(--warn);
+        }
+
+        .status-slow {
+            background: rgba(255, 123, 123, 0.16);
+            color: var(--bad);
+        }
+
+        .params {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            margin: 0;
+        }
+
+        .params div {
+            padding: 9px 10px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--panel-2);
+        }
+
+        @media (max-width: 760px) {
+            main {
+                padding: 14px;
+            }
+
+            header {
+                display: block;
+            }
+
+            .top-links {
+                justify-content: flex-start;
+                margin-top: 14px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <div>
+            <h1>LLM modely</h1>
+            <p class="muted">Aktualni router profily pro malou OCI VM. Prakticky limit: drzet GGUF pod 600 MB.</p>
+        </div>
+        <nav class="top-links" aria-label="Navigace">
+            <a class="button-link" href="/">Home</a>
+            <a class="button-link" href="/llama/">Llama UI</a>
+        </nav>
+    </header>
+
+    <section>
+        <h2>Rychly souhrn</h2>
+        <div class="summary-grid">
+            <div class="metric">
+                <strong>6</strong>
+                <span class="muted">router profilu</span>
+            </div>
+            <div class="metric">
+                <strong>4096</strong>
+                <span class="muted">vychozi kontext</span>
+            </div>
+            <div class="metric">
+                <strong>0.7</strong>
+                <span class="muted">teplota</span>
+            </div>
+            <div class="metric">
+                <strong>&lt;600 MB</strong>
+                <span class="muted">cilova velikost GGUF</span>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Profily</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Profil</th>
+                    <th>Repo / soubor</th>
+                    <th>GGUF</th>
+                    <th>Stav</th>
+                    <th>Poznamka</th>
+                    <th>HF</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>gemma270</code></td>
+                    <td><code>unsloth/gemma-3-270m-it-qat-GGUF:Q8_0</code></td>
+                    <td>~253 MB</td>
+                    <td><span class="status status-primary">default</span></td>
+                    <td>Nejlepsi dosavadni obecny fallback; anglicky OK, cesky slabe.</td>
+                    <td><a href="https://huggingface.co/unsloth/gemma-3-270m-it-qat-GGUF">HF</a></td>
+                </tr>
+                <tr>
+                    <td><code>qwen35_08_unsloth</code></td>
+                    <td><code>unsloth/Qwen3.5-0.8B-GGUF</code><br><code>Qwen3.5-0.8B-Q4_K_M.gguf</code></td>
+                    <td>~533 MB</td>
+                    <td><span class="status status-test">test</span></td>
+                    <td>Cisty Qwen 3.5 0.8B v Q4_K_M; hlavni kandidat pod 600 MB.</td>
+                    <td><a href="https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF">HF</a></td>
+                </tr>
+                <tr>
+                    <td><code>qwen35_08_jackrong</code></td>
+                    <td><code>Jackrong/Qwopus3.5-0.8B-v3-GGUF</code><br><code>Qwen3.5-0.8B.Q4_K_M.gguf</code></td>
+                    <td>~529 MB</td>
+                    <td><span class="status status-test">test</span></td>
+                    <td>Jackrong finetune Qwopus; alternativni Qwen 3.5 test.</td>
+                    <td><a href="https://huggingface.co/Jackrong/Qwopus3.5-0.8B-v3-GGUF">HF</a></td>
+                </tr>
+                <tr>
+                    <td><code>smollm360</code></td>
+                    <td><code>bartowski/SmolLM2-360M-Instruct-GGUF:Q8_0</code></td>
+                    <td>~386 MB</td>
+                    <td><span class="status status-test">fallback</span></td>
+                    <td>Rychly maly anglicky model; cesky nepouzitelny.</td>
+                    <td><a href="https://huggingface.co/bartowski/SmolLM2-360M-Instruct-GGUF">HF</a></td>
+                </tr>
+                <tr>
+                    <td><code>lfm25vl450</code></td>
+                    <td><code>ZuzeTt/LFM2.5-VL-450M-GGUF</code><br><code>LFM2.5-VL-450M-imatrix-Q8_0.gguf</code></td>
+                    <td>~379 MB</td>
+                    <td><span class="status status-risk">special</span></td>
+                    <td>VLM puvod; pro text zatim slabsi. Nechat jen pokud se ukaze konkretni duvod.</td>
+                    <td><a href="https://huggingface.co/ZuzeTt/LFM2.5-VL-450M-GGUF">HF</a></td>
+                </tr>
+                <tr>
+                    <td><code>lfm2_700</code></td>
+                    <td><code>LiquidAI/LFM2-700M-GGUF:Q6_K</code></td>
+                    <td>~612 MB</td>
+                    <td><span class="status status-slow">slow</span></td>
+                    <td>Nad praktickym limitem; na 1 GB RAM pravdepodobne swapuje.</td>
+                    <td><a href="https://huggingface.co/LiquidAI/LFM2-700M-GGUF">HF</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>Spolecne parametry</h2>
+        <div class="params">
+            <div><code>c = 4096</code></div>
+            <div><code>reasoning = off</code></div>
+            <div><code>jinja = true</code></div>
+            <div><code>no-mmproj = true</code></div>
+            <div><code>temp = 0.7</code></div>
+            <div><code>top-p = 0.9</code></div>
+            <div><code>top-k = 40</code></div>
+            <div><code>min-p = 0.05</code></div>
+            <div><code>repeat-penalty = 1.05</code></div>
+            <div><code>load-on-startup = false</code></div>
+            <div><code>stop-timeout = 20</code></div>
+            <div><code>models-max = 1</code></div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Ovládání</h2>
+        <pre><code>bash /m/mbin/ai/llama_control.sh list
+bash /m/mbin/ai/llama_control.sh loaded
+bash /m/mbin/ai/llama_control.sh load qwen35_08_unsloth
+bash /m/mbin/ai/llama_control.sh chat "Answer in one short English sentence: what is HTTP?"</code></pre>
+    </section>
+</main>
+</body>
+</html>

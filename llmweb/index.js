@@ -12,6 +12,7 @@ const llmIframeElement = document.getElementById("llm-embed");
 const staticPages = [
     { fileName: "ai_llama.htm", title: "Local LLM Setup (llama.cpp + uv)" },
     { fileName: "lego.htm", title: "Lego" },
+    { fileName: "modely.htm", title: "LLM modely" },
     { fileName: "osel.htm", title: "loki vyvod main" },
     { fileName: "putter.htm", title: "putter" }
 ];
