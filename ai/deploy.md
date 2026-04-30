@@ -98,8 +98,11 @@ is set.
 
 ```bash
 # Local host.
-bash /m/mbin/ai/llama_control.sh models
+bash /m/mbin/ai/llama_control.sh list
+bash /m/mbin/ai/llama_control.sh loaded
 bash /m/mbin/ai/llama_control.sh load lfm25vl450
+bash /m/mbin/ai/llama_control.sh status lfm25vl450
+bash /m/mbin/ai/llama_control.sh chat "Ahoj, odpovez kratce."
 bash /m/mbin/ai/llama_control.sh chat lfm25vl450 "Ahoj, odpovez kratce."
 bash /m/mbin/ai/llama_control.sh unload lfm25vl450
 
@@ -109,6 +112,12 @@ LLAMA_BASE_URL=http://<public-ip>:1234 bash /m/mbin/ai/llama_control.sh v1models
 # Domain proxy.
 LLAMA_BASE_URL=https://<domain>/llama bash /m/mbin/ai/llama_control.sh chat gemma270 "Hello."
 ```
+
+`load <model>` waits until the router reports the model as ready. Override the
+default 10-minute wait with `LLAMA_LOAD_TIMEOUT=<seconds>`.
+`chat <prompt>` uses the single currently loaded model; pass `chat <model> <prompt>`
+when you want to choose explicitly.
+Use `models` for the raw router JSON when debugging.
 
 Raw API examples:
 

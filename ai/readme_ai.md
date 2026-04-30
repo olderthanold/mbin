@@ -27,8 +27,11 @@ sudo bash /m/mbin/0web.sh llm129.duckdns.org
 sudo bash /m/mbin/ai/bai1_build_nginx_proxy.sh llm129.duckdns.org
 
 # Remote model control.
-bash /m/mbin/ai/llama_control.sh models
+bash /m/mbin/ai/llama_control.sh list
+bash /m/mbin/ai/llama_control.sh loaded
 bash /m/mbin/ai/llama_control.sh load lfm25vl450
+bash /m/mbin/ai/llama_control.sh status lfm25vl450
+bash /m/mbin/ai/llama_control.sh chat "Ahoj, odpovez kratce."
 bash /m/mbin/ai/llama_control.sh chat lfm25vl450 "Ahoj, odpovez kratce."
 bash /m/mbin/ai/llama_control.sh unload lfm25vl450
 ```
@@ -36,6 +39,9 @@ bash /m/mbin/ai/llama_control.sh unload lfm25vl450
 Router profiles live in `/m/mbin/ai/llama_models.ini`.
 Default sampling: `--temp 0.7 --top-p 0.9 --top-k 40 --min-p 0.05 --repeat-penalty 1.05 -c 4096`.
 Public POC endpoints: `http://<public-ip>:8080/v1`, `http://<public-ip>:1234/v1`, `https://<domain>/llama/v1`.
+`load <model>` waits until the router reports the model as ready; override wait time with `LLAMA_LOAD_TIMEOUT=<seconds>`.
+`chat <prompt>` uses the single currently loaded model; pass `chat <model> <prompt>` to choose explicitly.
+Use `models` for the raw router JSON when debugging.
 Existing builds are only smoke-tested unless `--force` is used. `--force` does not remove `/m/hfcache`, nginx proxy config, or webroot files.
 If an older wrapper left `/m/llama.cpp` as a non-git directory, plain `0buildai.sh` removes it automatically and clones a fresh checkout.
 If the router service is already active, default `0buildai.sh` is status-only; use `--service-only` for an intentional service rewrite/restart.
