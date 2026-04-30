@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# llama_control.sh v06
+# llama_control.sh v07
 set -euo pipefail
 
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
@@ -7,6 +7,8 @@ BASE_URL="${BASE_URL%/}"
 TEMPERATURE="${LLAMA_TEMPERATURE:-0.7}"
 LOAD_TIMEOUT="${LLAMA_LOAD_TIMEOUT:-600}"
 LOAD_POLL_SECONDS="${LLAMA_LOAD_POLL_SECONDS:-5}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MODELS_PRESET="${LLAMA_MODELS_PRESET:-${SCRIPT_DIR}/llama_models.ini}"
 
 show_help() {
   cat <<EOF
@@ -28,6 +30,7 @@ Environment:
   LLAMA_TEMPERATURE   Default: 0.7
   LLAMA_LOAD_TIMEOUT   Default: 600
   LLAMA_LOAD_POLL_SECONDS Default: 5
+  LLAMA_MODELS_PRESET Default: ${MODELS_PRESET}
 
 Examples:
   $0 list
@@ -67,6 +70,21 @@ model_object_from_json() {
   model_objects_from_json "$json" |
     grep -F "\"id\":\"${model}\"" |
     head -n 1 || true
+}
+
+known_model_ids_from_preset() {
+  if [[ ! -f "$MODELS_PRESET" ]]; then
+    return 0
+  fi
+
+  sed -n 's/^\[\([^]]*\)\]$/\1/p' "$MODELS_PRESET" |
+    grep -v '^\*$' || true
+}
+
+is_model_id_in_preset() {
+  local model="$1"
+
+  known_model_ids_from_preset | grep -Fxq "$model"
 }
 
 model_objects_from_json() {
@@ -207,10 +225,15 @@ list_models() {
   json="$(get_models_json)"
   printf '%-20s %-10s %-8s %-46s %s\n' "MODEL" "STATUS" "QUANT" "HF_REPO" "HF_FILE/ALIAS"
 
-  while IFS= read -r object; do
-    id="$(model_id_from_object "$object")"
-    status="$(model_status_from_object "$object")"
+  while IFS= read -r id; do
     [[ -n "$id" ]] || continue
+    object="$(model_object_from_json "$json" "$id")"
+    if [[ -z "$object" ]]; then
+      printf '%-20s %-10s %-8s %-46s %s\n' "$id" "missing" "-" "-" "-"
+      continue
+    fi
+
+    status="$(model_status_from_object "$object")"
     quant="$(model_field_from_object "$object" "quant")"
     hf_repo="$(model_field_from_object "$object" "hf_repo")"
     hf_file="$(model_field_from_object "$object" "hf_file")"
@@ -222,7 +245,7 @@ list_models() {
       "${quant:--}" \
       "${hf_repo:--}" \
       "${detail:--}"
-  done < <(model_objects_from_json "$json")
+  done < <(known_model_ids_from_preset)
 }
 
 is_ready_status() {
@@ -261,6 +284,7 @@ ready_model_ids() {
     id="$(model_id_from_object "$object")"
     status="$(model_status_from_object "$object")"
     [[ -n "$id" ]] || continue
+    is_model_id_in_preset "$id" || continue
 
     if is_ready_status "$status"; then
       echo "$id"
@@ -301,6 +325,8 @@ is_known_model() {
   local json
   local object
 
+  is_model_id_in_preset "$model" || return 1
+
   json="$(get_models_json)" || return 1
   object="$(model_object_from_json "$json" "$model")"
   [[ -n "$object" ]]
@@ -316,6 +342,11 @@ status_model() {
   local hf_file
 
   require_model "status" "$model"
+
+  if ! is_model_id_in_preset "$model"; then
+    echo "${model}: missing"
+    return 1
+  fi
 
   json="$(get_models_json)"
   object="$(model_object_from_json "$json" "$model")"
