@@ -64,17 +64,18 @@ ai/llama.cpp/build/bin/
 ```
 |  # | ID                                      | quant  | size MB | date       | HF link
 | -: | --------------------------------------- | ------ | ------: | ---------- | ---------------------------------------------------------------|
-|  1 | `unsloth/Qwen3.5-0.8B-GGUF`             | `Q6_K` |     639 | 2026-03-02 | (https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF)
-|  2 | `LiquidAI/LFM2-700M-GGUF`               | `Q6_K` |     612 | 2025-07-10 | (https://huggingface.co/LiquidAI/LFM2-700M-GGUF)
-|  3 | `bartowski/Qwen_Qwen3-0.6B-GGUF`        | `Q6_K` |     623 | 2025-04-28 | (https://huggingface.co/bartowski/Qwen_Qwen3-0.6B-GGUF)
-|  4 | `Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF` | `q6_k` |     650 | 2024-09    | (https://huggingface.co/Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF)
-|  5 | `bartowski/Qwen2.5-0.5B-Instruct-GGUF`  | `Q8_0` |     531 | 2024-09    | (https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF)
-|  6 | `LiquidAI/LFM2.5-350M-GGUF`             | `Q8_0` |     379 | 2026-03-31 | (https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF)
-|  7 | `LiquidAI/LFM2-350M-GGUF`               | `Q8_0` |     379 | 2025-07-10 | (https://huggingface.co/LiquidAI/LFM2-350M-GGUF)
-|  8 | `bartowski/h2o-danube3-500m-chat-GGUF`  | `Q8_0` |     547 | 2024-07-17 | (https://huggingface.co/bartowski/h2o-danube3-500m-chat-GGUF)
-|  9 | `bartowski/SmolLM2-360M-Instruct-GGUF`  | `Q8_0` |     386 | 2024-10-31 | (https://huggingface.co/bartowski/SmolLM2-360M-Instruct-GGUF)
-| 10 | `bartowski/SmolLM2-135M-Instruct-GGUF`  | `Q8_0` |     271 | 2024-10-31 | (https://huggingface.co/bartowski/SmolLM2-135M-Instruct-GGUF)
-| 11 | `unsloth/gemma-3-270m-it-qat-GGUF`      | `Q8_0` |     543 | 2025-08-14 | (https://huggingface.co/unsloth/gemma-3-270m-it-qat-GGUF)
+|  1 | `unsloth/Qwen3.5-0.8B-GGUF`             | `Q4_K_M` |   533 | 2026-03-02 | (https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF)
+|  2 | `Jackrong/Qwopus3.5-0.8B-v3-GGUF`       | `Q4_K_M` |   529 | 2026-04    | (https://huggingface.co/Jackrong/Qwopus3.5-0.8B-v3-GGUF)
+|  3 | `LiquidAI/LFM2-700M-GGUF`               | `Q6_K` |     612 | 2025-07-10 | (https://huggingface.co/LiquidAI/LFM2-700M-GGUF)
+|  4 | `bartowski/Qwen_Qwen3-0.6B-GGUF`        | `Q6_K` |     623 | 2025-04-28 | (https://huggingface.co/bartowski/Qwen_Qwen3-0.6B-GGUF)
+|  5 | `Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF` | `q6_k` |     650 | 2024-09    | (https://huggingface.co/Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF)
+|  6 | `bartowski/Qwen2.5-0.5B-Instruct-GGUF`  | `Q8_0` |     531 | 2024-09    | (https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF)
+|  7 | `LiquidAI/LFM2.5-350M-GGUF`             | `Q8_0` |     379 | 2026-03-31 | (https://huggingface.co/LiquidAI/LFM2.5-350M-GGUF)
+|  8 | `LiquidAI/LFM2-350M-GGUF`               | `Q8_0` |     379 | 2025-07-10 | (https://huggingface.co/LiquidAI/LFM2-350M-GGUF)
+|  9 | `bartowski/h2o-danube3-500m-chat-GGUF`  | `Q8_0` |     547 | 2024-07-17 | (https://huggingface.co/bartowski/h2o-danube3-500m-chat-GGUF)
+| 10 | `bartowski/SmolLM2-360M-Instruct-GGUF`  | `Q8_0` |     386 | 2024-10-31 | (https://huggingface.co/bartowski/SmolLM2-360M-Instruct-GGUF)
+| 11 | `bartowski/SmolLM2-135M-Instruct-GGUF`  | `Q8_0` |     271 | 2024-10-31 | (https://huggingface.co/bartowski/SmolLM2-135M-Instruct-GGUF)
+| 12 | `unsloth/gemma-3-270m-it-qat-GGUF`      | `Q8_0` |     543 | 2025-08-14 | (https://huggingface.co/unsloth/gemma-3-270m-it-qat-GGUF)
 
 
 ```bash

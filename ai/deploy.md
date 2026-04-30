@@ -143,6 +143,8 @@ Profiles are defined in `ai/llama_models.ini`:
 
 - `lfm25vl450`
 - `gemma270`
+- `qwen35_08_unsloth`
+- `qwen35_08_jackrong`
 - `smollm360`
 - `lfm2_700`
 
