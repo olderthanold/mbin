@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# llama_control.sh v07
+# llama_control.sh v08
 set -euo pipefail
 
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
@@ -219,32 +219,27 @@ list_models() {
   local status
   local quant
   local hf_repo
-  local hf_file
-  local detail
 
   json="$(get_models_json)"
-  printf '%-20s %-10s %-8s %-46s %s\n' "MODEL" "STATUS" "QUANT" "HF_REPO" "HF_FILE/ALIAS"
+  printf '%-20s %-10s %-46s %s\n' "MODEL" "STATUS" "HF_REPO" "QUANT"
 
   while IFS= read -r id; do
     [[ -n "$id" ]] || continue
     object="$(model_object_from_json "$json" "$id")"
     if [[ -z "$object" ]]; then
-      printf '%-20s %-10s %-8s %-46s %s\n' "$id" "missing" "-" "-" "-"
+      printf '%-20s %-10s %-46s %s\n' "$id" "missing" "-" "-"
       continue
     fi
 
     status="$(model_status_from_object "$object")"
     quant="$(model_field_from_object "$object" "quant")"
     hf_repo="$(model_field_from_object "$object" "hf_repo")"
-    hf_file="$(model_field_from_object "$object" "hf_file")"
-    detail="${hf_file:-$(model_field_from_object "$object" "aliases")}"
 
-    printf '%-20s %-10s %-8s %-46s %s\n' \
+    printf '%-20s %-10s %-46s %s\n' \
       "$id" \
       "${status:-unknown}" \
-      "${quant:--}" \
       "${hf_repo:--}" \
-      "${detail:--}"
+      "${quant:--}"
   done < <(known_model_ids_from_preset)
 }
 
@@ -362,8 +357,8 @@ status_model() {
 
   echo "model: ${model}"
   echo "status: ${status:-unknown}"
-  echo "quant: ${quant:--}"
   echo "hf_repo: ${hf_repo:--}"
+  echo "quant: ${quant:--}"
   echo "hf_file: ${hf_file:--}"
 }
 

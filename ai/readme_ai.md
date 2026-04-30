@@ -41,7 +41,7 @@ Default sampling: `--temp 0.7 --top-p 0.9 --top-k 40 --min-p 0.05 --repeat-penal
 Public POC endpoints: `http://<public-ip>:8080/v1`, `http://<public-ip>:1234/v1`, `https://<domain>/llama/v1`.
 `load <model>` waits until the router reports the model as ready; override wait time with `LLAMA_LOAD_TIMEOUT=<seconds>`.
 `chat <prompt>` uses the single currently loaded model; pass `chat <model> <prompt>` to choose explicitly.
-`list` prints local router IDs plus status, quant, HF repo, and HF file or alias.
+`list` prints local router IDs plus status, HF repo, and quant.
 Local router IDs are read from `ai/llama_models.ini` so automatic HF aliases are not shown as separate models.
 Use `models` for the raw router JSON when debugging.
 Existing builds are only smoke-tested unless `--force` is used. `--force` does not remove `/m/hfcache`, nginx proxy config, or webroot files.
