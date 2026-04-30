@@ -33,8 +33,8 @@ loaded at a time on the small OCI VM.
 Single-VM mode:
 
 ```bash
-# Serve static llmweb content from the domain first.
-sudo bash /m/mbin/0web.sh llm129.duckdns.org /m/mbin/llmweb
+# Serve copied llmweb content from the domain first.
+sudo bash /m/mbin/0web.sh llm129.duckdns.org
 
 # Adds public :1234 alias and, if the domain site exists, /llama/ proxy.
 sudo bash /m/mbin/ai/llama_nginx_proxy.sh llm129.duckdns.org
@@ -44,7 +44,7 @@ Split web/LLM mode:
 
 ```bash
 # Run on the public web VM. Point nginx at the LLM VM.
-sudo bash /m/mbin/0web.sh olderthanold.duckdns.org /m/mbin/llmweb
+sudo bash /m/mbin/0web.sh olderthanold.duckdns.org
 
 sudo env LLAMA_BACKEND_URL=http://129.159.30.72:8080 \
   bash /m/mbin/ai/llama_nginx_proxy.sh olderthanold.duckdns.org

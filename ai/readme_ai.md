@@ -7,8 +7,8 @@
 # Start one public llama router backend on :8080.
 sudo bash /m/mbin/ai/llama_router_service.sh
 
-# Serve llmweb from the domain first.
-sudo bash /m/mbin/0web.sh llm129.duckdns.org /m/mbin/llmweb
+# Serve copied llmweb from the domain first.
+sudo bash /m/mbin/0web.sh llm129.duckdns.org
 
 # Add nginx :1234 alias and optional domain /llama/ proxy.
 sudo bash /m/mbin/ai/llama_nginx_proxy.sh llm129.duckdns.org

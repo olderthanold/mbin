@@ -2,6 +2,7 @@
 
 const pageTitleElement = document.getElementById("page-title");
 const refreshListButton = document.getElementById("refresh-list");
+const localBasePathInput = document.getElementById("local-base-path");
 const toggleIframeButton = document.getElementById("toggle-iframe");
 const llmOpenLinkElement = document.getElementById("llm-open-link");
 const statusElement = document.getElementById("status");
@@ -38,9 +39,36 @@ async function fetchPublicIp() {
 }
 
 async function updatePageTitle() {
+    const currentTitle = pageTitleElement.textContent.trim();
+    if (currentTitle && currentTitle !== "llm129 home") {
+        return;
+    }
+
     const localIp = window.location.hostname || "localhost";
     const publicIp = await fetchPublicIp();
-    pageTitleElement.textContent = `llm129 home — local: ${localIp} | public: ${publicIp}`;
+    pageTitleElement.textContent = `llm129 home - local: ${localIp} | public: ${publicIp}`;
+}
+
+function normalizeBasePath(pathValue) {
+    let basePath = (pathValue || "/").trim();
+
+    if (basePath === "") {
+        basePath = "/";
+    }
+
+    if (!basePath.startsWith("/")) {
+        basePath = `/${basePath}`;
+    }
+
+    if (!basePath.endsWith("/")) {
+        basePath = `${basePath}/`;
+    }
+
+    return basePath;
+}
+
+function getLocalPageHref(fileName) {
+    return `${normalizeBasePath(localBasePathInput.value)}${fileName}`.replace(/\/{2,}/g, "/");
 }
 
 function renderLinks(pageItems) {
@@ -50,10 +78,8 @@ function renderLinks(pageItems) {
         const listItem = document.createElement("li");
         const link = document.createElement("a");
 
-        link.href = item.fileName;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = `${item.fileName} — ${item.title}`;
+        link.href = getLocalPageHref(item.fileName);
+        link.textContent = `${item.fileName} - ${item.title}`;
 
         listItem.appendChild(link);
         linksList.appendChild(listItem);
@@ -71,7 +97,7 @@ function getLlmUrl() {
         window.location.hostname === "localhost";
 
     if (isLocalPreview) {
-        // When previewing via VS Code Live Server, point to the real internet endpoint.
+        // When previewing locally, point to the real internet endpoint.
         return "https://llm129.duckdns.org/llama/";
     }
 
@@ -92,6 +118,7 @@ function toggleIframeVisibility() {
 }
 
 refreshListButton.addEventListener("click", refreshRemoteList);
+localBasePathInput.addEventListener("change", refreshRemoteList);
 toggleIframeButton.addEventListener("click", toggleIframeVisibility);
 
 // Auto-load on page open.

@@ -53,6 +53,23 @@
             background: #1d4ed8;
         }
 
+        input[type="text"] {
+            padding: 9px 10px;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            background: #020617;
+            color: #f8fafc;
+            font-size: 14px;
+        }
+
+        label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
         #llm-embed {
             width: 100%;
             min-height: 580px;
@@ -100,9 +117,9 @@
 
     <section class="llm-panel">
         <h2>domain - public - private</h2>
-        <p>Use the link to open the LLM UI in a new tab, or embed it below via iframe.</p>
+        <p>Use the link to open the LLM UI, or embed it below via iframe.</p>
         <div class="controls">
-            <a id="llm-open-link" class="button-link" href="/llama/" target="_blank" rel="noopener noreferrer">Open LLM in new tab</a>
+            <a id="llm-open-link" class="button-link" href="/llama/">Open LLM</a>
             <button id="toggle-iframe" type="button">Show embedded LLM</button>
         </div>
         <iframe id="llm-embed" class="hidden" src="/llama/" title="llama.cpp web UI"></iframe>
@@ -111,6 +128,10 @@
     <h2>Static HTML pages</h2>
     <div class="controls">
         <button id="refresh-list" type="button">Refresh page list</button>
+        <label for="local-base-path">
+            Local path
+            <input id="local-base-path" type="text" value="/" autocomplete="off">
+        </label>
     </div>
     <p id="status">Loading known site pages...</p>
     <ul id="links"></ul>
@@ -119,4 +140,3 @@
     <script src="index.js" defer></script>
 </body>
 </html>
-
