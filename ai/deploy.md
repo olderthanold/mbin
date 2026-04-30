@@ -9,6 +9,13 @@ The static web files stay in `llmweb`; service and proxy scripts stay in `ai`.
 # Build/update llama.cpp first if needed.
 /m/mbin/ai/build_llama.sh
 
+# Detached build alternative:
+bash /m/mbin/ai/run_build_llama.sh
+tail -f /m/aibuild/aibuild03.log
+
+# If an older wrapper left /m/llama.cpp as a non-git dir with only build logs:
+bash /m/mbin/ai/run_build_llama.sh --reset-bad-target
+
 # Create and start systemd service on port 8080.
 sudo bash /m/mbin/ai/llama_router_service.sh
 ```

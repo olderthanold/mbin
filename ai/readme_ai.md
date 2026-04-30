@@ -4,6 +4,10 @@
 # Build/update llama.cpp.
 /m/mbin/ai/build_llama.sh
 
+# Or run build detached; log stays outside /m/llama.cpp.
+bash /m/mbin/ai/run_build_llama.sh
+tail -f /m/aibuild/aibuild03.log
+
 # Start one public llama router backend on :8080.
 sudo bash /m/mbin/ai/llama_router_service.sh
 
