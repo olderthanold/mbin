@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_entry_nginx.sh v15
+# web1_entry_nginx.sh v16
 #
 # Args:
 #   $1 website/domain (required; must contain a dot, e.g. something.cz)
@@ -19,6 +19,8 @@ NC='\033[0m' # No Color
 #   1) Resolve domain and web root.
 #   2) Auto-heal by removing existing domain nginx entries, then recreate them.
 #   3) Write domain nginx site config and enable it.
+#      - before certificate exists: HTTP-only block for certbot matching
+#      - after certificate exists: HTTP redirect + HTTPS block
 #   4) Remove default enabled nginx site link to avoid default site taking traffic.
 #   5) Validate and reload nginx.
 
@@ -70,8 +72,10 @@ fi
 
 NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
 NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
+CERT_FULLCHAIN="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
+CERT_PRIVKEY="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
 
-echo -e "${YELLOW}Running web1_entry_nginx.sh v15${NC}"
+echo -e "${YELLOW}Running web1_entry_nginx.sh v16${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 
@@ -90,8 +94,9 @@ else
     echo "Available config not present (skip): $NGINX_AVAILABLE"
 fi
 
-# Write Nginx site config
-sudo tee "$NGINX_AVAILABLE" > /dev/null <<EOF
+if [[ -f "$CERT_FULLCHAIN" && -f "$CERT_PRIVKEY" ]]; then
+    echo "Certificate found. Writing final HTTP redirect + HTTPS Nginx config."
+    sudo tee "$NGINX_AVAILABLE" > /dev/null <<EOF
 server {
     listen 80;
     listen [::]:80;
@@ -116,6 +121,27 @@ server {
     }
 }
 EOF
+else
+    echo "Certificate not found. Writing HTTP-only Nginx config for certbot bootstrap."
+    sudo tee "$NGINX_AVAILABLE" > /dev/null <<EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $DOMAIN;
+
+    root $WEB_ROOT;
+    index index.html index.htm;
+
+    location /.well-known/acme-challenge/ {
+        root $WEB_ROOT;
+    }
+
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+EOF
+fi
 
 sudo ln -s "$NGINX_AVAILABLE" "$NGINX_ENABLED"  # Enable site
 echo "Symlink created: $NGINX_ENABLED -> $NGINX_AVAILABLE"

@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_webs.sh v08
+# web1_webs.sh v09
 #
 # Purpose:
 #   Ensure shared web directory exists under /m and is readable by www-data.
@@ -46,7 +46,7 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running web1_webs.sh v08${NC}"
+echo -e "${YELLOW}Running web1_webs.sh v09${NC}"
 echo "Domain arg: $DOMAIN"
 
 WEB_GROUP="www-data"
@@ -82,13 +82,19 @@ mkdir -p "$M_BASE_DIR"
 chmod 755 "$M_BASE_DIR"
 
 echo -e "${YELLOW}[2/4] Ensuring directory exists: $WEBS_DIR${NC}"
-echo -e "${RED}[TRIAGE][web1_webs.sh v08] mkdir -p $WEBS_DIR${NC}"
+echo -e "${RED}[TRIAGE][web1_webs.sh v09] mkdir -p $WEBS_DIR${NC}"
 mkdir -p "$WEBS_DIR"
 
-echo -e "${YELLOW}[3/4] Setting owner/group: chown root:$WEB_GROUP $WEBS_DIR${NC}"
-chown root:"$WEB_GROUP" "$WEBS_DIR"
+if [[ "$DEPLOY_USER" == "root" ]]; then
+  WEBS_OWNER="root"
+else
+  WEBS_OWNER="$DEPLOY_USER"
+fi
 
-echo -e "${YELLOW}[4/4] Setting permissions: chmod 2755 $WEBS_DIR${NC}"
-chmod 2755 "$WEBS_DIR"
+echo -e "${YELLOW}[3/4] Setting owner/group: chown $WEBS_OWNER:$WEB_GROUP $WEBS_DIR${NC}"
+chown "$WEBS_OWNER:$WEB_GROUP" "$WEBS_DIR"
+
+echo -e "${YELLOW}[4/4] Setting permissions: chmod 2775 $WEBS_DIR${NC}"
+chmod 2775 "$WEBS_DIR"
 
 echo -e "${GREEN}Done. Shared webs directory ready: $WEBS_DIR${NC}"

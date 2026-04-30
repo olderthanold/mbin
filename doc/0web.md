@@ -3,20 +3,20 @@
 This document describes the run order started by `0web.sh`, including step numbering and script versions as printed by the scripts.
 
 ```text
-0web.sh v12
+0web.sh v13
 |-- Args: <domain> [web_root]
 |   |-- domain is required and must contain "."
 |   |-- -h|--help prints usage and exits
 |   |-- default web base is /m/webs
 |   `-- child scripts are resolved from webi subdir of 0web.sh location
-|-- [1/5] webi/web1_webs.sh v08
-|   `-- web1_webs.sh v08
+|-- [1/6] webi/web1_webs.sh v09
+|   `-- web1_webs.sh v09
 |       |-- ensure /m exists and is traversable (755)
 |       |-- ensure /m/webs exists
 |       |-- ensure deploy user is in group www-data
-|       |-- set /m/webs owner/group to root:www-data
-|       `-- set /m/webs permissions to 2755
-|-- [2/5] webi/web1_webroot.sh v05
+|       |-- set /m/webs owner/group to <deploy_user>:www-data
+|       `-- set /m/webs permissions to 2775
+|-- [2/6] webi/web1_webroot.sh v05
 |   `-- web1_webroot.sh v05
 |       |-- resolve web root from arg2:
 |       |   |-- absolute path => use as-is
@@ -29,13 +29,17 @@ This document describes the run order started by `0web.sh`, including step numbe
 |       |   |-- prefer copy from webi/index.htm
 |       |   `-- fallback to /var/www/html/index.nginx-debian.html + personalize heading
 |       `-- ensure newly created web root ownership
-|-- [3/5] webi/web1_adapt_index.sh v01
+|-- [3/6] webi/web1_adapt_index.sh v01
 |   `-- web1_adapt_index.sh v01
 |       |-- resolve web root from arg2 using the same rules
 |       |-- update target web root index.htm only
 |       |-- set <title> to domain prefix before first dot
 |       `-- set <h1 id="page-title"> to <domain> - <public IP> - <private IP>
-|-- [4/5] webi/web1_cert_nginx.sh v04
+|-- [4/6] webi/web1_entry_nginx.sh v16
+|   `-- web1_entry_nginx.sh v16
+|       |-- if certificate is missing: write HTTP-only server block for certbot
+|       `-- if certificate exists: write final HTTP redirect + HTTPS server block
+|-- [5/6] webi/web1_cert_nginx.sh v04
 |   `-- web1_cert_nginx.sh v04
 |       |-- [1/5] Ensure certbot + python3-certbot-nginx installed
 |       |-- [2/5] Check existing cert files for domain
@@ -43,15 +47,10 @@ This document describes the run order started by `0web.sh`, including step numbe
 |       |-- [3/5] Test nginx configuration (nginx -t)
 |       |-- [4/5] Enable/start certbot.timer
 |       `-- [5/5] Test cert renewal (certbot renew --dry-run, with retries)
-`-- [5/5] webi/web1_entry_nginx.sh v15
-    `-- web1_entry_nginx.sh v15
-        |-- resolve domain + web root (same rules as web1_webroot.sh)
-        |-- autoheal: remove old /etc/nginx/sites-enabled/<domain>
-        |-- autoheal: remove old /etc/nginx/sites-available/<domain>
-        |-- write fresh /etc/nginx/sites-available/<domain>
-        |-- recreate /etc/nginx/sites-enabled/<domain> symlink
-        |-- remove default enabled nginx site link if present
-        `-- nginx -t + systemctl reload nginx
+`-- [6/6] webi/web1_entry_nginx.sh v16
+    `-- web1_entry_nginx.sh v16
+        |-- recreate domain Nginx entry after certbot has run
+        `-- expected final state: HTTP redirect + HTTPS server block
 ```
 
 ## Notes
