@@ -4,8 +4,8 @@ This document describes the run order started by `0ini.sh`, including step numbe
 
 ```text
 0ini.sh v07
-|-- [1/2] ini1sys.sh v14
-|   `-- ini1sys.sh v14
+|-- [1/2] ini1sys.sh v15
+|   `-- ini1sys.sh v15
 |       |-- resolves child scripts from: <repo>/initi/
 |       |-- 1.[1/7] ini2sys_update_inst.sh v05
 |       |   `-- apt update/upgrade and install mc
@@ -17,8 +17,8 @@ This document describes the run order started by `0ini.sh`, including step numbe
 |       |   `-- ensure %sudo has NOPASSWD rule
 |       |-- 1.[5/7] ini2sys_global_path_profile.sh v06
 |       |   `-- configure /m/mbin in user/root/sudo PATH
-|       |-- 1.[6/7] ini2sys_network_iptables.sh v03
-|       |   `-- configure hybrid iptables/UFW firewall and persistence
+|       |-- 1.[6/7] ini2sys_network_iptables.sh v04
+|       |   `-- configure UFW firewall
 |       `-- 1.[7/7] ini2sys_network_connect.sh v02
 |           `-- install/check nginx and run connectivity checks
 `-- [2/2] inu1user.sh v08

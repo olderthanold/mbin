@@ -7,13 +7,13 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 ###############################################################################
-# Network firewall setup (hybrid iptables + UFW persistence).
-# Safe to re-run: managed iptables rules are de-duplicated and UFW rules are idempotent.
+# Network firewall setup (UFW).
+# Safe to re-run: UFW rules are idempotent and old legacy INPUT rules are removed.
 ###############################################################################
 
 echo ""
-echo -e "${YELLOW}Running ini2sys_network_iptables.sh v03${NC}"
-echo -e "${YELLOW}Configuring hybrid iptables + UFW firewall and persistence...${NC}"
+echo -e "${YELLOW}Running ini2sys_network_iptables.sh v04${NC}"
+echo -e "${YELLOW}Configuring UFW firewall...${NC}"
 
 # Install package with retry when apt/dpkg frontend lock is temporarily held.
 apt_install_with_lock_retry() {
@@ -42,7 +42,7 @@ ensure_package_installed() {
     local package="$1"
     local required="${2:-true}"
 
-    if dpkg -s "$package" >/dev/null 2>&1; then
+    if dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -qx 'install ok installed'; then
         echo "OK: $package already installed"
         return 0
     fi
@@ -62,23 +62,53 @@ ensure_package_installed() {
     return 1
 }
 
-delete_iptables_rule_all() {
-    local chain="$1"
-    shift
+is_legacy_input_rule() {
+    local rule="$1"
 
-    while sudo iptables -C "$chain" "$@" >/dev/null 2>&1; do
-        sudo iptables -D "$chain" "$@"
-    done
+    case "$rule" in
+        "-A INPUT -j REJECT --reject-with icmp-host-prohibited")
+            return 0
+            ;;
+        "-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT")
+            return 0
+            ;;
+        "-A INPUT -p icmp -j ACCEPT")
+            return 0
+            ;;
+        "-A INPUT -i lo -j ACCEPT")
+            return 0
+            ;;
+    esac
+
+    if [[ "$rule" == "-A INPUT "* && "$rule" == *"-p tcp"* && "$rule" == *"--state NEW"* && "$rule" == *"-j ACCEPT"* ]]; then
+        case "$rule" in
+            *"--dport 22"*|*"--dport 80"*|*"--dport 443"*)
+                return 0
+                ;;
+        esac
+    fi
+
+    return 1
 }
 
-remove_managed_input_rules() {
-    delete_iptables_rule_all INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-    delete_iptables_rule_all INPUT -p icmp -j ACCEPT
-    delete_iptables_rule_all INPUT -i lo -j ACCEPT
-    delete_iptables_rule_all INPUT -p tcp --dport 22 -m state --state NEW -j ACCEPT
-    delete_iptables_rule_all INPUT -p tcp --dport 443 -m state --state NEW -j ACCEPT
-    delete_iptables_rule_all INPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT
-    delete_iptables_rule_all INPUT -j REJECT --reject-with icmp-host-prohibited
+remove_legacy_input_rules() {
+    local rule
+    local removed=0
+    local -a args
+
+    while IFS= read -r rule; do
+        if is_legacy_input_rule "$rule"; then
+            read -r -a args <<< "${rule#-A }"
+            sudo iptables -D "${args[@]}"
+            removed=1
+        fi
+    done < <(sudo iptables -S INPUT)
+
+    if (( removed )); then
+        echo "OK: Removed old legacy INPUT rules previously managed outside UFW"
+    else
+        echo "OK: No old legacy INPUT rules found"
+    fi
 }
 
 echo ""
@@ -99,18 +129,10 @@ sudo ufw allow 443/tcp
 sudo ufw --force enable
 
 echo ""
-echo "Setting up managed INPUT rules..."
-remove_managed_input_rules
+echo "Cleaning old legacy INPUT rules from pre-UFW setup..."
+remove_legacy_input_rules
 
-# === INPUT CHAIN CONFIGURATION (inbound) ===
-sudo iptables -I INPUT 1 -m state --state RELATED,ESTABLISHED -j ACCEPT
-sudo iptables -I INPUT 2 -p icmp -j ACCEPT
-sudo iptables -I INPUT 3 -i lo -j ACCEPT
-sudo iptables -I INPUT 4 -p tcp --dport 22 -m state --state NEW -j ACCEPT
-sudo iptables -I INPUT 5 -p tcp --dport 443 -m state --state NEW -j ACCEPT
-sudo iptables -I INPUT 6 -p tcp --dport 80 -m state --state NEW -j ACCEPT
-
-echo "OK: INPUT firewall rules configured (SSH, HTTP, HTTPS allowed; remaining inbound traffic handled by UFW)"
+echo "OK: UFW firewall configured (SSH, HTTP, HTTPS allowed; remaining inbound traffic rejected)"
 
 echo ""
 echo -e "${YELLOW}=== CURRENT OUTPUT CHAIN ===${NC}"
@@ -141,12 +163,4 @@ echo -e "${YELLOW}=== UFW STATUS NUMBERED ===${NC}"
 sudo ufw status numbered
 
 echo ""
-echo "Saving iptables rules for persistence on reboot..."
-
-if ! ensure_package_installed iptables-persistent false; then
-    echo -e "${YELLOW}  Skipping persistent save for now; re-run later when apt is free.${NC}"
-    exit 0
-fi
-
-sudo netfilter-persistent save
-echo "OK: Iptables rules saved permanently"
+echo "OK: UFW rules are persistent across reboot"

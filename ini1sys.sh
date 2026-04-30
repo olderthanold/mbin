@@ -60,7 +60,7 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}1. Running ini1sys.sh v14 (instance/server setup)${NC}"
+echo -e "${YELLOW}1. Running ini1sys.sh v15 (instance/server setup)${NC}"
 echo "Resolved initi script base path: $INITI_DIR"
 echo "Resolved child scripts and versions:"
 echo "  - $S_UPDATE ${V_UPDATE:-<unknown>}"
@@ -92,7 +92,7 @@ echo "1.[5/7] ini2sys_global_path_profile.sh ${V_PATH:-<unknown>} - normalize ro
 bash "$S_PATH"
 
 echo -e "${YELLOW}_________________________________________________________________________${NC}"
-echo "1.[6/7] ini2sys_network_iptables.sh ${V_IPT:-<unknown>} - configure iptables firewall and persistence"
+echo "1.[6/7] ini2sys_network_iptables.sh ${V_IPT:-<unknown>} - configure UFW firewall"
 bash "$S_IPT"
 
 echo -e "${YELLOW}_________________________________________________________________________${NC}"
