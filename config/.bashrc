@@ -115,4 +115,5 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-#PATH="$HOME/mbin:$PATH"
+mstats.sh
+echo -e "\033[1;33m =---------- .bashrc done ----------= \033[0m"

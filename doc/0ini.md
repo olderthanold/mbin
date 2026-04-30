@@ -17,8 +17,8 @@ This document describes the run order started by `0ini.sh`, including step numbe
 |       |   `-- ensure %sudo has NOPASSWD rule
 |       |-- 1.[5/7] ini2sys_global_path_profile.sh v06
 |       |   `-- configure /m/mbin in user/root/sudo PATH
-|       |-- 1.[6/7] ini2sys_network_iptables.sh v02
-|       |   `-- configure iptables firewall and persistence
+|       |-- 1.[6/7] ini2sys_network_iptables.sh v03
+|       |   `-- configure hybrid iptables/UFW firewall and persistence
 |       `-- 1.[7/7] ini2sys_network_connect.sh v02
 |           `-- install/check nginx and run connectivity checks
 `-- [2/2] inu1user.sh v08

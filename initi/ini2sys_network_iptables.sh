@@ -7,13 +7,13 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 ###############################################################################
-# Network firewall setup (iptables + persistence).
-# Safe to re-run: rules are rebuilt deterministically.
+# Network firewall setup (hybrid iptables + UFW persistence).
+# Safe to re-run: managed iptables rules are de-duplicated and UFW rules are idempotent.
 ###############################################################################
 
 echo ""
-echo -e "${YELLOW}Running ini2sys_network_iptables.sh v02${NC}"
-echo -e "${YELLOW}Configuring iptables firewall and persistence...${NC}"
+echo -e "${YELLOW}Running ini2sys_network_iptables.sh v03${NC}"
+echo -e "${YELLOW}Configuring hybrid iptables + UFW firewall and persistence...${NC}"
 
 # Install package with retry when apt/dpkg frontend lock is temporarily held.
 apt_install_with_lock_retry() {
@@ -27,7 +27,7 @@ apt_install_with_lock_retry() {
             return 0
         fi
 
-        echo "⚠ apt lock or transient apt error while installing '$package' (attempt $i/$attempts)."
+        echo "WARN: apt lock or transient apt error while installing '$package' (attempt $i/$attempts)."
 
         if (( i < attempts )); then
             echo "  Waiting ${sleep_seconds}s and retrying..."
@@ -38,14 +38,69 @@ apt_install_with_lock_retry() {
     return 1
 }
 
+ensure_package_installed() {
+    local package="$1"
+    local required="${2:-true}"
+
+    if dpkg -s "$package" >/dev/null 2>&1; then
+        echo "OK: $package already installed"
+        return 0
+    fi
+
+    echo "Installing $package (with lock retry)..."
+    if apt_install_with_lock_retry "$package"; then
+        echo "OK: $package installed successfully"
+        return 0
+    fi
+
+    if [[ "$required" == "true" ]]; then
+        echo -e "${RED}ERROR: Failed to install required package '$package' after retries.${NC}"
+        exit 1
+    fi
+
+    echo -e "${YELLOW}WARN: Failed to install optional package '$package' after retries.${NC}"
+    return 1
+}
+
+delete_iptables_rule_all() {
+    local chain="$1"
+    shift
+
+    while sudo iptables -C "$chain" "$@" >/dev/null 2>&1; do
+        sudo iptables -D "$chain" "$@"
+    done
+}
+
+remove_managed_input_rules() {
+    delete_iptables_rule_all INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+    delete_iptables_rule_all INPUT -p icmp -j ACCEPT
+    delete_iptables_rule_all INPUT -i lo -j ACCEPT
+    delete_iptables_rule_all INPUT -p tcp --dport 22 -m state --state NEW -j ACCEPT
+    delete_iptables_rule_all INPUT -p tcp --dport 443 -m state --state NEW -j ACCEPT
+    delete_iptables_rule_all INPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT
+    delete_iptables_rule_all INPUT -j REJECT --reject-with icmp-host-prohibited
+}
+
+echo ""
+echo "Checking required firewall packages..."
+ensure_package_installed ufw true
+
 echo ""
 echo -e "${YELLOW}=== CURRENT INPUT CHAIN ===${NC}"
 sudo iptables -L INPUT --line-numbers -v
 
 echo ""
-echo "Setting up INPUT rules..."
+echo "Setting up UFW defaults and allowed services..."
+sudo ufw default reject incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw --force enable
 
-sudo iptables -F INPUT  # Flush INPUT chain
+echo ""
+echo "Setting up managed INPUT rules..."
+remove_managed_input_rules
 
 # === INPUT CHAIN CONFIGURATION (inbound) ===
 sudo iptables -I INPUT 1 -m state --state RELATED,ESTABLISHED -j ACCEPT
@@ -54,22 +109,20 @@ sudo iptables -I INPUT 3 -i lo -j ACCEPT
 sudo iptables -I INPUT 4 -p tcp --dport 22 -m state --state NEW -j ACCEPT
 sudo iptables -I INPUT 5 -p tcp --dport 443 -m state --state NEW -j ACCEPT
 sudo iptables -I INPUT 6 -p tcp --dport 80 -m state --state NEW -j ACCEPT
-sudo iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 
-echo "✓ INPUT firewall rules configured (SSH, HTTP, HTTPS allowed)"
+echo "OK: INPUT firewall rules configured (SSH, HTTP, HTTPS allowed; remaining inbound traffic handled by UFW)"
 
 echo ""
 echo -e "${YELLOW}=== CURRENT OUTPUT CHAIN ===${NC}"
 sudo iptables -L OUTPUT --line-numbers -v
 
 echo ""
-echo -e "${YELLOW}Configuring OUTPUT rules...${NC}"
+echo -e "${YELLOW}Configuring OUTPUT policy...${NC}"
 
 # === OUTPUT CHAIN CONFIGURATION (outbound) ===
-sudo iptables -F OUTPUT  # Flush OUTPUT chain
 sudo iptables -P OUTPUT ACCEPT  # Allow outbound traffic
 
-echo "✓ OUTPUT firewall rules configured (all outgoing allowed)"
+echo "OK: OUTPUT firewall policy configured (all outgoing allowed)"
 
 echo ""
 echo -e "${YELLOW}=== FINAL INPUT CHAIN ===${NC}"
@@ -80,20 +133,20 @@ echo -e "${YELLOW}=== FINAL OUTPUT CHAIN ===${NC}"
 sudo iptables -L OUTPUT -v --line-numbers
 
 echo ""
+echo -e "${YELLOW}=== UFW STATUS VERBOSE ===${NC}"
+sudo ufw status verbose
+
+echo ""
+echo -e "${YELLOW}=== UFW STATUS NUMBERED ===${NC}"
+sudo ufw status numbered
+
+echo ""
 echo "Saving iptables rules for persistence on reboot..."
 
-if dpkg -l | grep -q iptables-persistent; then
-    echo "✓ iptables-persistent already installed"
-else
-    echo "Installing iptables-persistent (with lock retry)..."
-    if apt_install_with_lock_retry iptables-persistent; then
-        echo "✓ iptables-persistent installed successfully"
-    else
-        echo -e "${YELLOW}⚠ Failed to install iptables-persistent after retries (apt lock may still be active).${NC}"
-        echo -e "${YELLOW}  Skipping persistent save for now; re-run later when apt is free.${NC}"
-        exit 0
-    fi
+if ! ensure_package_installed iptables-persistent false; then
+    echo -e "${YELLOW}  Skipping persistent save for now; re-run later when apt is free.${NC}"
+    exit 0
 fi
 
 sudo netfilter-persistent save
-echo "✓ Iptables rules saved permanently"
+echo "OK: Iptables rules saved permanently"

@@ -1,4 +1,9 @@
 # ociamp.sh v01
+
+# Define terminal colors for highlighted echo output.
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
 # Define the availability domains ----------------------------------------- <UPDATE> -------------------------------------------
 AD1="sYfx:EU-FRANKFURT-1-AD-1"
 AD2="sYfx:EU-FRANKFURT-1-AD-2"
@@ -10,7 +15,7 @@ AVAILABILITY_DOMAINS=("$AD1" "$AD2" "$AD3")
 # Loop indefinitely until a command succeeds
 while true; do
     for AVAILABILITY_DOMAIN in "${AVAILABILITY_DOMAINS[@]}"; do
-        echo "Attempting to launch instance in Availability Domain: $AVAILABILITY_DOMAIN"
+        echo -e "${YELLOW}===== Attempting to launch instance in Availability Domain: $AVAILABILITY_DOMAIN =====${NC}"
         # ------------------------------------------------------------ <UPDATE AS NECESSARY> ------------------------------------
         oci compute instance launch \
             --availability-domain "$AVAILABILITY_DOMAIN" \
@@ -39,7 +44,7 @@ while true; do
             #--ssh-authorized-keys "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGuCF0uiflr/lzzD8Ha5VPKhMt9O7BGl4uwrV2TFnjDq"
 
         if [ $? -eq 0 ]; then
-            echo "Instance created successfully in $AVAILABILITY_DOMAIN."
+            echo -e "${YELLOW}Instance created successfully in $AVAILABILITY_DOMAIN.${NC}"
             exit 0  # Exit the script after successful execution
         else
             echo -e "${YELLOW}Failed to launch instance in $AVAILABILITY_DOMAIN. Trying the next one...${NC}"
