@@ -8,8 +8,8 @@
 set -euo pipefail  # Exit on error, undefined variable, or pipeline failure
 
 SCRIPT_NAME="git_mbin_ssh.sh"
-SCRIPT_VERSION="v08"
-# mgit_ssh.sh v08
+SCRIPT_VERSION="v09"
+# mgit_ssh.sh v09
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -149,31 +149,60 @@ normalize_repo_ownership() {
 
   [[ ! -e "$repo_dir" ]] && return 0
 
-  local current_owner current_group
+  local current_owner current_group mismatch_path git_write_problem
   current_owner="$(stat -c '%U' "$repo_dir")"
   current_group="$(stat -c '%G' "$repo_dir")"
+  mismatch_path="$(find "$repo_dir" \( ! -user "$OWNER_USER" -o ! -group "$OWNER_GROUP" \) -print -quit 2>/dev/null || true)"
+  git_write_problem=""
+
+  if [[ -d "$repo_dir/.git" ]]; then
+    if [[ -n "$(find "$repo_dir/.git" -maxdepth 0 ! -perm -0700 -print -quit 2>/dev/null || true)" ]]; then
+      git_write_problem="$repo_dir/.git"
+    elif [[ -e "$repo_dir/.git/FETCH_HEAD" && -n "$(find "$repo_dir/.git/FETCH_HEAD" -maxdepth 0 ! -perm -0600 -print -quit 2>/dev/null || true)" ]]; then
+      git_write_problem="$repo_dir/.git/FETCH_HEAD"
+    elif [[ -e "$repo_dir/.git/index" && -n "$(find "$repo_dir/.git/index" -maxdepth 0 ! -perm -0600 -print -quit 2>/dev/null || true)" ]]; then
+      git_write_problem="$repo_dir/.git/index"
+    elif [[ -d "$repo_dir/.git/objects" && -n "$(find "$repo_dir/.git/objects" -maxdepth 0 ! -perm -0700 -print -quit 2>/dev/null || true)" ]]; then
+      git_write_problem="$repo_dir/.git/objects"
+    elif [[ -d "$repo_dir/.git/refs" && -n "$(find "$repo_dir/.git/refs" -maxdepth 0 ! -perm -0700 -print -quit 2>/dev/null || true)" ]]; then
+      git_write_problem="$repo_dir/.git/refs"
+    fi
+  fi
 
   echo -e "${YELLOW}[$phase_label] Ownership check for $repo_dir | current=$current_owner:$current_group | target=$OWNER_USER:$OWNER_GROUP${NC}"
 
-  if [[ "$current_owner" == "$OWNER_USER" && "$current_group" == "$OWNER_GROUP" ]]; then
+  if [[ "$current_owner" == "$OWNER_USER" && "$current_group" == "$OWNER_GROUP" && -z "$mismatch_path" && -z "$git_write_problem" ]]; then
     echo -e "${GREEN}[$phase_label] Ownership already matches target.${NC}"
     return 0
   fi
 
   if [[ "${EUID}" -ne 0 ]]; then
-    echo -e "${RED}Error: cannot normalize ownership without sudo.${NC}"
-    echo -e "${RED}Current: $current_owner:$current_group | Required: $OWNER_USER:$OWNER_GROUP | Path: $repo_dir${NC}"
-    echo -e "${RED}Run with sudo (optionally -n $OWNER_USER) and retry.${NC}"
-    return 1
+    if [[ -n "$mismatch_path" ]]; then
+      echo -e "${RED}Error: cannot normalize nested ownership without sudo.${NC}"
+      echo -e "${RED}First mismatched path: $mismatch_path${NC}"
+      echo -e "${RED}Current root: $current_owner:$current_group | Required tree: $OWNER_USER:$OWNER_GROUP | Path: $repo_dir${NC}"
+      echo -e "${RED}Run with sudo (optionally -n $OWNER_USER) and retry.${NC}"
+      return 1
+    fi
+
+    echo -e "${YELLOW}[$phase_label] Git metadata is not writable: $git_write_problem${NC}"
+    echo -e "${YELLOW}[$phase_label] Attempting permission repair without sudo: chmod -R u+rwX,g+rwX $repo_dir/.git${NC}"
+    if ! chmod -R u+rwX,g+rwX "$repo_dir/.git"; then
+      echo -e "${RED}Error: failed to repair git metadata permissions without sudo.${NC}"
+      echo -e "${RED}Run with sudo (optionally -n $OWNER_USER) and retry.${NC}"
+      return 1
+    fi
+    echo -e "${GREEN}[$phase_label] Git metadata permissions repaired.${NC}"
+    return 0
   fi
 
   # chown -R recursively applies the requested user:group ownership to repo path.
   echo -e "${YELLOW}[$phase_label] Running: chown -R $OWNER_USER:$OWNER_GROUP $repo_dir${NC}"
   chown -R "$OWNER_USER:$OWNER_GROUP" "$repo_dir"
 
-  # chmod -R g+rwX grants group rw and adds execute only where appropriate.
-  echo -e "${YELLOW}[$phase_label] Running: chmod -R g+rwX $repo_dir${NC}"
-  chmod -R g+rwX "$repo_dir"
+  # chmod -R u+rwX,g+rwX grants owner/group rw and adds execute only where appropriate.
+  echo -e "${YELLOW}[$phase_label] Running: chmod -R u+rwX,g+rwX $repo_dir${NC}"
+  chmod -R u+rwX,g+rwX "$repo_dir"
 
   echo -e "${GREEN}[$phase_label] Ownership/permissions normalization complete for $repo_dir.${NC}"
 }

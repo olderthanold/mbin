@@ -11,6 +11,7 @@ This document explains what `mgit_ssh.sh` does, how arguments are interpreted, a
 - path resolution (default/absolute/relative)
 - SSH-key based git operations for SSH remotes
 - key presence + permission checks
+- recursive repository ownership/permission checks, including `.git/FETCH_HEAD`
 - optional user-to-group synchronization (`-n <user>`)
 - pull recovery flow (stash/rebase/fallback clone)
 
@@ -21,7 +22,7 @@ This document explains what `mgit_ssh.sh` does, how arguments are interpreted, a
 Inside the script itself:
 
 ```bash
-SCRIPT_VERSION="v08"
+SCRIPT_VERSION="v09"
 ```
 
 So the script version is stored directly in the file, not in a separate version database.
@@ -62,8 +63,9 @@ bash mgit_ssh.sh [-h|--help] [-n <user>] [local_path] [remote_repo]
 4. If remote is SSH-style (`git@...` or `ssh://...`), validate SSH key file.
 5. Check write access for target path (or parent dir when target does not yet exist).
 6. If running with `sudo`, sync group membership for sudo caller (and optional `-n` user).
-7. Run pull/clone workflow.
-8. Restore execute bits on `*.sh` files in target directory.
+7. Before git operations, verify that the repository tree belongs to the target owner/group and that critical `.git` metadata is writable.
+8. Run pull/clone workflow.
+9. Restore execute bits on `*.sh` files in target directory.
 
 ---
 
