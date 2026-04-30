@@ -8,8 +8,8 @@
 set -euo pipefail  # Exit on error, undefined variable, or pipeline failure
 
 SCRIPT_NAME="git_mbin_ssh.sh"
-SCRIPT_VERSION="v09"
-# mgit_ssh.sh v09
+SCRIPT_VERSION="v10"
+# mgit_ssh.sh v10
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -87,10 +87,46 @@ normalize_remote_repo() {
 # Wrapper to run git commands with SSH key only for SSH-style remotes.
 run_git_cmd() {
   if [[ "$GIT_LINK" == git@* || "$GIT_LINK" == ssh://* ]]; then
-    GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH" git "$@"
+    GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH -o IdentitiesOnly=yes" git "$@"
   else
     git "$@"
   fi
+}
+
+GIT_LAST_OUTPUT=""
+
+run_git_cmd_capture() {
+  local log_file rc
+  log_file="$(mktemp)"
+
+  set +e
+  run_git_cmd "$@" 2>&1 | tee "$log_file"
+  rc="${PIPESTATUS[0]}"
+  set -e
+
+  GIT_LAST_OUTPUT="$(cat "$log_file")"
+  rm -f "$log_file"
+  return "$rc"
+}
+
+is_ssh_auth_failure_output() {
+  local output="$1"
+
+  grep -Eiq \
+    "(Load key .*(error in libcrypto|invalid format)|Permission denied \(publickey\)|"\
+"Could not read from remote repository|Host key verification failed)" \
+    <<<"$output"
+}
+
+abort_ssh_auth_failure_without_recovery() {
+  echo -e "${RED}Error: SSH authentication/key failure detected.${NC}"
+  echo -e "${RED}Stopping before recovery flow so $MBIN_DIR is not stashed/rebased/recreated.${NC}"
+  echo -e "${YELLOW}If the key was copied from Windows, remove CRLF endings:${NC}"
+  echo "  cp -p \"$SSH_KEY_PATH\" \"$SSH_KEY_PATH.bak_\$(date +%Y%m%d_%H%M%S)\""
+  echo "  sed -i 's/\\r$//' \"$SSH_KEY_PATH\""
+  echo "  chmod 600 \"$SSH_KEY_PATH\""
+  echo "  ssh-keygen -y -f \"$SSH_KEY_PATH\" >/tmp/old.pub"
+  exit 1
 }
 
 append_unique_user() {
@@ -322,6 +358,30 @@ if [[ "$GIT_LINK" == git@* || "$GIT_LINK" == ssh://* ]]; then
   else
     echo -e "${GREEN}SSH key permissions are correct (600).${NC}"
   fi
+
+  echo -e "${YELLOW}Checking SSH key can be parsed by ssh-keygen...${NC}"
+  key_check_log="$(mktemp)"
+  if ssh-keygen -y -f "$SSH_KEY_PATH" >/dev/null 2>"$key_check_log"; then
+    rm -f "$key_check_log"
+    echo -e "${GREEN}SSH key parses successfully.${NC}"
+  else
+    echo -e "${RED}Error: SSH key cannot be parsed by ssh-keygen.${NC}"
+    cat "$key_check_log"
+    rm -f "$key_check_log"
+
+    if grep -q $'\r' "$SSH_KEY_PATH"; then
+      echo -e "${YELLOW}CRLF line endings detected in SSH key. Fix with:${NC}"
+    else
+      echo -e "${YELLOW}No CRLF bytes detected. The key may be incomplete, pasted incorrectly, encrypted with an unsupported format, or not an OpenSSH private key.${NC}"
+      echo -e "${YELLOW}If it came from Windows, this CRLF-safe rewrite is still OK to try:${NC}"
+    fi
+
+    echo "  cp -p \"$SSH_KEY_PATH\" \"$SSH_KEY_PATH.bak_\$(date +%Y%m%d_%H%M%S)\""
+    echo "  sed -i 's/\\r$//' \"$SSH_KEY_PATH\""
+    echo "  chmod 600 \"$SSH_KEY_PATH\""
+    echo "  ssh-keygen -y -f \"$SSH_KEY_PATH\" >/tmp/old.pub"
+    exit 1
+  fi
 fi
 
 # Check write access before any git operation.
@@ -425,7 +485,11 @@ fi
 if [[ ! -d "$MBIN_DIR/.git" ]]; then
   echo -e "${YELLOW}Target is not a git repository yet. Cloning main branch.${NC}"
   run_git_cmd clone -b main "$GIT_LINK" "$MBIN_DIR"
-elif ! run_git_cmd -C "$MBIN_DIR" pull "$GIT_LINK" main; then
+elif ! run_git_cmd_capture -C "$MBIN_DIR" pull "$GIT_LINK" main; then
+  if [[ "$GIT_LINK" == git@* || "$GIT_LINK" == ssh://* ]] && is_ssh_auth_failure_output "$GIT_LAST_OUTPUT"; then
+    abort_ssh_auth_failure_without_recovery
+  fi
+
   # Recovery mode if initial pull fails
   echo -e "${YELLOW}Initial pull failed. Entering recovery flow: stash + pull --rebase + fallback clone${NC}"
 
@@ -444,7 +508,7 @@ elif ! run_git_cmd -C "$MBIN_DIR" pull "$GIT_LINK" main; then
 
   # Try pull with rebase to handle conflicts better
   echo -e "${YELLOW}[8/8] Attempting recovery pull --rebase${NC}"
-  if run_git_cmd -C "$MBIN_DIR" pull --rebase "$GIT_LINK" main; then
+  if run_git_cmd_capture -C "$MBIN_DIR" pull --rebase "$GIT_LINK" main; then
     echo -e "${GREEN}Recovery pull --rebase succeeded.${NC}"
     # Clean up the stash we created
     if [[ -n "$recovery_stash_ref" ]]; then
@@ -452,6 +516,10 @@ elif ! run_git_cmd -C "$MBIN_DIR" pull "$GIT_LINK" main; then
       echo -e "${GREEN}Dropped recovery stash: $recovery_stash_ref${NC}"
     fi
   else
+    if [[ "$GIT_LINK" == git@* || "$GIT_LINK" == ssh://* ]] && is_ssh_auth_failure_output "$GIT_LAST_OUTPUT"; then
+      abort_ssh_auth_failure_without_recovery
+    fi
+
     # Last resort: recreate the directory entirely
     echo -e "${YELLOW}Recovery pull --rebase failed, recreating $MBIN_DIR${NC}"
     if [[ "${EUID}" -ne 0 ]]; then
