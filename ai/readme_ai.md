@@ -1,3 +1,29 @@
+# ==== Llama router POC =================================================
+
+```bash
+# Build/update llama.cpp.
+/m/mbin/ai/build_llama.sh
+
+# Start one public llama router backend on :8080.
+sudo bash /m/mbin/ai/llama_router_service.sh
+
+# Serve llmweb from the domain first.
+sudo bash /m/mbin/0web.sh llm129.duckdns.org /m/mbin/llmweb
+
+# Add nginx :1234 alias and optional domain /llama/ proxy.
+sudo bash /m/mbin/ai/llama_nginx_proxy.sh llm129.duckdns.org
+
+# Remote model control.
+bash /m/mbin/ai/llama_control.sh models
+bash /m/mbin/ai/llama_control.sh load lfm25vl450
+bash /m/mbin/ai/llama_control.sh chat lfm25vl450 "Ahoj, odpovez kratce."
+bash /m/mbin/ai/llama_control.sh unload lfm25vl450
+```
+
+Router profiles live in `/m/mbin/ai/llama_models.ini`.
+Default sampling: `--temp 0.7 --top-p 0.9 --top-k 40 --min-p 0.05 --repeat-penalty 1.05 -c 4096`.
+Public POC endpoints: `http://<public-ip>:8080/v1`, `http://<public-ip>:1234/v1`, `https://<domain>/llama/v1`.
+
  ==== USE =================================================
 # ==== CLI =================================================
 ai/llama.cpp/build/bin/
@@ -5,7 +31,7 @@ ai/llama.cpp/build/bin/
 /m/llama.cpp/build/bin/llama-cli \
   -hf unsloth/LFM2.5-1.2B-Instruct-GGUF:Q3_K_M \
   --jinja \
-  --temp 0.6 \
+  --temp 0.7 \
   --top-k 50 \
   --top-p 0.9 \
   --repeat-penalty 1.05 \

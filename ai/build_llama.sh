@@ -1,110 +1,130 @@
-#!/bin/bash
-# build_llama.sh v01
-# Exit immediately if any command fails.
-set -e
+#!/usr/bin/env bash
+# build_llama.sh v03
+set -euo pipefail
 
 # Ensure local bin is in PATH (where uv and other user-local tools are installed).
 export PATH="$HOME/.local/bin:$PATH"
 LLAMA_DIR="${LLAMA_DIR:-/m/llama.cpp}"
 LLAMA_PARENT="$(dirname "$LLAMA_DIR")"
+LLAMA_REPO_URL="${LLAMA_REPO_URL:-https://github.com/ggml-org/llama.cpp}"
 OWNER_USER="${SUDO_USER:-${USER:-$(whoami)}}"
 OWNER_GROUP="$(id -gn "$OWNER_USER" 2>/dev/null || echo "$OWNER_USER")"
 
-# Green color code
 GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}Running build_llama.sh v01${NC}"
+info() {
+    echo -e "${YELLOW}$*${NC}"
+}
+
+ok() {
+    echo -e "${GREEN}OK: $*${NC}"
+}
+
+fail() {
+    echo -e "${RED}ERROR: $*${NC}"
+}
+
+info "Running build_llama.sh v03"
 
 # Step 1: Refresh apt package index metadata.
-echo -e "${GREEN}==> Step 1/5: Updating apt package index...${NC}"
-sudo apt update
-
-# Additional SSL development dependency requested explicitly.
-echo -e "${GREEN}==> Installing libssl-dev...${NC}"
-sudo apt install libssl-dev
+info "==> Step 1/5: Updating apt package index..."
+sudo apt-get update
 
 # Step 2: Install required packages.
 # apt install -y:
 #   -y automatically answers "yes" to prompts for non-interactive installs.
-echo -e "${GREEN}==> Step 2/5: Installing dependencies (git, build-essential, cmake, python3, curl)...${NC}"
-sudo apt install -y \
+info "==> Step 2/5: Installing dependencies (git, build-essential, cmake, python3, curl, libssl-dev)..."
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
   git \
   build-essential \
   cmake \
   python3 \
-  curl
+  curl \
+  libssl-dev
 
 # Install uv (Python package manager)
-echo -e "${GREEN}==> Step 3/5: Ensuring uv is installed...${NC}"
+info "==> Step 3/5: Ensuring uv is installed..."
 if ! command -v uv &> /dev/null; then
-    echo -e "${GREEN}Installing uv...${NC}"
+    info "Installing uv..."
     # curl options:
     # -L follow redirects, -s silent, -S show errors, -f fail on HTTP errors.
     curl -LsSf https://astral.sh/uv/install.sh | sh
 else
-    echo -e "${GREEN}uv is already installed.${NC}"
+    ok "uv is already installed."
 fi
 
 # Print uv version to verify installation and PATH.
 uv --version
 
 # Handling llama.cpp (CPU Only)
-echo -e "${GREEN}==> Step 4/5: Building/updating llama.cpp from source (CPU only)...${NC}"
+info "==> Step 4/5: Building/updating llama.cpp from source (CPU only)..."
 # Check whether target path exists before creating it.
 if [ -d "$LLAMA_DIR" ]; then
-    echo -e "${GREEN}$LLAMA_DIR already exists.${NC}"
+    ok "$LLAMA_DIR already exists."
 else
-    echo -e "${GREEN}$LLAMA_DIR not found. Creating it now...${NC}"
+    info "$LLAMA_DIR not found. Creating it now..."
     sudo mkdir -p "$LLAMA_DIR"
     sudo chown "$OWNER_USER:$OWNER_GROUP" "$LLAMA_DIR"
 fi
 
 if [ ! -w "$LLAMA_DIR" ]; then
-    echo -e "${GREEN}$LLAMA_DIR is not writable by $OWNER_USER. Fixing ownership...${NC}"
+    info "$LLAMA_DIR is not writable by $OWNER_USER. Fixing ownership..."
     sudo chown -R "$OWNER_USER:$OWNER_GROUP" "$LLAMA_DIR"
 fi
 
 REBUILD_REQUIRED=false
 
 if [ -d "$LLAMA_DIR/.git" ]; then
-    echo -e "${GREEN}llama.cpp folder exists, checking for updates...${NC}"
+    info "llama.cpp folder exists, checking for updates..."
     cd "$LLAMA_DIR"
+    if git remote get-url origin >/dev/null 2>&1; then
+        git remote set-url origin "$LLAMA_REPO_URL"
+    else
+        git remote add origin "$LLAMA_REPO_URL"
+    fi
     BEFORE=$(git rev-parse HEAD 2>/dev/null || echo "none")
     git pull
     AFTER=$(git rev-parse HEAD)
     if [ "$BEFORE" != "$AFTER" ]; then
-        echo -e "${GREEN}Updates downloaded, cleaning old build and preparing rebuild.${NC}"
+        info "Updates downloaded, cleaning old build and preparing rebuild."
         rm -rf build  # Remove old build artifacts to prevent growth/conflicts
         REBUILD_REQUIRED=true
     fi
 else
-    echo -e "${GREEN}Cloning llama.cpp...${NC}"
+    if [ -n "$(find "$LLAMA_DIR" -mindepth 1 -maxdepth 1 2>/dev/null)" ]; then
+        fail "$LLAMA_DIR exists but is not a git repository and is not empty."
+        exit 1
+    fi
+
+    info "Cloning llama.cpp from $LLAMA_REPO_URL..."
     sudo mkdir -p "$LLAMA_PARENT"
-    git clone https://github.com/ggerganov/llama.cpp "$LLAMA_DIR"
+    git clone "$LLAMA_REPO_URL" "$LLAMA_DIR"
     cd "$LLAMA_DIR"
     REBUILD_REQUIRED=true
 fi
 
 # Check if binaries exist
 if [ ! -f "build/bin/llama-cli" ] || [ ! -f "build/bin/llama-server" ]; then
-    echo -e "${GREEN}Binaries not found, build required.${NC}"
+    info "Binaries not found, build required."
     REBUILD_REQUIRED=true
 fi
 
 if [ "$REBUILD_REQUIRED" = true ]; then
-    echo -e "${GREEN}Building llama.cpp (CPU only)...${NC}"
+    info "Building llama.cpp (CPU only)..."
     # cmake -B build: configure project and generate build files in ./build
     cmake -B build
     # --build build: compile using generated build system
     # -j$(nproc): parallelize build using all detected CPU cores
-    cmake --build build -j$(nproc)
-    echo -e "${GREEN}===== Build completed =====${NC}"
+    cmake --build build -j"$(nproc)"
+    ok "Build completed"
 else
-    echo -e "${GREEN}===== llama.cpp is already built and up to date =====${NC}"
+    ok "llama.cpp is already built and up to date"
 fi
 
-echo -e "${GREEN}==> Step 5/5: Final binary output paths${NC}"
-echo -e "${GREEN}Binaries are located at:${NC}"
+info "==> Step 5/5: Final binary output paths"
+ok "Binaries are located at:"
 echo "$LLAMA_DIR/build/bin/llama-server"
 echo "$LLAMA_DIR/build/bin/llama-cli"

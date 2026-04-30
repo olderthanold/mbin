@@ -11,67 +11,79 @@ NC='\033[0m' # No Color
 # Safe to re-run: validates/repairs nginx defaults where possible.
 ###############################################################################
 
-echo ""
-echo -e "${YELLOW}Running ini2sys_network_connect.sh v02${NC}"
-echo -e "${YELLOW}Checking nginx, outbound connectivity, HTTP and HTTPS reachability...${NC}"
+info() {
+    echo -e "${YELLOW}$*${NC}"
+}
 
-echo -e "${YELLOW}network_connect.[1/3] nginx_install_check v01 - Installing/checking Nginx web server...${NC}"
+ok() {
+    echo -e "${GREEN}OK: $*${NC}"
+}
+
+warn() {
+    echo -e "${YELLOW}WARN: $*${NC}"
+}
+
+echo ""
+info "Running ini2sys_network_connect.sh v03"
+info "Checking nginx, outbound connectivity, HTTP and HTTPS reachability..."
+
+info "network_connect.[1/3] nginx_install_check v01 - Installing/checking Nginx web server..."
 
 # Check if nginx is already installed
 if dpkg -s nginx >/dev/null 2>&1; then
-    echo -e "${YELLOW}✓ Nginx package already installed - skipping installation${NC}"
+    ok "Nginx package already installed - skipping installation"
     sudo systemctl enable --now nginx >/dev/null 2>&1 || true
 else
-    echo "Installing Nginx..."
+    info "Installing Nginx..."
     sudo apt-get install -y nginx
-    echo "✓ Nginx installed successfully"
+    ok "Nginx installed successfully"
 fi
 
 ###############################################################################
 # SECTION 2: Test Outbound Connectivity
 ###############################################################################
 echo ""
-echo "network_connect.[2/3] outbound_check v01 - Testing outbound connectivity..."
+info "network_connect.[2/3] outbound_check v01 - Testing outbound connectivity..."
 echo ""
 
-echo "Testing DNS resolution..."
+info "Testing DNS resolution..."
 if ping -c 1 -W 2 8.8.8.8 > /dev/null 2>&1; then
-    echo "✓ Outbound connectivity working (can reach Google DNS 8.8.8.8)"
+    ok "Outbound connectivity working (can reach Google DNS 8.8.8.8)"
 else
-    echo -e "${YELLOW}⚠ Cannot reach Google DNS 8.8.8.8 - checking network...${NC}"
+    warn "Cannot reach Google DNS 8.8.8.8 - checking network..."
 fi || true
 
 echo ""
-echo "Network Configuration (Private IP):"
+info "Network Configuration (Private IP):"
 ip -br addr show | grep -v "^lo"
 
 echo ""
-echo "Default Route:"
+info "Default Route:"
 ip route show | grep default
 
 echo ""
-echo "DNS Configuration:"
-cat /etc/resolv.conf 2>/dev/null || echo "  (No /etc/resolv.conf found)"
+info "DNS Configuration:"
+cat /etc/resolv.conf 2>/dev/null || warn "No /etc/resolv.conf found"
 
 echo ""
-echo "Testing external connectivity..."
+info "Testing external connectivity..."
 EXTERNAL_REACHABLE=false
 if timeout 3 curl -s http://www.google.com -o /dev/null 2>&1; then
-    echo "✓ Can reach external website (www.google.com)"
+    ok "Can reach external website (www.google.com)"
     EXTERNAL_REACHABLE=true
 else
-    echo "⚠ Cannot reach external website"
+    warn "Cannot reach external website"
 fi || true
 
 if [ "$EXTERNAL_REACHABLE" = true ]; then
     echo ""
-    echo "Querying public IP from external service..."
+    info "Querying public IP from external service..."
     PUBLIC_IP_SERVICE=$(timeout 3 curl -s ifconfig.me 2>/dev/null || dig +short myip.opendns.com @resolver1.opendns.com 2>/dev/null || echo "")
     if [ -n "$PUBLIC_IP_SERVICE" ]; then
-        echo "✓ Public IP from service: $PUBLIC_IP_SERVICE"
+        ok "Public IP from service: $PUBLIC_IP_SERVICE"
         FINAL_PUBLIC_IP=$PUBLIC_IP_SERVICE
     else
-        echo "⚠ Could not query public IP service"
+        warn "Could not query public IP service"
         FINAL_PUBLIC_IP=""
     fi
 else
@@ -83,9 +95,9 @@ fi
 ###############################################################################
 
 fix_http_nginx() {
-    echo -e "${YELLOW}Checking Nginx for HTTP/80...${NC}"
+    info "Checking Nginx for HTTP/80..."
     if ! dpkg -s nginx >/dev/null 2>&1; then
-        echo "⚠ Nginx is not installed"
+        warn "Nginx is not installed"
         return 1
     fi
 
@@ -96,7 +108,7 @@ fix_http_nginx() {
     fi
 
     if ! grep -Eq "^\s*listen\s+80(\s|;)|^\s*listen\s+\[::\]:80(\s|;)" /etc/nginx/sites-enabled/default 2>/dev/null; then
-        echo "⚠ Default Nginx site does not appear to listen on 80"
+        warn "Default Nginx site does not appear to listen on 80"
     fi
 
     if sudo nginx -t >/dev/null 2>&1; then
@@ -104,14 +116,14 @@ fix_http_nginx() {
         return 0
     fi
 
-    echo -e "${YELLOW}⚠ Nginx config test failed for HTTP path${NC}"
+    warn "Nginx config test failed for HTTP path"
     return 1
 }
 
 fix_https_nginx() {
-    echo -e "${YELLOW}Checking Nginx for HTTPS/443...${NC}"
+    info "Checking Nginx for HTTPS/443..."
     if ! dpkg -s nginx >/dev/null 2>&1; then
-        echo "⚠ Nginx is not installed"
+        warn "Nginx is not installed"
         return 1
     fi
 
@@ -123,7 +135,7 @@ fix_https_nginx() {
 
     if [ -f /etc/nginx/sites-available/default ]; then
         if grep -Eq "^\s*#\s*listen\s+443\s+ssl\s+default_server;" /etc/nginx/sites-available/default; then
-            echo "Uncommenting HTTPS listen directives in default site..."
+            info "Uncommenting HTTPS listen directives in default site..."
             sudo sed -i -E "s|^\s*#\s*listen\s+443\s+ssl\s+default_server;|    listen 443 ssl default_server;|" /etc/nginx/sites-available/default
             sudo sed -i -E "s|^\s*#\s*listen\s+\[::\]:443\s+ssl\s+default_server;|    listen [::]:443 ssl default_server;|" /etc/nginx/sites-available/default
 
@@ -139,7 +151,7 @@ fix_https_nginx() {
     fi
 
     if [ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ] || [ ! -f /etc/ssl/private/ssl-cert-snakeoil.key ]; then
-        echo "HTTPS cert files missing - installing/generating snakeoil cert for testing..."
+        info "HTTPS cert files missing - installing/generating snakeoil cert for testing..."
         sudo apt-get install -y ssl-cert >/dev/null 2>&1 || true
         sudo make-ssl-cert generate-default-snakeoil --force-overwrite >/dev/null 2>&1 || true
     fi
@@ -149,58 +161,58 @@ fix_https_nginx() {
         return 0
     fi
 
-    echo "⚠ HTTPS fix attempted, but nginx config is still invalid"
+    warn "HTTPS fix attempted, but nginx config is still invalid"
     return 1
 }
 
 echo ""
-echo "network_connect.[3/3] http_https_check v01 - Testing HTTP and HTTPS ports (80, 443)..."
+info "network_connect.[3/3] http_https_check v01 - Testing HTTP and HTTPS ports (80, 443)..."
 echo ""
 
 HTTP_REACHABLE=false
 HTTPS_REACHABLE=false
 
 if [ -n "$FINAL_PUBLIC_IP" ]; then
-    echo "Testing HTTP (port 80)..."
+    info "Testing HTTP (port 80)..."
     if timeout 5 curl -s -o /dev/null -w "%{http_code}" http://$FINAL_PUBLIC_IP 2>/dev/null | grep -q "200\|301\|302\|404"; then
-        echo "✓ HTTP (port 80) is reachable"
+        ok "HTTP (port 80) is reachable"
         HTTP_REACHABLE=true
     else
-        echo -e "${YELLOW}⚠ HTTP (port 80) not responding - checking/fixing Nginx if configured${NC}"
+        warn "HTTP (port 80) not responding - checking/fixing Nginx if configured"
         if fix_http_nginx; then
             if timeout 5 curl -s -o /dev/null -w "%{http_code}" http://$FINAL_PUBLIC_IP 2>/dev/null | grep -q "200\|301\|302\|404"; then
-                echo "✓ HTTP (port 80) reachable after Nginx fix"
+                ok "HTTP (port 80) reachable after Nginx fix"
                 HTTP_REACHABLE=true
             else
-                echo "⚠ HTTP still not reachable - may need OCI Security Group rules"
+                warn "HTTP still not reachable - may need OCI Security Group rules"
             fi
         fi
     fi || true
 
     echo ""
-    echo "Testing HTTPS (port 443)..."
+    info "Testing HTTPS (port 443)..."
     if timeout 5 curl -k -s -o /dev/null -w "%{http_code}" https://$FINAL_PUBLIC_IP 2>/dev/null | grep -q "200\|301\|302\|404"; then
-        echo "✓ HTTPS (port 443) is reachable"
+        ok "HTTPS (port 443) is reachable"
         HTTPS_REACHABLE=true
     else
-        echo -e "${YELLOW}⚠ HTTPS (port 443) not responding - checking/fixing Nginx if configured${NC}"
+        warn "HTTPS (port 443) not responding - checking/fixing Nginx if configured"
         if fix_https_nginx; then
             if timeout 5 curl -k -s -o /dev/null -w "%{http_code}" https://$FINAL_PUBLIC_IP 2>/dev/null | grep -q "200\|301\|302\|404"; then
-                echo "✓ HTTPS (port 443) reachable after Nginx fix"
+                ok "HTTPS (port 443) reachable after Nginx fix"
                 HTTPS_REACHABLE=true
             else
-                echo "⚠ HTTPS still not reachable - likely external path (OCI SG/NSG/route/LB) or different app issue"
+                warn "HTTPS still not reachable - likely external path (OCI SG/NSG/route/LB) or different app issue"
             fi
         fi
     fi || true
 else
-    echo "⚠ Could not test - no public IP available"
+    warn "Could not test - no public IP available"
 fi
 
 echo ""
-echo -e "${GREEN}✓ NETWORK CHECKS COMPLETE${NC}"
+ok "NETWORK CHECKS COMPLETE"
 if [ -n "$FINAL_PUBLIC_IP" ]; then
-    echo "Public IP: $FINAL_PUBLIC_IP"
-    echo "HTTP reachability: $HTTP_REACHABLE"
-    echo "HTTPS reachability: $HTTPS_REACHABLE"
+    info "Public IP: $FINAL_PUBLIC_IP"
+    info "HTTP reachability: $HTTP_REACHABLE"
+    info "HTTPS reachability: $HTTPS_REACHABLE"
 fi

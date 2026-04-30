@@ -19,7 +19,7 @@ This document describes the run order started by `0ini.sh`, including step numbe
 |       |   `-- configure /m/mbin in user/root/sudo PATH
 |       |-- 1.[6/7] ini2sys_network_iptables.sh v04
 |       |   `-- configure UFW firewall
-|       `-- 1.[7/7] ini2sys_network_connect.sh v02
+|       `-- 1.[7/7] ini2sys_network_connect.sh v03
 |           `-- install/check nginx and run connectivity checks
 `-- [2/2] inu1user.sh v08
     `-- inu1user.sh v08
