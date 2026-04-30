@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# llama_nginx_proxy.sh v01
+# bai1_build_nginx_proxy.sh v02
 set -euo pipefail
 
 # Configures nginx aliases for the llama router:
@@ -45,7 +45,7 @@ if ! command -v nginx >/dev/null 2>&1; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running llama_nginx_proxy.sh v01${NC}"
+echo -e "${YELLOW}Running bai1_build_nginx_proxy.sh v02${NC}"
 echo "Backend URL: ${BACKEND_URL}"
 
 echo -e "${YELLOW}[1/4] Writing nginx /llama/ proxy snippet...${NC}"

@@ -147,7 +147,7 @@ echo -e "\033[1;33m =---------- .bashrc done ----------= \033[0m"
 top
 ps all
 ps -f
-## ==== nohup 
+## ==== nohup
 ### Run in background even if console closes
 ```bash
 nohup sudo -E bash -c "export PATH=$PATH; ociamp.sh" > ociamp.log 2>&1 && touch ociamp_script_completed.txt &
@@ -162,38 +162,28 @@ tail -f clone.log
 /proc
 tail -f /proc/<pid>/fd/1
 
-# ==== nohup ================================================
-
-# run build detached from terminal, log output to file
+# ==== AI build foreground ================================================
 ```bash
-nohup /m/mbin/ai/build_llama.sh > build.log 2>&1 &
-nohup /m/mbin/ai/build_llama.sh > build.log 2> error.log &
-
-nohup bash -c 'sudo -E bash -c "export PATH=$PATH; ociamp.sh" && touch ociamp_script_completed.txt' > ociamp02.log 2>&1 &
-echo $!
+sudo bash /m/mbin/0buildai.sh
+sudo bash /m/mbin/0buildai.sh --status
+sudo bash /m/mbin/0buildai.sh --force
+sudo bash /m/mbin/0buildai.sh --build-only
+sudo bash /m/mbin/0buildai.sh --service-only
+sudo env HF_CACHE_DIR=/m/ai-cache bash /m/mbin/0buildai.sh --service-only
 ```
-# explanation:
-# nohup      = ignore terminal disconnect (SIGHUP)
-# > build.log = stdout to file
-# 2>&1       = stderr to same file / error.log
-# &          = run in background
-
-# check if running
-pgrep -af build_llama.sh
-
-# monitor output
-tail -f build.log
-
-# stop if needed
-kill -9 <PID>
+`--force` resets only `/m/llama.cpp` and `llama-router.service`; `/m/hfcache`, nginx proxy config and webroot stay in place.
+Plain `0buildai.sh` automatically removes non-git `/m/llama.cpp` and clones a fresh checkout.
+If `llama-router.service` is already running, plain `0buildai.sh` only prints status.
+HF cache setup and UFW allow rules are handled by `/m/mbin/ai/bai1_build_settings.sh`.
+du -sh /m/hfcache
 
 # ==== tmux ================================================
 # install tmux (only once)
 sudo apt install tmux
 # start a new tmux session named "build"
 tmux new -s build
-# inside tmux: run your build script
-/m/mbin/ai/build_llama.sh
+# inside tmux: run setup or build-only foreground
+sudo bash /m/mbin/0buildai.sh
 # detach from tmux (leave build running)
 ## press: Ctrl+b then d
 # later: list tmux sessions

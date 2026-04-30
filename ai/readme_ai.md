@@ -1,21 +1,30 @@
 # ==== Llama router POC =================================================
 
 ```bash
-# Build/update llama.cpp.
-/m/mbin/ai/build_llama.sh
+# Build/update llama.cpp, then create/restart llama-router.service.
+# If llama-router.service is already running, this prints status and exits.
+sudo bash /m/mbin/0buildai.sh
 
-# Or run build detached; log stays outside /m/llama.cpp.
-bash /m/mbin/ai/run_build_llama.sh
-tail -f /m/aibuild/aibuild03.log
+# Print router/build status without changing anything.
+sudo bash /m/mbin/0buildai.sh --status
 
-# Start one public llama router backend on :8080.
-sudo bash /m/mbin/ai/llama_router_service.sh
+# Full reset: remove llama-router.service and /m/llama.cpp, then rebuild.
+sudo bash /m/mbin/0buildai.sh --force
+
+# Build check only, without touching the systemd service.
+sudo bash /m/mbin/0buildai.sh --build-only
+
+# Service only, after a successful build.
+sudo bash /m/mbin/0buildai.sh --service-only
+
+# Optional custom HF cache location.
+sudo env HF_CACHE_DIR=/m/ai-cache bash /m/mbin/0buildai.sh --service-only
 
 # Serve copied llmweb from the domain first.
 sudo bash /m/mbin/0web.sh llm129.duckdns.org
 
 # Add nginx :1234 alias and optional domain /llama/ proxy.
-sudo bash /m/mbin/ai/llama_nginx_proxy.sh llm129.duckdns.org
+sudo bash /m/mbin/ai/bai1_build_nginx_proxy.sh llm129.duckdns.org
 
 # Remote model control.
 bash /m/mbin/ai/llama_control.sh models
@@ -27,6 +36,11 @@ bash /m/mbin/ai/llama_control.sh unload lfm25vl450
 Router profiles live in `/m/mbin/ai/llama_models.ini`.
 Default sampling: `--temp 0.7 --top-p 0.9 --top-k 40 --min-p 0.05 --repeat-penalty 1.05 -c 4096`.
 Public POC endpoints: `http://<public-ip>:8080/v1`, `http://<public-ip>:1234/v1`, `https://<domain>/llama/v1`.
+Existing builds are only smoke-tested unless `--force` is used. `--force` does not remove `/m/hfcache`, nginx proxy config, or webroot files.
+If an older wrapper left `/m/llama.cpp` as a non-git directory, plain `0buildai.sh` removes it automatically and clones a fresh checkout.
+If the router service is already active, default `0buildai.sh` is status-only; use `--service-only` for an intentional service rewrite/restart.
+Hugging Face model cache is stored under `/m/hfcache` by default. HF cache setup and UFW allow rules are handled by `ai/bai1_build_settings.sh`.
+Default `0buildai.sh` order is build/verify -> settings -> router service.
 
  ==== USE =================================================
 # ==== CLI =================================================
@@ -126,7 +140,7 @@ llama-server -hf Jackrong/Qwen3.5-0.8B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:
 ## ---- web 129 remote 129.159.30.72
 /m/llama.cpp/build/bin/llama-server -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q3_K_S --no-mmproj --host 129.159.30.72 --port 80 --reasoning off
 
-# ===== API 
+# ===== API
 /m/llama.cpp/build/bin/llama-server \
   -hf bartowski/Qwen_Qwen3.5-0.8B-GGUF:Q3_K_S \
   --host 127.0.0.1 \
@@ -136,44 +150,22 @@ llama-server -hf Jackrong/Qwen3.5-0.8B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:
 
 
 
-# Link to llama.cpp GitHub page: https://github.com/ggml-org/llama.cpp 
-```
-# ==== tmux ================================================
-
-# ==== nohup ================================================
-## just run buildrun
-# run build detached from terminal, log output to file
-```bash
-nohup bash -c 'sudo -E bash -c "export PATH=$PATH; /m/mbin/ai/build_llama.sh" && touch aibuild_script_completed.txt' > aibuild.log 2>aibuild.log &
-echo $!
-
-# explanation:
-# nohup      = ignore terminal disconnect (SIGHUP)
-# > build.log = stdout to file
-# 2>&1       = stderr to same file / error.log
-# &          = run in background
-
-# check if running
-pgrep -af build_llama.sh
-# monitor output
-tail -f build.log
-# stop if needed
-kill -9 <PID>
+# Link to llama.cpp GitHub page: https://github.com/ggml-org/llama.cpp
 ```
 # ==== tmux ================================================
 ```bash
 # install tmux (only once)
 sudo apt install tmux
-# start a new tmux session named "build"
-tmux new -s aibuild
-# inside tmux: run your build script
-/m/mbin/ai/build_llama.sh
+# start a new tmux session named "llamabuild"
+tmux new -s llamabuild
+# inside tmux: run setup or build-only foreground
+sudo bash /m/mbin/0buildai.sh
 # detach from tmux (leave build running)
 ## press: Ctrl+b then d
 # later: list tmux sessions
 tmux ls
 # reattach to the session
-tmux attach -t build
+tmux attach -t llamabuild
 # (optional) kill the session when done
-tmux kill-session -t build
+tmux kill-session -t llamabuild
 ```

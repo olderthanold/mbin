@@ -1,28 +1,51 @@
 # Llama router POC deployment
 
 This document covers the llama.cpp router setup used by `/m/mbin/ai`.
-The static web files stay in `llmweb`; service and proxy scripts stay in `ai`.
+The static web files stay in `llmweb`; AI build/setup scripts stay in `ai`.
 
 ## 1) Start llama router
 
 ```bash
-# Build/update llama.cpp first if needed.
-/m/mbin/ai/build_llama.sh
+# Build/update llama.cpp, then create/restart llama-router.service.
+# If llama-router.service is already running, this prints status and exits.
+sudo bash /m/mbin/0buildai.sh
 
-# Detached build alternative:
-bash /m/mbin/ai/run_build_llama.sh
-tail -f /m/aibuild/aibuild03.log
+# Print router/build status without changing anything.
+sudo bash /m/mbin/0buildai.sh --status
 
-# If an older wrapper left /m/llama.cpp as a non-git dir with only build logs:
-bash /m/mbin/ai/run_build_llama.sh --reset-bad-target
+# Full reset: stop/remove llama-router.service, delete /m/llama.cpp,
+# rebuild from scratch, then recreate/restart the service.
+sudo bash /m/mbin/0buildai.sh --force
 
-# Create and start systemd service on port 8080.
-sudo bash /m/mbin/ai/llama_router_service.sh
+# Build check only, without touching the systemd service.
+sudo bash /m/mbin/0buildai.sh --build-only
+
+# Service only, after a successful build.
+sudo bash /m/mbin/0buildai.sh --service-only
+
+# Optional custom HF cache location.
+sudo env HF_CACHE_DIR=/m/ai-cache bash /m/mbin/0buildai.sh --service-only
 ```
+
+Without `--force`, an existing git checkout is not updated or rebuilt. The
+wrapper only verifies that `llama-server` and `llama-cli` exist, are executable,
+and pass a cheap `--version` or `--help` smoke test. Use `--force` for a fresh
+checkout/rebuild. `--force` does not remove `/m/hfcache`, nginx proxy config,
+or webroot files.
+If an older wrapper left `/m/llama.cpp` as a non-git directory, plain
+`0buildai.sh` removes it automatically and clones a fresh checkout.
+If the router service is already active, default `0buildai.sh` is status-only; use
+`--service-only` for an intentional service rewrite/restart.
+Hugging Face model cache is stored under `/m/hfcache` by default. The cache and
+UFW port rules are handled by `ai/bai1_build_settings.sh`, not by the router
+service script.
+Default `0buildai.sh` order is build/verify -> settings -> router service.
 
 The service runs:
 
 ```bash
+EnvironmentFile=-/etc/default/llama-router
+
 /m/llama.cpp/build/bin/llama-server \
   --models-preset /m/mbin/ai/llama_models.ini \
   --host 0.0.0.0 \
@@ -44,7 +67,7 @@ Single-VM mode:
 sudo bash /m/mbin/0web.sh llm129.duckdns.org
 
 # Adds public :1234 alias and, if the domain site exists, /llama/ proxy.
-sudo bash /m/mbin/ai/llama_nginx_proxy.sh llm129.duckdns.org
+sudo bash /m/mbin/ai/bai1_build_nginx_proxy.sh llm129.duckdns.org
 ```
 
 Split web/LLM mode:
@@ -54,7 +77,7 @@ Split web/LLM mode:
 sudo bash /m/mbin/0web.sh olderthanold.duckdns.org
 
 sudo env LLAMA_BACKEND_URL=http://129.159.30.72:8080 \
-  bash /m/mbin/ai/llama_nginx_proxy.sh olderthanold.duckdns.org
+  bash /m/mbin/ai/bai1_build_nginx_proxy.sh olderthanold.duckdns.org
 ```
 
 Expected URLs:
@@ -66,8 +89,10 @@ Expected URLs:
 - `https://<domain>/llama/`
 - `https://<domain>/llama/v1`
 
-Open OCI ingress and UFW for `8080/tcp` and `1234/tcp` when using direct public
-POC access.
+Open OCI ingress for `8080/tcp` and `1234/tcp` when using direct public POC
+access. `bai1_build_settings.sh` adds matching UFW allow rules idempotently,
+but leaves the current UFW enable state unchanged unless `AI_UFW_ENABLE=true`
+is set.
 
 ## 3) Remote model control
 
@@ -129,13 +154,23 @@ If the VM starts swapping heavily, lower `c` from `4096` to `2048`.
 ## 5) Checks
 
 ```bash
-bash -n /m/mbin/ai/llama_router_service.sh
+bash -n /m/mbin/0buildai.sh
+bash -n /m/mbin/ai/bai1_build_settings.sh
+bash -n /m/mbin/ai/bai1_build_llama.sh
+bash -n /m/mbin/ai/bai1_build_brew_llama.sh
+bash -n /m/mbin/ai/bai1_build_router_service.sh
 bash -n /m/mbin/ai/llama_control.sh
-bash -n /m/mbin/ai/llama_nginx_proxy.sh
+bash -n /m/mbin/ai/bai1_build_nginx_proxy.sh
 
+sudo bash /m/mbin/0buildai.sh --status
 sudo systemctl status llama-router.service --no-pager
+sudo systemctl cat llama-router.service | grep -E 'EnvironmentFile|ExecStart'
+sudo grep -E 'HF_HOME|HF_HUB_CACHE|HUGGINGFACE_HUB_CACHE|TRANSFORMERS_CACHE|XDG_CACHE_HOME' /etc/default/llama-router
 sudo journalctl -u llama-router.service -n 100 --no-pager
 sudo ss -ltnp | grep -E ':8080|:1234' || true
+sudo ls -ld /m/hfcache /m/hfcache/hub /m/hfcache/transformers /m/hfcache/xdg
+find /m/hfcache -maxdepth 2 -type d
+du -sh /m/hfcache
 
 curl -sS http://127.0.0.1:8080/health
 curl -sS http://127.0.0.1:8080/models

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# llama_router_service.sh v01
+# bai1_build_router_service.sh v03
 set -euo pipefail
 
 # Creates and starts a systemd service for llama.cpp router mode.
@@ -17,6 +17,7 @@ LLAMA_USER="${LLAMA_USER:-${SUDO_USER:-$(id -un)}}"
 LLAMA_WORKDIR="${LLAMA_WORKDIR:-/m/llama.cpp}"
 LLAMA_BIN="${LLAMA_BIN:-/m/llama.cpp/build/bin/llama-server}"
 MODELS_PRESET="${MODELS_PRESET:-${SCRIPT_DIR}/llama_models.ini}"
+SETTINGS_ENV_FILE="${SETTINGS_ENV_FILE:-/etc/default/${SERVICE_NAME}}"
 BIND_HOST="${BIND_HOST:-0.0.0.0}"
 BIND_PORT="${BIND_PORT:-8080}"
 MODELS_MAX="${MODELS_MAX:-1}"
@@ -27,7 +28,7 @@ if [[ "${1:-}" == "--write-only" ]]; then
   WRITE_ONLY="true"
 fi
 
-echo -e "${YELLOW}Running llama_router_service.sh v01${NC}"
+echo -e "${YELLOW}Running bai1_build_router_service.sh v03${NC}"
 echo -e "${YELLOW}[0/7] Pre-flight checks...${NC}"
 
 if ! command -v sudo >/dev/null 2>&1; then
@@ -47,7 +48,7 @@ fi
 
 if [[ ! -x "${LLAMA_BIN}" ]]; then
   echo -e "${RED}ERROR: llama-server binary not found/executable:${NC} ${LLAMA_BIN}"
-  echo -e "${YELLOW}Hint: run /m/mbin/ai/build_llama.sh first, or override LLAMA_BIN.${NC}"
+  echo -e "${YELLOW}Hint: run /m/mbin/ai/bai1_build_llama.sh first, or override LLAMA_BIN.${NC}"
   exit 1
 fi
 
@@ -56,10 +57,17 @@ if [[ ! -r "${MODELS_PRESET}" ]]; then
   exit 1
 fi
 
+if [[ ! -r "${SETTINGS_ENV_FILE}" ]]; then
+  echo -e "${RED}ERROR: settings env file is not readable:${NC} ${SETTINGS_ENV_FILE}"
+  echo -e "${YELLOW}Hint: run /m/mbin/ai/bai1_build_settings.sh first.${NC}"
+  exit 1
+fi
+
 echo "Service name: ${SERVICE_NAME}.service"
 echo "Service user: ${LLAMA_USER}"
 echo "llama-server: ${LLAMA_BIN}"
 echo "Models preset: ${MODELS_PRESET}"
+echo "Settings env file: ${SETTINGS_ENV_FILE}"
 echo "Bind: ${BIND_HOST}:${BIND_PORT}"
 
 echo -e "${YELLOW}[1/7] Writing /etc/systemd/system/${SERVICE_NAME}.service ...${NC}"
@@ -74,6 +82,7 @@ RequiresMountsFor=/m
 Type=simple
 User=${LLAMA_USER}
 WorkingDirectory=${LLAMA_WORKDIR}
+EnvironmentFile=-${SETTINGS_ENV_FILE}
 ExecStart=${LLAMA_BIN} \\
   --models-preset ${MODELS_PRESET} \\
   --host ${BIND_HOST} \\
