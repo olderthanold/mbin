@@ -26,7 +26,7 @@ This document describes the run order started by `0ini.sh`, including step numbe
         |-- resolves child scripts from: <repo>/initi/
         |-- 2.[1/2] inu2_clone_user.sh v01
         |   `-- runs only when 0ini.sh is called with a target username
-        `-- 2.[2/2] mgit_https.sh v06
+        `-- 2.[2/2] mgit_https.sh v07
             `-- refresh local repository via HTTPS, default target /m/mbin
 ```
 

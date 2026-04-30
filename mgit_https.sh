@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_NAME="git_https.sh"
-SCRIPT_VERSION="v06"
-# mgit_https.sh v06
+SCRIPT_NAME="mgit_https.sh"
+SCRIPT_VERSION="v07"
+# mgit_https.sh v07
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 DEFAULT_LOCAL_PATH="/m/mbin"
-DEFAULT_REMOTE_REPO="https://github.com/olderthanold/web.git"
+DEFAULT_REMOTE_REPO="https://github.com/olderthanold/mbin.git"
 DEFAULT_GITHUB_OWNER="olderthanold"
 
 show_help() {
@@ -23,13 +23,13 @@ show_help() {
   echo "               - omitted: defaults to $DEFAULT_LOCAL_PATH"
   echo "  remote_repo  Optional HTTPS Git remote URL/path"
   echo "               - omitted: defaults to $DEFAULT_REMOTE_REPO"
-  echo "               - short alias (e.g. 'web'): expands to https://github.com/${DEFAULT_GITHUB_OWNER}/<alias>.git"
+  echo "               - short alias (e.g. 'mbin'): expands to https://github.com/${DEFAULT_GITHUB_OWNER}/<alias>.git"
   echo ""
   echo "Examples:"
   echo "  $0"
   echo "  $0 mm"
-  echo "  $0 mm https://github.com/${DEFAULT_GITHUB_OWNER}/web.git"
-  echo "  $0 mm web"
+  echo "  $0 mm https://github.com/${DEFAULT_GITHUB_OWNER}/mbin.git"
+  echo "  $0 mm mbin"
   echo ""
   echo "Flags:"
   echo "  -n <user>    Add extra user for sudo-only group sync checks"
@@ -65,7 +65,7 @@ normalize_remote_repo() {
     return 0
   fi
 
-  # Bare token shorthand (e.g. "web") is treated as GitHub repo alias.
+  # Bare token shorthand (e.g. "mbin") is treated as GitHub repo alias.
   if [[ "$raw_remote" =~ ^[A-Za-z0-9._-]+$ ]]; then
     GIT_LINK="https://github.com/${DEFAULT_GITHUB_OWNER}/${raw_remote}.git"
     echo -e "${YELLOW}Remote alias '$raw_remote' expanded to: $GIT_LINK${NC}"
@@ -73,7 +73,7 @@ normalize_remote_repo() {
   fi
 
   echo -e "${RED}Error: unsupported remote format '$raw_remote'.${NC}"
-  echo -e "${RED}Use a full remote URL/path or a simple alias like 'web'.${NC}"
+  echo -e "${RED}Use a full remote URL/path or a simple alias like 'mbin'.${NC}"
   return 1
 }
 
@@ -241,9 +241,9 @@ else
 fi
 
 # Resolve remote repository:
-# - no arg: default web HTTPS repo
+# - no arg: default mbin HTTPS repo
 # - explicit URL/path: use as-is
-# - short alias token (e.g. "web"): expand to https://github.com/<owner>/<alias>.git
+# - short alias token (e.g. "mbin"): expand to https://github.com/<owner>/<alias>.git
 GIT_LINK=""
 normalize_remote_repo "$INPUT_REMOTE_REPO" || exit 1
 echo -e "${YELLOW}[2/8] Using remote repository: $GIT_LINK${NC}"
@@ -355,7 +355,7 @@ elif ! run_git_cmd -C "$WEB_DIR" pull "$GIT_LINK" main; then
   echo -e "${YELLOW}Initial pull failed. Entering recovery flow: stash + pull --rebase + fallback clone${NC}"
 
   recovery_stash_ref=""
-  recovery_stash_msg="git_web_autostash_$(date +%Y%m%d_%H%M%S)"
+  recovery_stash_msg="mgit_https_autostash_$(date +%Y%m%d_%H%M%S)"
 
   # Only stash if there are local changes to preserve
   echo -e "${YELLOW}[7/8] Checking local changes before recovery${NC}"

@@ -60,6 +60,6 @@ This document describes the run order started by `0web.sh`, including step numbe
 - `0ini.sh` and `ini*` / `init_*` scripts - system/user initialization flow.
 - `delete_website.sh` - removes Nginx + cert artifacts for a domain.
 - `delete_cloned_user.sh` - removes cloned user account with safety checks.
-- `mgit_ssh.sh`, `mgit_https.sh`, `mgit_oldssh.sh` - git helper/update scripts.
+- `mgit_ssh.sh`, `mgit_https.sh`, `mgit_oldssh.sh`, `mgit_oldhttps.sh` - git helper/update scripts.
 - `symlink_m.sh` - creates `/m` layout and compatibility symlinks for legacy paths.
 - `mstats.sh`, `mtest.sh` - utility/testing scripts.

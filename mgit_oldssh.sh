@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# mgit_oldssh.sh v05
+# mgit_oldssh.sh v06
 # =============================================================================
 # git_mbin_ssh.sh - Automated repository management for /m/mbin directory
 # Purpose: Keeps track of and updates multiple scripts/tools stored in /m/mbin
@@ -12,36 +12,51 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
+SCRIPT_NAME="mgit_oldssh.sh"
+SCRIPT_VERSION="v06"
+SSH_KEY_PATH="/home/ubun2/.ssh/old.key"
 
 echo -e "${YELLOW}======================================================================${NC}"
-echo -e "${YELLOW}Running mgit_oldssh.sh - v05"
+echo -e "${YELLOW}Running $SCRIPT_NAME $SCRIPT_VERSION${NC}"
+echo -e "${YELLOW}Takes target as an argument, default: /m/mbin"
 echo -e "${YELLOW}======================================================================${NC}"
 
 MBIN_DIR="${1:-/m/mbin}"
 
 # Check privilege level; warn only (do not stop if sudo/root is absent).
-echo -e "${YELLOW}[1/5] Checking privileges (warning-only mode) for $MBIN_DIR${NC}"
+echo -e "${YELLOW}[1/6] Checking privileges (warning-only mode) for $MBIN_DIR${NC}"
 if [[ "${EUID}" -ne 0 ]]; then
   echo -e "${YELLOW}Warning: not running as root; continuing (sudo may not be needed).${NC}"
 fi
 
+echo -e "${YELLOW}[2/6] Checking SSH key: $SSH_KEY_PATH${NC}"
+if [[ ! -f "$SSH_KEY_PATH" || ! -r "$SSH_KEY_PATH" ]]; then
+  echo -e "${RED}Error: SSH key missing or not readable: $SSH_KEY_PATH${NC}"
+  exit 1
+fi
+
+if [[ "$(stat -c '%a' "$SSH_KEY_PATH")" != "600" ]]; then
+  echo -e "${RED}Error: SSH key permissions must be 600: $SSH_KEY_PATH${NC}"
+  exit 1
+fi
+
 # Pull latest changes from GitHub repository.
 # On any failure, immediately use last resort: recreate and clone fresh.
-echo -e "${YELLOW}[2/5] Pulling latest changes (SSH remote) into $MBIN_DIR${NC}"
-if ! GIT_SSH_COMMAND="ssh -i /home/ubun2/.ssh/old.key" git -C "$MBIN_DIR" pull git@github.com:olderthanold/mbin.git main; then
-  echo -e "${YELLOW}[3/5] Pull failed. Using last resort: recreate and clone fresh.${NC}"
+echo -e "${YELLOW}[3/6] Pulling latest changes (SSH remote) into $MBIN_DIR${NC}"
+if ! GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH" git -C "$MBIN_DIR" pull git@github.com:olderthanold/mbin.git main; then
+  echo -e "${YELLOW}[4/6] Pull failed. Using last resort: recreate and clone fresh.${NC}"
   rm -rf "$MBIN_DIR"
-  GIT_SSH_COMMAND="ssh -i /home/ubun2/.ssh/old.key" git clone -b main git@github.com:olderthanold/mbin.git "$MBIN_DIR"
+  GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH" git clone -b main git@github.com:olderthanold/mbin.git "$MBIN_DIR"
 fi
 
 # Restore executable permissions on all scripts after update
-echo -e "${YELLOW}[4/5] Restoring executable permission on shell scripts in $MBIN_DIR${NC}"
+echo -e "${YELLOW}[5/6] Restoring executable permission on shell scripts in $MBIN_DIR${NC}"
 chmod +x "$MBIN_DIR"/*.sh 2>/dev/null || true
 
 # Final ownership fix for sudo caller:
 # If target owner/group are not the sudo user and their primary group,
 # enforce that ownership on the whole target directory tree.
-echo -e "${YELLOW}[5/5] Ensuring ownership matches sudo user (when running under sudo)${NC}"
+echo -e "${YELLOW}[6/6] Ensuring ownership matches sudo user (when running under sudo)${NC}"
 if [[ -n "${SUDO_USER:-}" && -d "$MBIN_DIR" ]]; then
   TARGET_OWNER="$(stat -c '%U' "$MBIN_DIR")"
   TARGET_GROUP="$(stat -c '%G' "$MBIN_DIR")"
