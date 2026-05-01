@@ -6,6 +6,12 @@ The static web files stay in `llmweb`; AI build/setup scripts stay in `ai`.
 ## 1) Start llama router
 
 ```bash
+# Full AI init: refresh service, download all configured models, list aliases.
+sudo bash /m/mbin/0ainit.sh
+
+# Full AI init plus web/domain /llama/ alias. Default web root is domain prefix.
+sudo bash /m/mbin/0ainit.sh emp2.duckdns.org
+
 # Build/update llama.cpp, then create/restart llama-router.service.
 # If llama-router.service is already running, this prints status and exits.
 sudo bash /m/mbin/0buildai.sh
@@ -57,6 +63,8 @@ EnvironmentFile=-/etc/default/llama-router
 
 Models are loaded on demand through the router API. Only one model should be
 loaded at a time on the small OCI VM.
+`0ainit.sh` uses `ai/bai1_init_model_cache.sh` to load missing models one by
+one so their GGUF files are present under `/m/hfcache`.
 
 ## 2) Configure nginx aliases
 
@@ -169,10 +177,12 @@ If the VM starts swapping heavily, lower `c` from `4096` to `2048`.
 
 ```bash
 bash -n /m/mbin/0buildai.sh
+bash -n /m/mbin/0ainit.sh
 bash -n /m/mbin/ai/bai1_build_settings.sh
 bash -n /m/mbin/ai/bai1_build_llama.sh
 bash -n /m/mbin/ai/bai1_build_brew_llama.sh
 bash -n /m/mbin/ai/bai1_build_router_service.sh
+bash -n /m/mbin/ai/bai1_init_model_cache.sh
 bash -n /m/mbin/ai/llama_control.sh
 bash -n /m/mbin/ai/bai1_build_nginx_proxy.sh
 
@@ -185,6 +195,7 @@ sudo ss -ltnp | grep -E ':8080|:1234' || true
 sudo ls -ld /m/hfcache /m/hfcache/hub /m/hfcache/transformers /m/hfcache/xdg
 find /m/hfcache -maxdepth 2 -type d
 du -sh /m/hfcache
+bash /m/mbin/ai/bai1_init_model_cache.sh --check-only
 
 curl -sS http://127.0.0.1:8080/health
 curl -sS http://127.0.0.1:8080/models

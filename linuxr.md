@@ -164,6 +164,8 @@ tail -f /proc/<pid>/fd/1
 
 # ==== AI build foreground ================================================
 ```bash
+sudo bash /m/mbin/0ainit.sh
+sudo bash /m/mbin/0ainit.sh emp2.duckdns.org
 sudo bash /m/mbin/0buildai.sh
 sudo bash /m/mbin/0buildai.sh --status
 sudo bash /m/mbin/0buildai.sh --force
@@ -171,6 +173,7 @@ sudo bash /m/mbin/0buildai.sh --build-only
 sudo bash /m/mbin/0buildai.sh --service-only
 sudo env HF_CACHE_DIR=/m/ai-cache bash /m/mbin/0buildai.sh --service-only
 ```
+`0ainit.sh` refreshes the router service, downloads missing configured GGUF models one by one, and lists/adds nginx `/llama/` aliases.
 `--force` resets only `/m/llama.cpp` and `llama-router.service`; `/m/hfcache`, nginx proxy config and webroot stay in place.
 Plain `0buildai.sh` automatically removes non-git `/m/llama.cpp` and clones a fresh checkout.
 If `llama-router.service` is already running, plain `0buildai.sh` only prints status.
