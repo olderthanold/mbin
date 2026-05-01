@@ -32,6 +32,8 @@ bash mgit_ssh.sh [-h|--help] [-n <user>] [local_path] [remote_repo]
 - `remote_repo` omitted: `git@github.com:olderthanold/mbin.git`
 - bare remote alias such as `mbin`: expands to `git@github.com:olderthanold/mbin.git`
 
+If the parent directory for `local_path` does not exist, the script attempts to create it before running git operations. When running as root, it assigns the parent directory to the resolved owner and group, then grants owner/group read, write, and execute permissions. If the directory cannot be created or prepared, the script exits with a sudo-related error.
+
 ## SSH Key Handling
 
 Configured key path:
@@ -80,6 +82,6 @@ If `ssh-keygen` still fails after that, the key content is not a valid OpenSSH p
 - SSH key has Windows CRLF line endings
 - SSH key is incomplete, pasted incorrectly, or not an OpenSSH private key
 - SSH key permission too open and cannot be fixed
-- insufficient write access to target path/parent
+- insufficient permission to create or write to target path/parent
 - specified `-n` user does not exist
 - no root privileges when group modification is required

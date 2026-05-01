@@ -395,8 +395,27 @@ if [[ -e "$MBIN_DIR" ]]; then
 else
   if [[ ! -d "$PARENT_DIR" ]]; then
     echo -e "${YELLOW}Parent directory does not exist: $PARENT_DIR${NC}"
-    echo -e "${RED}Error: cannot prepare target path. Please run with sudo.${NC}"
-    exit 1
+    echo -e "${YELLOW}Attempting to create parent directory: $PARENT_DIR${NC}"
+    if ! mkdir -p "$PARENT_DIR"; then
+      echo -e "${RED}Error: cannot create parent directory $PARENT_DIR. Please run with sudo.${NC}"
+      exit 1
+    fi
+
+    if [[ "${EUID}" -eq 0 ]]; then
+      echo -e "${YELLOW}Running: chown $OWNER_USER:$OWNER_GROUP $PARENT_DIR${NC}"
+      if ! chown "$OWNER_USER:$OWNER_GROUP" "$PARENT_DIR"; then
+        echo -e "${RED}Error: failed to set ownership on $PARENT_DIR.${NC}"
+        exit 1
+      fi
+    fi
+
+    echo -e "${YELLOW}Running: chmod u+rwx,g+rwx $PARENT_DIR${NC}"
+    if ! chmod u+rwx,g+rwx "$PARENT_DIR"; then
+      echo -e "${RED}Error: failed to set permissions on $PARENT_DIR.${NC}"
+      exit 1
+    fi
+
+    echo -e "${GREEN}Parent directory prepared: $PARENT_DIR${NC}"
   fi
 
   if [[ ! -w "$PARENT_DIR" ]]; then

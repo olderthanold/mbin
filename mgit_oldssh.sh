@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# mgit_oldssh.sh v06
 # =============================================================================
-# git_mbin_ssh.sh - Automated repository management for /m/mbin directory
-# Purpose: Keeps track of and updates multiple scripts/tools stored in /m/mbin
+# mgit_oldssh.sh - Automated repository management for /m/mbin directory
+# Purpose: Pulls updates multple scripts/tools stored in /m/mbin
 # Author: olderthanold (via m.git repository)
 # =============================================================================
 
@@ -12,22 +11,14 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
-SCRIPT_NAME="mgit_oldssh.sh"
-SCRIPT_VERSION="v06"
 SSH_KEY_PATH="/home/ubun2/.ssh/old.key"
+MBIN_DIR="${1:-/m/mbin}"
+PARENT_DIR="$(dirname "$MBIN_DIR")"
 
 echo -e "${YELLOW}======================================================================${NC}"
-echo -e "${YELLOW}Running $SCRIPT_NAME $SCRIPT_VERSION${NC}"
+echo -e "${YELLOW}Running mgit_oldssh.sh v07"
 echo -e "${YELLOW}Takes target as an argument, default: /m/mbin"
 echo -e "${YELLOW}======================================================================${NC}"
-
-MBIN_DIR="${1:-/m/mbin}"
-
-# Check privilege level; warn only (do not stop if sudo/root is absent).
-echo -e "${YELLOW}[1/6] Checking privileges (warning-only mode) for $MBIN_DIR${NC}"
-if [[ "${EUID}" -ne 0 ]]; then
-  echo -e "${YELLOW}Warning: not running as root; continuing (sudo may not be needed).${NC}"
-fi
 
 echo -e "${YELLOW}[2/6] Checking SSH key: $SSH_KEY_PATH${NC}"
 if [[ ! -f "$SSH_KEY_PATH" || ! -r "$SSH_KEY_PATH" ]]; then
@@ -65,6 +56,9 @@ if [[ -n "${SUDO_USER:-}" && -d "$MBIN_DIR" ]]; then
   if [[ "$TARGET_OWNER" != "$SUDO_USER" || "$TARGET_GROUP" != "$SUDO_GROUP" ]]; then
     echo -e "${YELLOW}Ownership mismatch detected ($TARGET_OWNER:$TARGET_GROUP). Applying $SUDO_USER:$SUDO_GROUP${NC}"
     chown -R "$SUDO_USER:$SUDO_GROUP" "$MBIN_DIR"
+    chmod u+rwx,g+rwx "$PARENT_DIR"
+    chown -R "$SUDO_USER:$SUDO_GROUP" "$PARENT_DIR"
+    chmod u+rwx,g+rwx "$PARENT_DIR"
   else
     echo -e "${GREEN}Ownership already matches sudo user target: $SUDO_USER:$SUDO_GROUP${NC}"
   fi
