@@ -130,7 +130,7 @@ when you want to choose explicitly.
 `list` prints local router IDs plus status, HF repo, and quant.
 Local router IDs are read from `ai/llama_models.ini` so automatic HF aliases are
 not shown as separate models.
-Use `models` for the raw router JSON when debugging.
+Use `rawmodels` for the raw router JSON when debugging.
 
 Raw API examples:
 

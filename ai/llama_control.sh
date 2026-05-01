@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# llama_control.sh v08
+# llama_control.sh v09
 set -euo pipefail
 
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
@@ -18,7 +18,7 @@ Commands:
   health
   list
   loaded
-  models
+  rawmodels
   v1models
   status <model>
   load <model>
@@ -37,7 +37,7 @@ Examples:
   $0 loaded
   $0 status lfm25vl450
   $0 load lfm25vl450
-  $0 models
+  $0 rawmodels
   $0 chat "Say hello using the loaded model."
   $0 chat lfm25vl450 "Say hello."
   LLAMA_BASE_URL=http://PUBLIC_IP:1234 $0 v1models
@@ -485,7 +485,7 @@ case "${command}" in
   loaded)
     loaded_models
     ;;
-  models)
+  rawmodels)
     curl -sS "${BASE_URL}/models"
     echo
     ;;

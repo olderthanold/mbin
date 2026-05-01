@@ -49,7 +49,7 @@ Public POC endpoints: `http://<public-ip>:8080/v1`, `http://<public-ip>:1234/v1`
 `chat <prompt>` uses the single currently loaded model; pass `chat <model> <prompt>` to choose explicitly.
 `list` prints local router IDs plus status, HF repo, and quant.
 Local router IDs are read from `ai/llama_models.ini` so automatic HF aliases are not shown as separate models.
-Use `models` for the raw router JSON when debugging.
+Use `rawmodels` for the raw router JSON when debugging.
 Existing builds are only smoke-tested unless `--force` is used. `--force` does not remove `/m/hfcache`, nginx proxy config, or webroot files.
 If an older wrapper left `/m/llama.cpp` as a non-git directory, plain `0buildai.sh` removes it automatically and clones a fresh checkout.
 If the router service is already active, default `0buildai.sh` is status-only; use `--service-only` for an intentional service rewrite/restart.
