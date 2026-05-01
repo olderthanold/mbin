@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bai1_init_model_cache.sh v01
+# bai1_init_model_cache.sh v02
 set -euo pipefail
 
 GREEN='\033[0;32m'
@@ -14,6 +14,7 @@ SERVICE_NAME="${SERVICE_NAME:-llama-router}"
 SETTINGS_ENV_FILE="${SETTINGS_ENV_FILE:-/etc/default/${SERVICE_NAME}}"
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
 LOAD_TIMEOUT="${LLAMA_LOAD_TIMEOUT:-1200}"
+MIN_GGUF_BYTES="${MIN_GGUF_BYTES:-1048576}"
 CHECK_ONLY="false"
 
 if [[ -f "$SETTINGS_ENV_FILE" ]]; then
@@ -38,6 +39,7 @@ Environment:
   LLAMA_LOAD_TIMEOUT   Default: $LOAD_TIMEOUT
   LLAMA_MODELS_PRESET  Default: $MODELS_PRESET
   HF_CACHE_DIR         Default: $HF_CACHE_DIR
+  MIN_GGUF_BYTES       Default: $MIN_GGUF_BYTES
 EOF
 }
 
@@ -179,23 +181,63 @@ find_cached_gguf() {
   [[ -d "$cache_path" ]] || return 1
 
   if [[ -n "$hf_file" ]]; then
-    find -L "$cache_path" -type f -name "$hf_file" -size +1M -print -quit 2>/dev/null
+    find -L "$cache_path" -type f -name "$hf_file" -print 2>/dev/null | first_full_gguf_match
     return 0
   fi
 
   if [[ -n "$quant" ]]; then
-    find -L "$cache_path" -type f -iname "*${quant}*.gguf" -size +1M -print -quit 2>/dev/null
+    find -L "$cache_path" -type f -iname "*${quant}*.gguf" -print 2>/dev/null | first_full_gguf_match
     return 0
   fi
 
-  find -L "$cache_path" -type f -iname "*.gguf" -size +1M -print -quit 2>/dev/null
+  find -L "$cache_path" -type f -iname "*.gguf" -print 2>/dev/null | first_full_gguf_match
+}
+
+resolve_real_file() {
+  local file_path="$1"
+
+  if command -v readlink >/dev/null 2>&1; then
+    readlink -f "$file_path" 2>/dev/null || printf '%s\n' "$file_path"
+  else
+    printf '%s\n' "$file_path"
+  fi
+}
+
+real_file_size_bytes() {
+  local file_path="$1"
+  local real_path
+
+  real_path="$(resolve_real_file "$file_path")"
+  stat -c '%s' "$real_path" 2>/dev/null || true
+}
+
+is_full_gguf_file() {
+  local file_path="$1"
+  local bytes
+
+  bytes="$(real_file_size_bytes "$file_path")"
+  [[ -n "$bytes" && "$bytes" =~ ^[0-9]+$ && "$bytes" -ge "$MIN_GGUF_BYTES" ]]
+}
+
+first_full_gguf_match() {
+  local candidate
+
+  while IFS= read -r candidate; do
+    [[ -n "$candidate" ]] || continue
+    if is_full_gguf_file "$candidate"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
 }
 
 human_size() {
   local file_path="$1"
   local bytes
 
-  bytes="$(stat -c '%s' "$file_path" 2>/dev/null || true)"
+  bytes="$(real_file_size_bytes "$file_path")"
   if [[ -z "$bytes" ]]; then
     printf '%s\n' "-"
   elif command -v numfmt >/dev/null 2>&1; then
