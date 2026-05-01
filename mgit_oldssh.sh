@@ -66,4 +66,4 @@ else
   echo -e "${YELLOW}Not running under sudo (or target missing); skipping sudo ownership enforcement.${NC}"
 fi
 
-echo -e "${GREEN}Done: $SCRIPT_NAME workflow complete.${NC}"
+echo -e "${GREEN}Done: mgit_oldssh.sh workflow complete.${NC}"
