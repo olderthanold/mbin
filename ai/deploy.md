@@ -65,6 +65,8 @@ Models are loaded on demand through the router API. Only one model should be
 loaded at a time on the small OCI VM.
 `0ainit.sh` uses `ai/bai1_init_model_cache.sh` to load missing models one by
 one so their GGUF files are present under `/m/hfcache`.
+`ai/bai1_build_router_service.sh` prints the readable `llama_control.sh list`
+summary after restart; use raw `/models` only when debugging router internals.
 
 ## 2) Configure nginx aliases
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bai1_build_router_service.sh v03
+# bai1_build_router_service.sh v04
 set -euo pipefail
 
 # Creates and starts a systemd service for llama.cpp router mode.
@@ -17,6 +17,7 @@ LLAMA_USER="${LLAMA_USER:-${SUDO_USER:-$(id -un)}}"
 LLAMA_WORKDIR="${LLAMA_WORKDIR:-/m/llama.cpp}"
 LLAMA_BIN="${LLAMA_BIN:-/m/llama.cpp/build/bin/llama-server}"
 MODELS_PRESET="${MODELS_PRESET:-${SCRIPT_DIR}/llama_models.ini}"
+LLAMA_CONTROL_SCRIPT="${LLAMA_CONTROL_SCRIPT:-${SCRIPT_DIR}/llama_control.sh}"
 SETTINGS_ENV_FILE="${SETTINGS_ENV_FILE:-/etc/default/${SERVICE_NAME}}"
 BIND_HOST="${BIND_HOST:-0.0.0.0}"
 BIND_PORT="${BIND_PORT:-8080}"
@@ -28,7 +29,7 @@ if [[ "${1:-}" == "--write-only" ]]; then
   WRITE_ONLY="true"
 fi
 
-echo -e "${YELLOW}Running bai1_build_router_service.sh v03${NC}"
+echo -e "${YELLOW}Running bai1_build_router_service.sh v04${NC}"
 echo -e "${YELLOW}[0/7] Pre-flight checks...${NC}"
 
 if ! command -v sudo >/dev/null 2>&1; then
@@ -63,10 +64,15 @@ if [[ ! -r "${SETTINGS_ENV_FILE}" ]]; then
   exit 1
 fi
 
+if [[ ! -r "${LLAMA_CONTROL_SCRIPT}" ]]; then
+  echo -e "${YELLOW}WARN: llama control script is not readable; final model list will fall back to raw API:${NC} ${LLAMA_CONTROL_SCRIPT}"
+fi
+
 echo "Service name: ${SERVICE_NAME}.service"
 echo "Service user: ${LLAMA_USER}"
 echo "llama-server: ${LLAMA_BIN}"
 echo "Models preset: ${MODELS_PRESET}"
+echo "llama control: ${LLAMA_CONTROL_SCRIPT}"
 echo "Settings env file: ${SETTINGS_ENV_FILE}"
 echo "Bind: ${BIND_HOST}:${BIND_PORT}"
 
@@ -120,8 +126,14 @@ curl -sS "http://127.0.0.1:${BIND_PORT}/health" || true
 echo
 
 echo -e "${YELLOW}[7/7] Available router models...${NC}"
-curl -sS "http://127.0.0.1:${BIND_PORT}/models" || true
-echo
+if [[ -r "${LLAMA_CONTROL_SCRIPT}" ]]; then
+  LLAMA_BASE_URL="http://127.0.0.1:${BIND_PORT}" \
+    LLAMA_MODELS_PRESET="${MODELS_PRESET}" \
+    bash "${LLAMA_CONTROL_SCRIPT}" list || true
+else
+  curl -sS "http://127.0.0.1:${BIND_PORT}/models" || true
+  echo
+fi
 
 echo -e "${GREEN}Done. llama router is managed by systemd.${NC}"
 echo -e "${YELLOW}Useful commands:${NC}"
