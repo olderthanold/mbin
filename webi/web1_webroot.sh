@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_webroot.sh v05
+# web1_webroot.sh v06
 #
 # Purpose:
 #   Ensure website web root exists and initialize it from llmweb when new.
@@ -91,7 +91,7 @@ if ! getent group "$OWNER_GROUP" >/dev/null 2>&1; then
   groupadd --system "$OWNER_GROUP"
 fi
 
-echo -e "${YELLOW}Running web1_webroot.sh v05${NC}"
+echo -e "${YELLOW}Running web1_webroot.sh v06${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 
@@ -100,7 +100,7 @@ if [[ -d "$WEB_ROOT" ]]; then
   echo "WEB_ROOT already exists, leaving directory as-is: $WEB_ROOT"
 else
   echo -e "${YELLOW}[1/3] Creating web root directory...${NC}"
-  echo -e "${RED}[TRIAGE][web1_webroot.sh v05] mkdir -p $WEB_ROOT${NC}"
+  echo "Info: mkdir -p $WEB_ROOT"
   mkdir -p "$WEB_ROOT"
   chown "$OWNER_USER:$OWNER_GROUP" "$WEB_ROOT"
   chmod 2755 "$WEB_ROOT"
@@ -118,7 +118,7 @@ elif [[ -f "$TARGET_INDEX_HTM" || -f "$TARGET_INDEX_HTML" ]]; then
 else
   if [[ -d "$LLMWEB_SOURCE" ]]; then
     echo "No index found. Copying llmweb content: $LLMWEB_SOURCE -> $WEB_ROOT"
-    echo -e "${RED}[TRIAGE][web1_webroot.sh v05] cp -a $LLMWEB_SOURCE/. $WEB_ROOT/${NC}"
+    echo "Info: cp -a $LLMWEB_SOURCE/. $WEB_ROOT/"
     cp -a "$LLMWEB_SOURCE"/. "$WEB_ROOT"/
     chown -R "$OWNER_USER:$OWNER_GROUP" "$WEB_ROOT"
     find "$WEB_ROOT" -type d -exec chmod 2755 {} +
@@ -126,14 +126,14 @@ else
     echo "Created web home from llmweb: $WEB_ROOT"
   elif [[ -f "$CUSTOM_TEMPLATE" ]]; then
     echo "No index found. Copying custom template: $CUSTOM_TEMPLATE -> $TARGET_INDEX_HTM"
-    echo -e "${RED}[TRIAGE][web1_webroot.sh v05] cp $CUSTOM_TEMPLATE $TARGET_INDEX_HTM${NC}"
+    echo "Info: cp $CUSTOM_TEMPLATE $TARGET_INDEX_HTM"
     cp "$CUSTOM_TEMPLATE" "$TARGET_INDEX_HTM"
     chown "$OWNER_USER:$OWNER_GROUP" "$TARGET_INDEX_HTM"
     chmod 644 "$TARGET_INDEX_HTM"
     echo "Created page from custom template: $TARGET_INDEX_HTM"
   elif [[ -f "$NGINX_TEMPLATE" ]]; then
     echo "Custom template not found. Using nginx default template: $NGINX_TEMPLATE"
-    echo -e "${RED}[TRIAGE][web1_webroot.sh v05] cp $NGINX_TEMPLATE $TARGET_INDEX_HTM${NC}"
+    echo "Info: cp $NGINX_TEMPLATE $TARGET_INDEX_HTM"
     cp "$NGINX_TEMPLATE" "$TARGET_INDEX_HTM"
     sed -i "s|<h1>Welcome to nginx!</h1>|<h1>Welcome to ${OWNER_USER} @ ${DOMAIN} nginx!</h1>|" "$TARGET_INDEX_HTM"
     chown "$OWNER_USER:$OWNER_GROUP" "$TARGET_INDEX_HTM"

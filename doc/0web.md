@@ -39,16 +39,16 @@ sudo WEB_BASE_DIR=/srv/webs bash /m/mbin/0web.sh example.com example
 |   |-- if web_root is omitted: defaults to domain prefix before first dot
 |   |-- default web base is /m/webs (override with WEB_BASE_DIR)
 |   `-- child scripts are resolved from webi subdir of 0web.sh location
-|-- [1/6] webi/web1_webs.sh v09
-|   `-- web1_webs.sh v09
+|-- [1/6] webi/web1_webs.sh v10
+|   `-- web1_webs.sh v10
 |       |-- ensure base dir exists and is traversable: ${M_BASE_DIR:-/m} (755)
 |       |-- ensure web base exists: ${WEB_BASE_DIR:-/m/webs}
 |       |-- create group www-data if missing
 |       |-- ensure deploy user is in group www-data (skip membership change for root)
 |       |-- set web base owner/group to <deploy_user_or_root>:www-data
 |       `-- set web base permissions to 2775
-|-- [2/6] webi/web1_webroot.sh v05
-|   `-- web1_webroot.sh v05
+|-- [2/6] webi/web1_webroot.sh v06
+|   `-- web1_webroot.sh v06
 |       |-- resolve web root from arg2:
 |       |   |-- absolute path => use as-is
 |       |   |-- relative value => ${WEB_BASE_DIR:-/m/webs}/<value>
