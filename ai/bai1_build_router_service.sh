@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bai1_build_router_service.sh v08
+# bai1_build_router_service.sh v09
 set -euo pipefail
 
 # Creates and starts a systemd service for llama.cpp router mode.
@@ -20,7 +20,6 @@ LLAMA_WORKDIR="${LLAMA_WORKDIR:-/m/llama.cpp}"
 LLAMA_BIN="${LLAMA_BIN:-/m/llama.cpp/build/bin/llama-server}"
 LLAMA_BIN_DIR="$(dirname -- "${LLAMA_BIN}")"
 MODELS_PRESET="${MODELS_PRESET:-${SCRIPT_DIR}/llama_models.ini}"
-ROUTER_MODELS_DIR="${ROUTER_MODELS_DIR:-/m/llama-router-models}"
 LLAMA_CONTROL_SCRIPT="${LLAMA_CONTROL_SCRIPT:-${MBIN_DIR}/lctl.sh}"
 SETTINGS_ENV_FILE="${SETTINGS_ENV_FILE:-/etc/default/${SERVICE_NAME}}"
 BIND_HOST="${BIND_HOST:-0.0.0.0}"
@@ -52,36 +51,6 @@ run_as_llama_user() {
   else
     "$@"
   fi
-}
-
-validate_router_models_dir() {
-  case "${ROUTER_MODELS_DIR}" in
-    ""|"/"|"."|".."|"/m"|"/m/"|"/home"|"/home/"|"/root"|"/root/"|"/usr"|"/usr/"|"/opt"|"/opt/"|"/var"|"/var/")
-      fail "refusing unsafe ROUTER_MODELS_DIR: ${ROUTER_MODELS_DIR:-<empty>}"
-      ;;
-    /*)
-      ;;
-    *)
-      fail "ROUTER_MODELS_DIR must be an absolute path: ${ROUTER_MODELS_DIR}"
-      ;;
-  esac
-}
-
-ensure_router_models_dir() {
-  local first_gguf
-
-  validate_router_models_dir
-  echo -e "${YELLOW}Ensuring router models directory is present and clean:${NC} ${ROUTER_MODELS_DIR}"
-  sudo mkdir -p "${ROUTER_MODELS_DIR}"
-  sudo chown "${LLAMA_USER}:${LLAMA_GROUP}" "${ROUTER_MODELS_DIR}" 2>/dev/null || true
-  sudo chmod 0775 "${ROUTER_MODELS_DIR}" 2>/dev/null || true
-
-  first_gguf="$(find "${ROUTER_MODELS_DIR}" -type f -iname '*.gguf' -print -quit 2>/dev/null || true)"
-  if [[ -n "${first_gguf}" ]]; then
-    fail "ROUTER_MODELS_DIR contains GGUF files that would appear in Web UI: ${first_gguf}"
-  fi
-
-  ok "Router model discovery directory has no GGUF files."
 }
 
 runpath_entries() {
@@ -244,7 +213,7 @@ verify_llama_runtime() {
   fail "legacy RUNPATH autoheal did not repair llama-server. Clean maintenance fix: sudo bash /m/mbin/0buildai.sh --force"
 }
 
-echo -e "${YELLOW}Running bai1_build_router_service.sh v08${NC}"
+echo -e "${YELLOW}Running bai1_build_router_service.sh v09${NC}"
 echo -e "${YELLOW}[0/7] Pre-flight checks...${NC}"
 
 if ! command -v sudo >/dev/null 2>&1; then
@@ -283,14 +252,12 @@ if [[ ! -r "${LLAMA_CONTROL_SCRIPT}" ]]; then
   echo -e "${YELLOW}WARN: llama control script is not readable; final model list will fall back to raw API:${NC} ${LLAMA_CONTROL_SCRIPT}"
 fi
 
-ensure_router_models_dir
 verify_llama_runtime
 
 echo "Service name: ${SERVICE_NAME}.service"
 echo "Service user: ${LLAMA_USER}"
 echo "llama-server: ${LLAMA_BIN}"
 echo "Models preset: ${MODELS_PRESET}"
-echo "Router models dir: ${ROUTER_MODELS_DIR}"
 echo "llama control: ${LLAMA_CONTROL_SCRIPT}"
 echo "Settings env file: ${SETTINGS_ENV_FILE}"
 echo "Bind: ${BIND_HOST}:${BIND_PORT}"
@@ -309,7 +276,6 @@ User=${LLAMA_USER}
 WorkingDirectory=${LLAMA_WORKDIR}
 EnvironmentFile=-${SETTINGS_ENV_FILE}
 ExecStart=${LLAMA_BIN} \\
-  --models-dir ${ROUTER_MODELS_DIR} \\
   --models-preset ${MODELS_PRESET} \\
   --host ${BIND_HOST} \\
   --port ${BIND_PORT} \\

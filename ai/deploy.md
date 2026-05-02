@@ -56,7 +56,6 @@ The service runs:
 EnvironmentFile=-/etc/default/llama-router
 
 /m/llama.cpp/build/bin/llama-server \
-  --models-dir /m/llama-router-models \
   --models-preset /m/mbin/ai/llama_models.ini \
   --host 0.0.0.0 \
   --port 8080 \
@@ -67,11 +66,6 @@ EnvironmentFile=-/etc/default/llama-router
 
 Models are loaded on demand through the router API. Only one model should be
 loaded at a time on the small OCI VM.
-The router uses an intentionally empty `/m/llama-router-models` discovery
-directory plus `ai/llama_models.ini`. This keeps the upstream `/llama/` Web UI
-from showing cached Hugging Face aliases as separate models. Do not place GGUF
-files in `/m/llama-router-models` unless you want them visible in raw `/models`
-and the Web UI.
 `0ainit.sh` uses `ai/bai1_init_model_cache.sh` to load missing models one by
 one so their GGUF files are present under `/m/hfcache`.
 `ai/bai1_build_router_service.sh` prints the readable `lctl.sh list`
@@ -124,9 +118,6 @@ lctl.sh status lfm25vl450
 lctl.sh chat "Ahoj, odpovez kratce."
 lctl.sh chat lfm25vl450 "Ahoj, odpovez kratce."
 lctl.sh unload lfm25vl450
-
-# Public 1234 alias.
-LLAMA_BASE_URL=http://<public-ip>:1234 lctl.sh v1models
 
 # Domain proxy.
 LLAMA_BASE_URL=https://<domain>/llama lctl.sh chat gemma270 "Hello."
@@ -205,8 +196,6 @@ ldd /m/llama.cpp/build/bin/llama-server | grep 'not found' || true
 sudo grep -E 'HF_HOME|HF_HUB_CACHE|HUGGINGFACE_HUB_CACHE|TRANSFORMERS_CACHE|XDG_CACHE_HOME' /etc/default/llama-router
 sudo journalctl -u llama-router.service -n 100 --no-pager
 sudo ss -ltnp | grep -E ':8080|:1234' || true
-sudo ls -ld /m/llama-router-models
-find /m/llama-router-models -type f -iname '*.gguf' -print
 sudo ls -ld /m/hfcache /m/hfcache/hub /m/hfcache/transformers /m/hfcache/xdg
 find /m/hfcache -maxdepth 2 -type d
 du -sh /m/hfcache

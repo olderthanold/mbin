@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 0buildai.sh v04
+# 0buildai.sh v05
 set -euo pipefail
 
 GREEN='\033[0;32m'
@@ -8,7 +8,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 SCRIPT_NAME="0buildai.sh"
-SCRIPT_VERSION="v04"
+SCRIPT_VERSION="v05"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 AI_DIR="$SCRIPT_DIR/ai"
@@ -20,7 +20,6 @@ LLAMA_DIR="${LLAMA_DIR:-/m/llama.cpp}"
 OWNER_USER="${SUDO_USER:-${USER:-$(id -un)}}"
 SERVICE_NAME="${SERVICE_NAME:-llama-router}"
 HF_CACHE_DIR="${HF_CACHE_DIR:-/m/hfcache}"
-ROUTER_MODELS_DIR="${ROUTER_MODELS_DIR:-/m/llama-router-models}"
 SETTINGS_ENV_FILE="${SETTINGS_ENV_FILE:-/etc/default/${SERVICE_NAME}}"
 
 RESET_BAD_TARGET_DEPRECATED="false"
@@ -38,7 +37,6 @@ Build/update llama.cpp and configure the llama router systemd service.
 Defaults:
   LLAMA_DIR=$LLAMA_DIR
   HF_CACHE_DIR=$HF_CACHE_DIR
-  ROUTER_MODELS_DIR=$ROUTER_MODELS_DIR
   SETTINGS_ENV_FILE=$SETTINGS_ENV_FILE
   SETTINGS_SCRIPT=$SETTINGS_SCRIPT
   BUILD_SCRIPT=$BUILD_SCRIPT
@@ -106,7 +104,6 @@ service_has_expected_settings_config() {
   local unit_file="/etc/systemd/system/${SERVICE_NAME}.service"
   [[ -f "$unit_file" && -f "$SETTINGS_ENV_FILE" ]] || return 1
   grep -Fq "EnvironmentFile=-${SETTINGS_ENV_FILE}" "$unit_file" &&
-    grep -Fq -- "--models-dir ${ROUTER_MODELS_DIR}" "$unit_file" &&
     grep -Fq "HF_HOME=${HF_CACHE_DIR}" "$SETTINGS_ENV_FILE" &&
     grep -Fq "HF_HUB_CACHE=${HF_CACHE_DIR}/hub" "$SETTINGS_ENV_FILE" &&
     grep -Fq "HUGGINGFACE_HUB_CACHE=${HF_CACHE_DIR}/hub" "$SETTINGS_ENV_FILE" &&
@@ -199,25 +196,6 @@ print_binary_linker_status() {
   print_legacy_runpath_symlink_status "$binary_path"
 }
 
-print_router_models_dir_status() {
-  local first_gguf
-
-  info "Router model discovery"
-  echo "ROUTER_MODELS_DIR: $ROUTER_MODELS_DIR"
-  print_file_status "$ROUTER_MODELS_DIR"
-  if [[ -d "$ROUTER_MODELS_DIR" ]]; then
-    first_gguf="$(find "$ROUTER_MODELS_DIR" -type f -iname '*.gguf' -print -quit 2>/dev/null || true)"
-    if [[ -n "$first_gguf" ]]; then
-      echo "GGUF files: present"
-      find "$ROUTER_MODELS_DIR" -type f -iname '*.gguf' -print 2>/dev/null | sed 's/^/  - /' || true
-      warn "GGUF files in ROUTER_MODELS_DIR will appear in raw /models and the Web UI."
-    else
-      echo "GGUF files: <none>"
-    fi
-  fi
-  echo
-}
-
 probe_url() {
   local label="$1"
   local url="$2"
@@ -248,7 +226,6 @@ print_router_status() {
   echo "Service: ${SERVICE_NAME}.service"
   echo "LLAMA_DIR: $LLAMA_DIR"
   echo "HF_CACHE_DIR: $HF_CACHE_DIR"
-  echo "ROUTER_MODELS_DIR: $ROUTER_MODELS_DIR"
   echo "Settings env file: $SETTINGS_ENV_FILE"
   echo "Expected local API: http://127.0.0.1:${bind_port}"
   echo
@@ -276,7 +253,6 @@ print_router_status() {
   echo
 
   print_ufw_status
-  print_router_models_dir_status
 
   info "Hugging Face cache"
   if service_has_expected_settings_config; then
@@ -314,7 +290,6 @@ print_router_status() {
   echo "  sudo bash $SCRIPT_DIR/0buildai.sh --service-only  # verify runtime + recreate/restart router service"
   echo "  sudo bash $SCRIPT_DIR/0buildai.sh --force         # full reset: service + /m/llama.cpp"
   echo "  du -sh $HF_CACHE_DIR"
-  echo "  find $ROUTER_MODELS_DIR -type f -iname '*.gguf' -print"
   echo "  sudo journalctl -u ${SERVICE_NAME}.service -n 100 --no-pager"
 }
 
@@ -389,7 +364,6 @@ run_router_service_script() {
     "LLAMA_WORKDIR=$LLAMA_DIR"
     "LLAMA_BIN=$LLAMA_DIR/build/bin/llama-server"
     "LLAMA_USER=$OWNER_USER"
-    "ROUTER_MODELS_DIR=$ROUTER_MODELS_DIR"
     "SETTINGS_ENV_FILE=$SETTINGS_ENV_FILE"
   )
 
@@ -455,7 +429,6 @@ ROUTER_SERVICE_VERSION="$(get_script_version "$ROUTER_SERVICE_SCRIPT")"
 info "Running ${SCRIPT_NAME} ${SCRIPT_VERSION}"
 echo "LLAMA_DIR: $LLAMA_DIR"
 echo "HF_CACHE_DIR: $HF_CACHE_DIR"
-echo "ROUTER_MODELS_DIR: $ROUTER_MODELS_DIR"
 echo "Service user: $OWNER_USER"
 echo "Service name: $SERVICE_NAME.service"
 echo "Resolved child scripts and versions:"

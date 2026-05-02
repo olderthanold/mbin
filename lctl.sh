@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lctl.sh v11
+# lctl.sh v12
 set -euo pipefail
 
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
@@ -19,7 +19,6 @@ Commands:
   list
   loaded
   rawmodels
-  v1models
   status <model>
   load <model>
   unload <model>
@@ -40,7 +39,6 @@ Examples:
   $0 rawmodels
   $0 chat "Say hello using the loaded model."
   $0 chat lfm25vl450 "Say hello."
-  LLAMA_BASE_URL=http://PUBLIC_IP:1234 $0 v1models
   LLAMA_BASE_URL=https://example.com/llama $0 chat gemma270 "Hello from phone API."
 EOF
 }
@@ -487,10 +485,6 @@ case "${command}" in
     ;;
   rawmodels)
     curl -sS "${BASE_URL}/models"
-    echo
-    ;;
-  v1models)
-    curl -sS "${BASE_URL}/v1/models"
     echo
     ;;
   status)
