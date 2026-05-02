@@ -54,6 +54,7 @@ Existing builds are only smoke-tested unless `--force` is used. `--service-only`
 If an older wrapper left `/m/llama.cpp` as a non-git directory, plain `0buildai.sh` removes it automatically and clones a fresh checkout.
 If the router service is already active, default `0buildai.sh` is status-only; use `--service-only` for an intentional service rewrite/restart.
 Hugging Face model cache is stored under `/m/hfcache` by default. HF cache setup and UFW allow rules are handled by `ai/bai1_build_settings.sh`.
+Router discovery uses an intentionally empty `/m/llama-router-models` directory plus `ai/llama_models.ini`, so the `/llama/` Web UI does not show cached Hugging Face aliases as duplicate models.
 `0ainit.sh` uses `ai/bai1_init_model_cache.sh` to load missing models one by one so their GGUF files are present under `/m/hfcache`.
 `ai/bai1_build_router_service.sh` prints the readable `lctl.sh list` summary after restart; use raw `/models` only when debugging router internals.
 Default `0buildai.sh` order is build/verify -> settings -> router service.

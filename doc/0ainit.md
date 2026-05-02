@@ -43,13 +43,14 @@ sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
 |-- Config paths
 |   |-- SNIPPET_PATH default: /etc/nginx/snippets/llama-router-proxy.conf
 |   `-- PORT_ALIAS_CONF default: /etc/nginx/conf.d/llama-router-1234.conf
-|-- [1/3] 0buildai.sh v03 --service-only
-|   `-- 0buildai.sh v03
+|-- [1/3] 0buildai.sh v04 --service-only
+|   `-- 0buildai.sh v04
 |       |-- --service-only skips rebuild, but verifies llama-server runtime before service restart
 |       |-- resolves child scripts from the ai subdir of 0buildai.sh location
 |       |-- uses SERVICE_NAME default llama-router
 |       |-- uses LLAMA_DIR default /m/llama.cpp
 |       |-- uses HF_CACHE_DIR default /m/hfcache
+|       |-- uses ROUTER_MODELS_DIR default /m/llama-router-models
 |       |-- uses SETTINGS_ENV_FILE default /etc/default/llama-router
 |       |-- [1/2] ai/bai1_build_settings.sh v01
 |       |   |-- ensure Hugging Face cache directories exist
@@ -57,11 +58,12 @@ sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
 |       |   |-- ensure UFW exists and allow AI ports 8080/tcp and 1234/tcp by default
 |       |   |-- leave UFW enable state unchanged unless AI_UFW_ENABLE=true
 |       |   `-- print current AI build settings summary
-|       `-- [2/2] ai/bai1_build_router_service.sh v07
+|       `-- [2/2] ai/bai1_build_router_service.sh v08
 |           |-- pre-flight: require sudo, systemctl, service user, runnable llama-server binary, models preset, and settings env file
 |           |-- autoheal legacy RUNPATH via /home/<user>/ai/llama.cpp -> /m/llama.cpp symlink when safe
+|           |-- ensure ROUTER_MODELS_DIR exists and contains no GGUF files
 |           |-- write /etc/systemd/system/llama-router.service by default
-|           |-- configure llama-server router mode with --models-preset, --no-models-autoload, and idle sleep
+|           |-- configure llama-server router mode with --models-dir, --models-preset, --no-models-autoload, and idle sleep
 |           |-- reload systemd, enable service, and restart service
 |           |-- show service status and local health check
 |           `-- list available router models through lctl.sh or raw API fallback
@@ -100,7 +102,8 @@ sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
 - Running with a domain calls `0web.sh` before `bai1_build_nginx_proxy.sh`, so the domain Nginx site should exist before the `/llama/` include is added.
 - If `<web_root>` is omitted for a domain, `0ainit.sh` passes the domain prefix as the web root argument, e.g. `emp2.duckdns.org` becomes `emp2`.
 - The public port alias uses port `1234`; the router backend defaults to `http://127.0.0.1:8080`.
-- `SNIPPET_PATH`, `PORT_ALIAS_CONF`, `LLAMA_BACKEND_URL`, `LLAMA_BASE_URL`, `LLAMA_LOAD_TIMEOUT`, `LLAMA_MODELS_PRESET`, `HF_CACHE_DIR`, and related AI environment variables can override defaults.
+- `SNIPPET_PATH`, `PORT_ALIAS_CONF`, `LLAMA_BACKEND_URL`, `LLAMA_BASE_URL`, `LLAMA_LOAD_TIMEOUT`, `LLAMA_MODELS_PRESET`, `HF_CACHE_DIR`, `ROUTER_MODELS_DIR`, and related AI environment variables can override defaults.
+- `/m/llama-router-models` is intentionally kept free of GGUF files; this prevents cached Hugging Face aliases from appearing as duplicate entries in the upstream `/llama/` Web UI.
 - Detailed website provisioning behavior is documented in `0web.md`.
 
 ## Selected shell scripts in this directory that are not used directly by 0ainit flow
