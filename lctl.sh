@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lctl v10
+# lctl.sh v11
 set -euo pipefail
 
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"

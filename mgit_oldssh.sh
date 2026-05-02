@@ -16,7 +16,7 @@ MBIN_DIR="${1:-/m/mbin}"
 PARENT_DIR="$(dirname "$MBIN_DIR")"
 
 echo -e "${YELLOW}======================================================================${NC}"
-echo -e "${YELLOW}Running mgit_oldssh.sh v09"
+echo -e "${YELLOW}Running mgit_oldssh.sh v10"
 echo -e "${YELLOW}Takes target dir as an argument, default: /m/mbin"
 echo -e "${YELLOW}======================================================================${NC}"
 
@@ -44,9 +44,8 @@ if ! GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH" git -C "$MBIN_DIR" pull git@github.c
   GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH" git clone -b main git@github.com:olderthanold/mbin.git "$MBIN_DIR"
 fi
 
-echo -e "${YELLOW}[3/4] Restoring executable permission on shell scripts and lctl in $MBIN_DIR${NC}"
+echo -e "${YELLOW}[3/4] Restoring executable permission on shell scripts in $MBIN_DIR${NC}"
 chmod +x "$MBIN_DIR"/*.sh 2>/dev/null || true
-chmod +x "$MBIN_DIR"/lctl 2>/dev/null || true
 
 echo -e "${YELLOW}[4/4] Ensuring ownership matches sudo user when available${NC}"
 if [[ -n "${SUDO_USER:-}" && -d "$MBIN_DIR" ]]; then

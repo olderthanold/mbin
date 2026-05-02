@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 0buildai.sh v02
+# 0buildai.sh v03
 set -euo pipefail
 
 GREEN='\033[0;32m'
@@ -8,7 +8,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 SCRIPT_NAME="0buildai.sh"
-SCRIPT_VERSION="v02"
+SCRIPT_VERSION="v03"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 AI_DIR="$SCRIPT_DIR/ai"
@@ -47,7 +47,7 @@ Options:
   --force             Stop/remove llama-router.service, delete LLAMA_DIR,
                       rebuild from scratch, then recreate/restart service.
   --build-only        Run only llama.cpp build verification/setup.
-  --service-only      Run settings and recreate/restart llama-router.service.
+  --service-only      Verify runtime, run settings, and recreate/restart llama-router.service.
   -h, --help          Show this help.
 EOF
 }
@@ -118,6 +118,82 @@ print_file_status() {
   else
     echo "$path: <missing>"
   fi
+}
+
+runpath_entries_for_binary() {
+  local binary_path="$1"
+
+  command -v readelf >/dev/null 2>&1 || return 0
+  [[ -e "$binary_path" ]] || return 0
+
+  readelf -d "$binary_path" 2>/dev/null |
+    awk -F'[][]' '/RPATH|RUNPATH/ {print $2}' |
+    tr ':' '\n' |
+    sed '/^$/d'
+}
+
+print_legacy_runpath_symlink_status() {
+  local binary_path="$1"
+  local entry
+  local legacy_llama_dir
+  local current_target
+
+  while IFS= read -r entry; do
+    case "$entry" in
+      /*/ai/llama.cpp/build/bin)
+        legacy_llama_dir="${entry%/build/bin}"
+        if [[ -L "$legacy_llama_dir" ]]; then
+          current_target="$(readlink "$legacy_llama_dir")"
+          echo "legacy RUNPATH symlink: $legacy_llama_dir -> $current_target"
+        elif [[ -e "$legacy_llama_dir" ]]; then
+          echo "legacy RUNPATH path exists but is not a symlink: $legacy_llama_dir"
+        else
+          echo "legacy RUNPATH symlink missing: $legacy_llama_dir -> $LLAMA_DIR"
+        fi
+        return 0
+        ;;
+    esac
+  done < <(runpath_entries_for_binary "$binary_path")
+
+  echo "legacy RUNPATH symlink: <not applicable>"
+}
+
+print_binary_linker_status() {
+  local binary_path="$1"
+  local entries
+  local missing_libs
+
+  echo "--- linker diagnostics: $binary_path"
+  if [[ ! -e "$binary_path" ]]; then
+    echo "<missing>"
+    return 0
+  fi
+
+  if command -v readelf >/dev/null 2>&1; then
+    entries="$(runpath_entries_for_binary "$binary_path" || true)"
+    if [[ -n "$entries" ]]; then
+      echo "RUNPATH/RPATH:"
+      printf '%s\n' "$entries" | sed 's/^/  - /'
+    else
+      echo "RUNPATH/RPATH: <none>"
+    fi
+  else
+    echo "RUNPATH/RPATH: <readelf not available>"
+  fi
+
+  if command -v ldd >/dev/null 2>&1; then
+    missing_libs="$(ldd "$binary_path" 2>&1 | grep 'not found' || true)"
+    if [[ -n "$missing_libs" ]]; then
+      echo "ldd missing libraries:"
+      printf '%s\n' "$missing_libs" | sed 's/^/  /'
+    else
+      echo "ldd missing libraries: <none>"
+    fi
+  else
+    echo "ldd missing libraries: <ldd not available>"
+  fi
+
+  print_legacy_runpath_symlink_status "$binary_path"
 }
 
 probe_url() {
@@ -198,6 +274,8 @@ print_router_status() {
   print_file_status "$LLAMA_DIR"
   print_file_status "$LLAMA_DIR/build/bin/llama-server"
   print_file_status "$LLAMA_DIR/build/bin/llama-cli"
+  print_binary_linker_status "$LLAMA_DIR/build/bin/llama-server"
+  print_binary_linker_status "$LLAMA_DIR/build/bin/llama-cli"
   echo
 
   info "Local API probes"
@@ -209,7 +287,7 @@ print_router_status() {
   info "Useful next commands"
   echo "  sudo bash $SCRIPT_DIR/0buildai.sh --status        # show this status"
   echo "  sudo bash $SCRIPT_DIR/0buildai.sh --build-only    # verify/setup build only"
-  echo "  sudo bash $SCRIPT_DIR/0buildai.sh --service-only  # run settings + recreate/restart router service"
+  echo "  sudo bash $SCRIPT_DIR/0buildai.sh --service-only  # verify runtime + recreate/restart router service"
   echo "  sudo bash $SCRIPT_DIR/0buildai.sh --force         # full reset: service + /m/llama.cpp"
   echo "  du -sh $HF_CACHE_DIR"
   echo "  sudo journalctl -u ${SERVICE_NAME}.service -n 100 --no-pager"

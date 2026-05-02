@@ -20,7 +20,7 @@ sudo bash /m/mbin/0buildai.sh --force
 # Build check only, without touching the systemd service.
 sudo bash /m/mbin/0buildai.sh --build-only
 
-# Service only, after a successful build.
+# Service only, after a successful build. Verifies runtime before restart.
 sudo bash /m/mbin/0buildai.sh --service-only
 
 # Optional custom HF cache location.
@@ -33,13 +33,13 @@ sudo bash /m/mbin/0web.sh llm129.duckdns.org
 sudo bash /m/mbin/ai/bai1_build_nginx_proxy.sh llm129.duckdns.org
 
 # Remote model control.
-lctl list
-lctl loaded
-lctl load lfm25vl450
-lctl status lfm25vl450
-lctl chat "Ahoj, odpovez kratce."
-lctl chat lfm25vl450 "Ahoj, odpovez kratce."
-lctl unload lfm25vl450
+lctl.sh list
+lctl.sh loaded
+lctl.sh load lfm25vl450
+lctl.sh status lfm25vl450
+lctl.sh chat "Ahoj, odpovez kratce."
+lctl.sh chat lfm25vl450 "Ahoj, odpovez kratce."
+lctl.sh unload lfm25vl450
 ```
 
 Router profiles live in `/m/mbin/ai/llama_models.ini`.
@@ -50,12 +50,12 @@ Public POC endpoints: `http://<public-ip>:8080/v1`, `http://<public-ip>:1234/v1`
 `list` prints local router IDs plus status, HF repo, and quant.
 Local router IDs are read from `ai/llama_models.ini` so automatic HF aliases are not shown as separate models.
 Use `rawmodels` for the raw router JSON when debugging.
-Existing builds are only smoke-tested unless `--force` is used. `--force` does not remove `/m/hfcache`, nginx proxy config, or webroot files.
+Existing builds are only smoke-tested unless `--force` is used. `--service-only` also verifies `llama-server` before restart and may create a compatibility symlink for a moved legacy RUNPATH. `--force` does not remove `/m/hfcache`, nginx proxy config, or webroot files.
 If an older wrapper left `/m/llama.cpp` as a non-git directory, plain `0buildai.sh` removes it automatically and clones a fresh checkout.
 If the router service is already active, default `0buildai.sh` is status-only; use `--service-only` for an intentional service rewrite/restart.
 Hugging Face model cache is stored under `/m/hfcache` by default. HF cache setup and UFW allow rules are handled by `ai/bai1_build_settings.sh`.
 `0ainit.sh` uses `ai/bai1_init_model_cache.sh` to load missing models one by one so their GGUF files are present under `/m/hfcache`.
-`ai/bai1_build_router_service.sh` prints the readable `lctl list` summary after restart; use raw `/models` only when debugging router internals.
+`ai/bai1_build_router_service.sh` prints the readable `lctl.sh list` summary after restart; use raw `/models` only when debugging router internals.
 Default `0buildai.sh` order is build/verify -> settings -> router service.
 
  ==== USE =================================================

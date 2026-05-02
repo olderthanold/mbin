@@ -26,7 +26,7 @@ sudo bash /m/mbin/0buildai.sh --force
 # Build check only, without touching the systemd service.
 sudo bash /m/mbin/0buildai.sh --build-only
 
-# Service only, after a successful build.
+# Service only, after a successful build. Verifies runtime before restart.
 sudo bash /m/mbin/0buildai.sh --service-only
 
 # Optional custom HF cache location.
@@ -34,10 +34,13 @@ sudo env HF_CACHE_DIR=/m/ai-cache bash /m/mbin/0buildai.sh --service-only
 ```
 
 Without `--force`, an existing git checkout is not updated or rebuilt. The
-wrapper only verifies that `llama-server` and `llama-cli` exist, are executable,
-and pass a cheap `--version` or `--help` smoke test. Use `--force` for a fresh
-checkout/rebuild. `--force` does not remove `/m/hfcache`, nginx proxy config,
-or webroot files.
+wrapper verifies that `llama-server` and `llama-cli` exist, are executable, and
+pass a cheap `--version` or `--help` smoke test. `--service-only` also verifies
+that `llama-server` can run before restarting systemd. If a moved build has a
+legacy `RUNPATH` ending in `/ai/llama.cpp/build/bin`, the service script may
+create a compatibility symlink back to `/m/llama.cpp`; use `--force` later for
+a clean checkout/rebuild. `--force` does not remove `/m/hfcache`, nginx proxy
+config, or webroot files.
 If an older wrapper left `/m/llama.cpp` as a non-git directory, plain
 `0buildai.sh` removes it automatically and clones a fresh checkout.
 If the router service is already active, default `0buildai.sh` is status-only; use
@@ -65,7 +68,7 @@ Models are loaded on demand through the router API. Only one model should be
 loaded at a time on the small OCI VM.
 `0ainit.sh` uses `ai/bai1_init_model_cache.sh` to load missing models one by
 one so their GGUF files are present under `/m/hfcache`.
-`ai/bai1_build_router_service.sh` prints the readable `lctl list`
+`ai/bai1_build_router_service.sh` prints the readable `lctl.sh list`
 summary after restart; use raw `/models` only when debugging router internals.
 
 ## 2) Configure nginx aliases
@@ -108,19 +111,19 @@ is set.
 
 ```bash
 # Local host.
-lctl list
-lctl loaded
-lctl load lfm25vl450
-lctl status lfm25vl450
-lctl chat "Ahoj, odpovez kratce."
-lctl chat lfm25vl450 "Ahoj, odpovez kratce."
-lctl unload lfm25vl450
+lctl.sh list
+lctl.sh loaded
+lctl.sh load lfm25vl450
+lctl.sh status lfm25vl450
+lctl.sh chat "Ahoj, odpovez kratce."
+lctl.sh chat lfm25vl450 "Ahoj, odpovez kratce."
+lctl.sh unload lfm25vl450
 
 # Public 1234 alias.
-LLAMA_BASE_URL=http://<public-ip>:1234 lctl v1models
+LLAMA_BASE_URL=http://<public-ip>:1234 lctl.sh v1models
 
 # Domain proxy.
-LLAMA_BASE_URL=https://<domain>/llama lctl chat gemma270 "Hello."
+LLAMA_BASE_URL=https://<domain>/llama lctl.sh chat gemma270 "Hello."
 ```
 
 `load <model>` waits until the router reports the model as ready. Override the
@@ -185,12 +188,14 @@ bash -n /m/mbin/ai/bai1_build_llama.sh
 bash -n /m/mbin/ai/bai1_build_brew_llama.sh
 bash -n /m/mbin/ai/bai1_build_router_service.sh
 bash -n /m/mbin/ai/bai1_init_model_cache.sh
-bash -n /m/mbin/lctl
+bash -n /m/mbin/lctl.sh
 bash -n /m/mbin/ai/bai1_build_nginx_proxy.sh
 
 sudo bash /m/mbin/0buildai.sh --status
 sudo systemctl status llama-router.service --no-pager
 sudo systemctl cat llama-router.service | grep -E 'EnvironmentFile|ExecStart'
+readelf -d /m/llama.cpp/build/bin/llama-server | grep -E 'RPATH|RUNPATH' || true
+ldd /m/llama.cpp/build/bin/llama-server | grep 'not found' || true
 sudo grep -E 'HF_HOME|HF_HUB_CACHE|HUGGINGFACE_HUB_CACHE|TRANSFORMERS_CACHE|XDG_CACHE_HOME' /etc/default/llama-router
 sudo journalctl -u llama-router.service -n 100 --no-pager
 sudo ss -ltnp | grep -E ':8080|:1234' || true

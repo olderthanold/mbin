@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bai1_init_model_cache.sh v03
+# bai1_init_model_cache.sh v04
 set -euo pipefail
 
 GREEN='\033[0;32m'
@@ -10,7 +10,7 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 MBIN_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 MODELS_PRESET="${LLAMA_MODELS_PRESET:-${SCRIPT_DIR}/llama_models.ini}"
-LLAMA_CONTROL_SCRIPT="${LLAMA_CONTROL_SCRIPT:-${MBIN_DIR}/lctl}"
+LLAMA_CONTROL_SCRIPT="${LLAMA_CONTROL_SCRIPT:-${MBIN_DIR}/lctl.sh}"
 SERVICE_NAME="${SERVICE_NAME:-llama-router}"
 SETTINGS_ENV_FILE="${SETTINGS_ENV_FILE:-/etc/default/${SERVICE_NAME}}"
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
@@ -265,7 +265,7 @@ download_model() {
   LLAMA_BASE_URL="$BASE_URL" bash "$LLAMA_CONTROL_SCRIPT" unload "$model" >/dev/null 2>&1 || true
 }
 
-info "Running bai1_init_model_cache.sh v03"
+info "Running bai1_init_model_cache.sh v04"
 echo "Models preset: $MODELS_PRESET"
 echo "HF cache: $HF_CACHE_DIR"
 echo "HF hub cache: $HUGGINGFACE_HUB_CACHE"
