@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bai1_build_router_service.sh v09
+# bai1_build_router_service.sh v10
 set -euo pipefail
 
 # Creates and starts a systemd service for llama.cpp router mode.
@@ -213,7 +213,7 @@ verify_llama_runtime() {
   fail "legacy RUNPATH autoheal did not repair llama-server. Clean maintenance fix: sudo bash /m/mbin/0buildai.sh --force"
 }
 
-echo -e "${YELLOW}Running bai1_build_router_service.sh v09${NC}"
+echo -e "${YELLOW}Running bai1_build_router_service.sh v10${NC}"
 echo -e "${YELLOW}[0/7] Pre-flight checks...${NC}"
 
 if ! command -v sudo >/dev/null 2>&1; then
@@ -313,9 +313,7 @@ echo
 
 echo -e "${YELLOW}[7/7] Available router models...${NC}"
 if [[ -r "${LLAMA_CONTROL_SCRIPT}" ]]; then
-  LLAMA_BASE_URL="http://127.0.0.1:${BIND_PORT}" \
-    LLAMA_MODELS_PRESET="${MODELS_PRESET}" \
-    bash "${LLAMA_CONTROL_SCRIPT}" list || true
+  LLAMA_BASE_URL="http://127.0.0.1:${BIND_PORT}" bash "${LLAMA_CONTROL_SCRIPT}" list || true
 else
   curl -sS "http://127.0.0.1:${BIND_PORT}/models" || true
   echo

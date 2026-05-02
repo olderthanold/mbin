@@ -127,9 +127,9 @@ LLAMA_BASE_URL=https://<domain>/llama lctl.sh chat gemma270 "Hello."
 default 10-minute wait with `LLAMA_LOAD_TIMEOUT=<seconds>`.
 `chat <prompt>` uses the single currently loaded model; pass `chat <model> <prompt>`
 when you want to choose explicitly.
-`list` prints local router IDs plus status, HF repo, and quant.
-Local router IDs are read from `ai/llama_models.ini` so automatic HF aliases are
-not shown as separate models.
+`list` prints the same canonical router IDs as the Web UI plus any short CLI alias.
+Short names are read from `ai/llama_aliases.ini`; the router and Web UI use
+canonical HF/cache IDs from `ai/llama_models.ini` and cache discovery.
 Use `rawmodels` for the raw router JSON when debugging.
 
 Raw API examples:
@@ -139,12 +139,12 @@ curl -sS http://127.0.0.1:8080/models
 
 curl -sS http://127.0.0.1:8080/models/load \
   -H "Content-Type: application/json" \
-  -d '{"model":"lfm25vl450"}'
+  -d '{"model":"ZuzeTt/LFM2.5-VL-450M-GGUF:Q8_0"}'
 
 curl -sS http://127.0.0.1:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "lfm25vl450",
+    "model": "ZuzeTt/LFM2.5-VL-450M-GGUF:Q8_0",
     "messages": [{"role":"user","content":"Say hello."}],
     "temperature": 0.7
   }'
@@ -152,14 +152,17 @@ curl -sS http://127.0.0.1:8080/v1/chat/completions \
 
 ## 4) Profiles
 
-Profiles are defined in `ai/llama_models.ini`:
+Canonical profiles are defined in `ai/llama_models.ini`:
 
-- `lfm25vl450`
-- `gemma270`
-- `qwen35_08_unsloth`
-- `qwen35_08_jackrong`
-- `smollm360`
-- `lfm2_700`
+- `ZuzeTt/LFM2.5-VL-450M-GGUF:Q8_0` (`lfm25vl450`)
+- `unsloth/gemma-3-270m-it-qat-GGUF:Q8_0` (`gemma270`)
+- `unsloth/Qwen3.5-0.8B-GGUF:Q4_K_M` (`qwen35_08_unsloth`)
+- `Jackrong/Qwopus3.5-0.8B-v3-GGUF:Q4_K_M` (`qwen35_08_jackrong`)
+- `bartowski/SmolLM2-360M-Instruct-GGUF:Q8_0` (`smollm360`)
+- `LiquidAI/LFM2-700M-GGUF:Q6_K` (`lfm2_700`)
+
+Additional CLI aliases can target cache-discovered canonical IDs in
+`ai/llama_aliases.ini`.
 
 Shared defaults:
 

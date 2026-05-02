@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bai1_init_model_cache.sh v04
+# bai1_init_model_cache.sh v05
 set -euo pipefail
 
 GREEN='\033[0;32m'
@@ -254,7 +254,7 @@ print_cache_line() {
   local size="$3"
   local match="$4"
 
-  printf '%-20s %-8s %-8s %s\n' "$model" "$cache_state" "$size" "${match:-"-"}"
+  printf '%-58s %-8s %-8s %s\n' "$model" "$cache_state" "$size" "${match:-"-"}"
 }
 
 download_model() {
@@ -265,7 +265,7 @@ download_model() {
   LLAMA_BASE_URL="$BASE_URL" bash "$LLAMA_CONTROL_SCRIPT" unload "$model" >/dev/null 2>&1 || true
 }
 
-info "Running bai1_init_model_cache.sh v04"
+info "Running bai1_init_model_cache.sh v05"
 echo "Models preset: $MODELS_PRESET"
 echo "HF cache: $HF_CACHE_DIR"
 echo "HF hub cache: $HUGGINGFACE_HUB_CACHE"
@@ -276,7 +276,7 @@ require_router
 missing_count=0
 downloaded_count=0
 
-printf '%-20s %-8s %-8s %s\n' "MODEL" "CACHE" "SIZE" "MATCH"
+printf '%-58s %-8s %-8s %s\n' "MODEL" "CACHE" "SIZE" "MATCH"
 
 while IFS='|' read -r model raw_repo hf_file; do
   [[ -n "$model" ]] || continue

@@ -57,7 +57,7 @@ sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
 |       |   |-- ensure UFW exists and allow AI ports 8080/tcp and 1234/tcp by default
 |       |   |-- leave UFW enable state unchanged unless AI_UFW_ENABLE=true
 |       |   `-- print current AI build settings summary
-|       `-- [2/2] ai/bai1_build_router_service.sh v09
+|       `-- [2/2] ai/bai1_build_router_service.sh v10
 |           |-- pre-flight: require sudo, systemctl, service user, runnable llama-server binary, models preset, and settings env file
 |           |-- autoheal legacy RUNPATH via /home/<user>/ai/llama.cpp -> /m/llama.cpp symlink when safe
 |           |-- write /etc/systemd/system/llama-router.service by default
@@ -65,8 +65,8 @@ sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
 |           |-- reload systemd, enable service, and restart service
 |           |-- show service status and local health check
 |           `-- list available router models through lctl.sh or raw API fallback
-|-- [2/3] ai/bai1_init_model_cache.sh v04
-|   `-- bai1_init_model_cache.sh v04
+|-- [2/3] ai/bai1_init_model_cache.sh v05
+|   `-- bai1_init_model_cache.sh v05
 |       |-- load settings from /etc/default/llama-router when present
 |       |-- use LLAMA_MODELS_PRESET or ai/llama_models.ini
 |       |-- use LLAMA_CONTROL_SCRIPT or /m/mbin/lctl.sh

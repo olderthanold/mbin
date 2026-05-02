@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lctl.sh v12
+# lctl.sh v13
 set -euo pipefail
 
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
@@ -8,7 +8,7 @@ TEMPERATURE="${LLAMA_TEMPERATURE:-0.7}"
 LOAD_TIMEOUT="${LLAMA_LOAD_TIMEOUT:-600}"
 LOAD_POLL_SECONDS="${LLAMA_LOAD_POLL_SECONDS:-5}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODELS_PRESET="${LLAMA_MODELS_PRESET:-${SCRIPT_DIR}/ai/llama_models.ini}"
+ALIASES_FILE="${LLAMA_ALIASES_FILE:-${SCRIPT_DIR}/ai/llama_aliases.ini}"
 
 show_help() {
   cat <<EOF
@@ -29,7 +29,7 @@ Environment:
   LLAMA_TEMPERATURE   Default: 0.7
   LLAMA_LOAD_TIMEOUT   Default: 600
   LLAMA_LOAD_POLL_SECONDS Default: 5
-  LLAMA_MODELS_PRESET Default: ${MODELS_PRESET}
+  LLAMA_ALIASES_FILE  Default: ${ALIASES_FILE}
 
 Examples:
   $0 list
@@ -61,6 +61,85 @@ get_models_json() {
   curl -sS "${BASE_URL}/models"
 }
 
+alias_target_for_model() {
+  local model="$1"
+
+  [[ -f "$ALIASES_FILE" ]] || return 1
+
+  awk -v key="$model" '
+    function trim(value) {
+      sub(/^[[:space:]]+/, "", value)
+      sub(/[[:space:]]+$/, "", value)
+      return value
+    }
+    {
+      sub(/\r$/, "")
+    }
+    /^[[:space:]]*($|#)/ {
+      next
+    }
+    {
+      pos = index($0, "=")
+      if (pos == 0) {
+        next
+      }
+      alias = trim(substr($0, 1, pos - 1))
+      target = trim(substr($0, pos + 1))
+      if (alias == key && target != "") {
+        print target
+        exit
+      }
+    }
+  ' "$ALIASES_FILE"
+}
+
+resolve_model_id() {
+  local model="$1"
+  local target
+
+  target="$(alias_target_for_model "$model" || true)"
+  if [[ -n "$target" ]]; then
+    printf '%s\n' "$target"
+  else
+    printf '%s\n' "$model"
+  fi
+}
+
+aliases_for_model() {
+  local model="$1"
+
+  [[ -f "$ALIASES_FILE" ]] || return 0
+
+  awk -v target_key="$model" '
+    function trim(value) {
+      sub(/^[[:space:]]+/, "", value)
+      sub(/[[:space:]]+$/, "", value)
+      return value
+    }
+    {
+      sub(/\r$/, "")
+    }
+    /^[[:space:]]*($|#)/ {
+      next
+    }
+    {
+      pos = index($0, "=")
+      if (pos == 0) {
+        next
+      }
+      alias = trim(substr($0, 1, pos - 1))
+      target = trim(substr($0, pos + 1))
+      if (target == target_key && alias != "") {
+        if (found) {
+          printf ","
+        }
+        printf "%s", alias
+        found = 1
+      }
+    }
+  ' "$ALIASES_FILE"
+}
+
 model_object_from_json() {
   local json="$1"
   local model="$2"
@@ -68,21 +147,6 @@ model_object_from_json() {
   model_objects_from_json "$json" |
     grep -F "\"id\":\"${model}\"" |
     head -n 1 || true
-}
-
-known_model_ids_from_preset() {
-  if [[ ! -f "$MODELS_PRESET" ]]; then
-    return 0
-  fi
-
-  sed -n 's/^\[\([^]]*\)\]$/\1/p' "$MODELS_PRESET" |
-    grep -v '^\*$' || true
-}
-
-is_model_id_in_preset() {
-  local model="$1"
-
-  known_model_ids_from_preset | grep -Fxq "$model"
 }
 
 model_objects_from_json() {
@@ -214,31 +278,29 @@ list_models() {
   local json
   local object
   local id
+  local alias
   local status
   local quant
   local hf_repo
 
   json="$(get_models_json)"
-  printf '%-20s %-10s %-46s %s\n' "MODEL" "STATUS" "HF_REPO" "QUANT"
+  printf '%-58s %-22s %-10s %-46s %s\n' "MODEL" "ALIAS" "STATUS" "HF_REPO" "QUANT"
 
-  while IFS= read -r id; do
+  while IFS= read -r object; do
+    id="$(model_id_from_object "$object")"
     [[ -n "$id" ]] || continue
-    object="$(model_object_from_json "$json" "$id")"
-    if [[ -z "$object" ]]; then
-      printf '%-20s %-10s %-46s %s\n' "$id" "missing" "-" "-"
-      continue
-    fi
-
+    alias="$(aliases_for_model "$id")"
     status="$(model_status_from_object "$object")"
     quant="$(model_field_from_object "$object" "quant")"
     hf_repo="$(model_field_from_object "$object" "hf_repo")"
 
-    printf '%-20s %-10s %-46s %s\n' \
+    printf '%-58s %-22s %-10s %-46s %s\n' \
       "$id" \
+      "${alias:--}" \
       "${status:-unknown}" \
       "${hf_repo:--}" \
       "${quant:--}"
-  done < <(known_model_ids_from_preset)
+  done < <(model_objects_from_json "$json")
 }
 
 is_ready_status() {
@@ -277,7 +339,6 @@ ready_model_ids() {
     id="$(model_id_from_object "$object")"
     status="$(model_status_from_object "$object")"
     [[ -n "$id" ]] || continue
-    is_model_id_in_preset "$id" || continue
 
     if is_ready_status "$status"; then
       echo "$id"
@@ -318,7 +379,7 @@ is_known_model() {
   local json
   local object
 
-  is_model_id_in_preset "$model" || return 1
+  model="$(resolve_model_id "$model")"
 
   json="$(get_models_json)" || return 1
   object="$(model_object_from_json "$json" "$model")"
@@ -327,6 +388,7 @@ is_known_model() {
 
 status_model() {
   local model="${1:-}"
+  local requested_model
   local json
   local object
   local status
@@ -335,15 +397,15 @@ status_model() {
   local hf_file
 
   require_model "status" "$model"
-
-  if ! is_model_id_in_preset "$model"; then
-    echo "${model}: missing"
-    return 1
-  fi
+  requested_model="$model"
+  model="$(resolve_model_id "$model")"
 
   json="$(get_models_json)"
   object="$(model_object_from_json "$json" "$model")"
   if [[ -z "$object" ]]; then
+    if [[ "$requested_model" != "$model" ]]; then
+      echo "alias: ${requested_model}"
+    fi
     echo "${model}: missing"
     return 1
   fi
@@ -353,6 +415,9 @@ status_model() {
   hf_repo="$(model_field_from_object "$object" "hf_repo")"
   hf_file="$(model_field_from_object "$object" "hf_file")"
 
+  if [[ "$requested_model" != "$model" ]]; then
+    echo "alias: ${requested_model}"
+  fi
   echo "model: ${model}"
   echo "status: ${status:-unknown}"
   echo "hf_repo: ${hf_repo:--}"
@@ -388,6 +453,7 @@ post_model_action() {
   local model="${2:-}"
 
   require_model "${action}" "${model}"
+  model="$(resolve_model_id "$model")"
 
   curl -sS \
     -X POST "${BASE_URL}/models/${action}" \
@@ -398,9 +464,12 @@ post_model_action() {
 
 load_model() {
   local model="${1:-}"
+  local requested_model
   local response
 
   require_model "load" "$model"
+  requested_model="$model"
+  model="$(resolve_model_id "$model")"
 
   if ! response="$(curl -sS \
     -X POST "${BASE_URL}/models/load" \
@@ -411,9 +480,17 @@ load_model() {
   fi
 
   if printf '%s' "$response" | grep -Fq '"success":true'; then
-    echo "OK: load requested for ${model}"
+    if [[ "$requested_model" != "$model" ]]; then
+      echo "OK: load requested for ${requested_model} -> ${model}"
+    else
+      echo "OK: load requested for ${model}"
+    fi
   elif printf '%s' "$response" | grep -Fqi 'model is already running'; then
-    echo "OK: ${model} is already running"
+    if [[ "$requested_model" != "$model" ]]; then
+      echo "OK: ${requested_model} -> ${model} is already running"
+    else
+      echo "OK: ${model} is already running"
+    fi
   else
     echo "$response" >&2
     exit 1
@@ -439,13 +516,16 @@ chat_once() {
 
 chat() {
   local model="${1:-}"
+  local requested_model
   local prompt="${2:-Say hello from llama-router.}"
   local response
 
   require_model "chat" "$model"
+  requested_model="$model"
+  model="$(resolve_model_id "$model")"
 
   if ! response="$(chat_once "$model" "$prompt")"; then
-    echo "ERROR: chat request failed for ${model}" >&2
+    echo "ERROR: chat request failed for ${requested_model} -> ${model}" >&2
     exit 1
   fi
 

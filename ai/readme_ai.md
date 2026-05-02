@@ -43,12 +43,13 @@ lctl.sh unload lfm25vl450
 ```
 
 Router profiles live in `/m/mbin/ai/llama_models.ini`.
+CLI aliases live in `/m/mbin/ai/llama_aliases.ini`.
 Default sampling: `--temp 0.7 --top-p 0.9 --top-k 40 --min-p 0.05 --repeat-penalty 1.05 -c 4096`.
 Public POC endpoints: `http://<public-ip>:8080/v1`, `http://<public-ip>:1234/v1`, `https://<domain>/llama/v1`.
 `load <model>` waits until the router reports the model as ready; override wait time with `LLAMA_LOAD_TIMEOUT=<seconds>`.
 `chat <prompt>` uses the single currently loaded model; pass `chat <model> <prompt>` to choose explicitly.
-`list` prints local router IDs plus status, HF repo, and quant.
-Local router IDs are read from `ai/llama_models.ini` so automatic HF aliases are not shown as separate models.
+`list` prints the same canonical router IDs as the Web UI plus any short CLI alias.
+Short names are aliases only; the router and Web UI use canonical HF/cache IDs.
 Use `rawmodels` for the raw router JSON when debugging.
 Existing builds are only smoke-tested unless `--force` is used. `--service-only` also verifies `llama-server` before restart and may create a compatibility symlink for a moved legacy RUNPATH. `--force` does not remove `/m/hfcache`, nginx proxy config, or webroot files.
 If an older wrapper left `/m/llama.cpp` as a non-git directory, plain `0buildai.sh` removes it automatically and clones a fresh checkout.
