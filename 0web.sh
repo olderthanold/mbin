@@ -15,7 +15,7 @@ SCRIPT_VERSION="v13"
 #
 # Args:
 #   $1 domain (required; must contain a dot, e.g. something.cz)
-#   $2 web root path (optional)
+#   $2 web root path (optional; defaults to domain prefix before first dot)
 #
 # Behavior:
 #   - Calls web1_webs.sh first
@@ -41,9 +41,11 @@ show_help() {
   echo "Usage: $0 <domain> [web_root]"
   echo ""
   echo "Domain rule: must contain '.' (dot)."
+  echo "When web_root is omitted, it defaults to the domain prefix before the first dot."
   echo "Examples:"
   echo "  $0 something.cz"
-  echo "  $0 something.cz $WEB_BASE_DIR/something.cz"
+  echo "  $0 something.cz something"
+  echo "  $0 something.cz $WEB_BASE_DIR/something"
 }
 
 validate_domain_arg() {
@@ -73,6 +75,10 @@ if ! validate_domain_arg "$DOMAIN"; then
   echo -e "${RED}Error: invalid domain '$DOMAIN' (must contain '.').${NC}"
   show_help
   exit 1
+fi
+
+if [[ -z "$WEB_ROOT" ]]; then
+  WEB_ROOT="${DOMAIN%%.*}"
 fi
 
 if [[ ! -f "$WEB_ENTRY_SCRIPT" ]]; then
@@ -108,7 +114,8 @@ WEB_ENTRY_VERSION="$(get_script_version "$WEB_ENTRY_SCRIPT")"
 
 echo -e "${YELLOW}Running ${SCRIPT_NAME} ${SCRIPT_VERSION}${NC}"
 echo "Domain arg: $DOMAIN"
-echo "Web root arg: ${WEB_ROOT:-<auto:$WEB_BASE_DIR/$DOMAIN>}"
+echo "Web root arg: $WEB_ROOT"
+echo "Resolved web root path: $([[ "$WEB_ROOT" == /* ]] && printf '%s' "$WEB_ROOT" || printf '%s/%s' "$WEB_BASE_DIR" "$WEB_ROOT")"
 echo "Script base path (script location): $WEBI_DIR"
 echo "Resolved child scripts and versions:"
 echo "  - $WEB_WEBS_SCRIPT ${WEB_WEBS_VERSION:-<unknown>}"
@@ -127,20 +134,12 @@ echo -e "${YELLOW}[3/6] Running web1_adapt_index.sh ${WEB_ADAPT_INDEX_VERSION:-<
 bash "$WEB_ADAPT_INDEX_SCRIPT" "$DOMAIN" "${WEB_ROOT:-}"
 
 echo -e "${YELLOW}[4/6] Running web1_entry_nginx.sh ${WEB_ENTRY_VERSION:-<unknown>} for HTTP bootstrap ...${NC}"
-if [[ -n "$WEB_ROOT" ]]; then
-  bash "$WEB_ENTRY_SCRIPT" "$DOMAIN" "$WEB_ROOT"
-else
-  bash "$WEB_ENTRY_SCRIPT" "$DOMAIN"
-fi
+bash "$WEB_ENTRY_SCRIPT" "$DOMAIN" "$WEB_ROOT"
 
 echo -e "${YELLOW}[5/6] Running web1_cert_nginx.sh ${WEB_CERT_VERSION:-<unknown>} ...${NC}"
 bash "$WEB_CERT_SCRIPT" "$DOMAIN"
 
 echo -e "${YELLOW}[6/6] Running web1_entry_nginx.sh ${WEB_ENTRY_VERSION:-<unknown>} for final config ...${NC}"
-if [[ -n "$WEB_ROOT" ]]; then
-  bash "$WEB_ENTRY_SCRIPT" "$DOMAIN" "$WEB_ROOT"
-else
-  bash "$WEB_ENTRY_SCRIPT" "$DOMAIN"
-fi
+bash "$WEB_ENTRY_SCRIPT" "$DOMAIN" "$WEB_ROOT"
 
 echo -e "${GREEN}Done. 0web workflow complete.${NC}"

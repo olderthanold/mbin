@@ -2,6 +2,36 @@
 
 This document describes the run order started by `0ainit.sh`, including step numbering and script versions as detected from script headers by the wrapper.
 
+## Usage
+
+```bash
+sudo bash /m/mbin/0ainit.sh [domain] [web_root]
+```
+
+- `domain` is optional, but when provided it must contain `.`.
+- `web_root` is optional and is used only when `domain` is provided.
+- If `domain` is provided and `web_root` is omitted, `web_root` defaults to the domain prefix before the first dot.
+- Without `domain`, the script refreshes the AI router service, ensures configured models are cached, then lists current nginx llama aliases.
+- With `domain`, the script also runs `0web.sh` and adds/updates the nginx `/llama/` alias for that domain.
+
+## Examples
+
+```bash
+# Refresh AI router service, ensure configured models are cached, and list nginx llama aliases.
+sudo bash /m/mbin/0ainit.sh
+
+# Initialize AI runtime and wire https://emp2.duckdns.org/llama/ using web root argument "emp2".
+sudo bash /m/mbin/0ainit.sh emp2.duckdns.org
+
+# Initialize AI runtime and wire domain alias using an explicit relative web root.
+sudo bash /m/mbin/0ainit.sh emp2.duckdns.org emp2
+
+# Override nginx proxy paths while initializing/listing aliases.
+sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
+  PORT_ALIAS_CONF=/etc/nginx/conf.d/llama-router-1234.conf \
+  bash /m/mbin/0ainit.sh
+```
+
 ```text
 0ainit.sh v01
 |-- Args: [domain] [web_root]

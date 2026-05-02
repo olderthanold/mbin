@@ -2,6 +2,26 @@
 
 This document describes the run order started by `0ini.sh`, including step numbering and script versions as printed by the scripts.
 
+## Usage
+
+```bash
+sudo bash /m/mbin/0ini.sh [target_user]
+```
+
+- `target_user` is optional.
+- When `target_user` is omitted, the user-clone step is skipped.
+- When `target_user` is provided, `inu1user.sh` creates that user if missing, then passes it to `mgit_https.sh` as `-n <target_user>`.
+
+## Examples
+
+```bash
+# Run server-level setup and user-level repository refresh only.
+sudo bash /m/mbin/0ini.sh
+
+# Run setup, clone/create user "emp", then refresh /m/mbin with extra group sync for emp.
+sudo bash /m/mbin/0ini.sh emp
+```
+
 ```text
 0ini.sh v07
 |-- requires root (use sudo)

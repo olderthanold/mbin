@@ -2,11 +2,41 @@
 
 This document describes the run order started by `0web.sh`, including step numbering and script versions as printed by the scripts.
 
+## Usage
+
+```bash
+sudo bash /m/mbin/0web.sh <domain> [web_root]
+```
+
+- `domain` is required and must contain `.`.
+- `web_root` is optional.
+- If `web_root` is omitted, it defaults to the domain prefix before the first dot.
+- The omitted-default target path is `${WEB_BASE_DIR:-/m/webs}/<domain_prefix>`.
+- If `web_root` is relative, it resolves under `${WEB_BASE_DIR:-/m/webs}`.
+- If `web_root` is absolute, it is used as-is.
+
+## Examples
+
+```bash
+# Create/update website for a domain using the default web root: /m/webs/example.
+sudo bash /m/mbin/0web.sh example.com
+
+# Create/update website for a domain using relative web root: /m/webs/example.
+sudo bash /m/mbin/0web.sh example.com example
+
+# Create/update website for a domain using an absolute web root.
+sudo bash /m/mbin/0web.sh example.com /m/webs/example.com
+
+# Use a custom web base for relative/default web roots.
+sudo WEB_BASE_DIR=/srv/webs bash /m/mbin/0web.sh example.com example
+```
+
 ```text
 0web.sh v13
 |-- Args: <domain> [web_root]
 |   |-- domain is required and must contain "."
 |   |-- -h|--help prints usage and exits
+|   |-- if web_root is omitted: defaults to domain prefix before first dot
 |   |-- default web base is /m/webs (override with WEB_BASE_DIR)
 |   `-- child scripts are resolved from webi subdir of 0web.sh location
 |-- [1/6] webi/web1_webs.sh v09
@@ -22,7 +52,7 @@ This document describes the run order started by `0web.sh`, including step numbe
 |       |-- resolve web root from arg2:
 |       |   |-- absolute path => use as-is
 |       |   |-- relative value => ${WEB_BASE_DIR:-/m/webs}/<value>
-|       |   `-- omitted => ${WEB_BASE_DIR:-/m/webs}/<domain>
+|       |   `-- omitted by caller => 0web.sh passes <domain_prefix>, resolving to ${WEB_BASE_DIR:-/m/webs}/<domain_prefix>
 |       |-- if web root exists: leave as-is (do not repopulate content)
 |       |-- if missing: create web root as <deploy_user>:www-data with 2755
 |       |-- for newly created roots: copy full repo llmweb/ content into web root
