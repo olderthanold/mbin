@@ -47,8 +47,8 @@ sudo WEB_BASE_DIR=/srv/webs bash /m/mbin/0web.sh example.com example
 |       |-- ensure deploy user is in group www-data (skip membership change for root)
 |       |-- set web base owner/group to <deploy_user_or_root>:www-data
 |       `-- set web base permissions to 2775
-|-- [2/6] webi/web1_webroot.sh v06
-|   `-- web1_webroot.sh v06
+|-- [2/6] webi/web1_webroot.sh v07
+|   `-- web1_webroot.sh v07
 |       |-- resolve web root from arg2:
 |       |   |-- absolute path => use as-is
 |       |   |-- relative value => ${WEB_BASE_DIR:-/m/webs}/<value>
@@ -58,7 +58,6 @@ sudo WEB_BASE_DIR=/srv/webs bash /m/mbin/0web.sh example.com example
 |       |-- for newly created roots: copy full repo llmweb/ content into web root
 |       |-- after llmweb copy: set dirs to 2755 and files to 644
 |       |-- fallback only when llmweb/ is unavailable:
-|       |   |-- prefer copy from webi/index.htm
 |       |   |-- fallback to /var/www/html/index.nginx-debian.html + personalize heading
 |       |   `-- if no template exists: skip index init with warning
 |       `-- ensure newly created web root ownership

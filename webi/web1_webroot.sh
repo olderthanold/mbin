@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_webroot.sh v06
+# web1_webroot.sh v07
 #
 # Purpose:
 #   Ensure website web root exists and initialize it from llmweb when new.
@@ -70,7 +70,6 @@ fi
 
 TARGET_INDEX_HTM="$WEB_ROOT/index.htm"
 TARGET_INDEX_HTML="$WEB_ROOT/index.html"
-CUSTOM_TEMPLATE="$SCRIPT_DIR/index.htm"
 LLMWEB_SOURCE="$REPO_DIR/llmweb"
 NGINX_TEMPLATE="/var/www/html/index.nginx-debian.html"
 OWNER_USER="${SUDO_USER:-${USER:-$(whoami)}}"
@@ -91,7 +90,7 @@ if ! getent group "$OWNER_GROUP" >/dev/null 2>&1; then
   groupadd --system "$OWNER_GROUP"
 fi
 
-echo -e "${YELLOW}Running web1_webroot.sh v06${NC}"
+echo -e "${YELLOW}Running web1_webroot.sh v07${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 
@@ -124,15 +123,8 @@ else
     find "$WEB_ROOT" -type d -exec chmod 2755 {} +
     find "$WEB_ROOT" -type f -exec chmod 644 {} +
     echo "Created web home from llmweb: $WEB_ROOT"
-  elif [[ -f "$CUSTOM_TEMPLATE" ]]; then
-    echo "No index found. Copying custom template: $CUSTOM_TEMPLATE -> $TARGET_INDEX_HTM"
-    echo "Info: cp $CUSTOM_TEMPLATE $TARGET_INDEX_HTM"
-    cp "$CUSTOM_TEMPLATE" "$TARGET_INDEX_HTM"
-    chown "$OWNER_USER:$OWNER_GROUP" "$TARGET_INDEX_HTM"
-    chmod 644 "$TARGET_INDEX_HTM"
-    echo "Created page from custom template: $TARGET_INDEX_HTM"
   elif [[ -f "$NGINX_TEMPLATE" ]]; then
-    echo "Custom template not found. Using nginx default template: $NGINX_TEMPLATE"
+    echo "llmweb source not found. Using nginx default template: $NGINX_TEMPLATE"
     echo "Info: cp $NGINX_TEMPLATE $TARGET_INDEX_HTM"
     cp "$NGINX_TEMPLATE" "$TARGET_INDEX_HTM"
     sed -i "s|<h1>Welcome to nginx!</h1>|<h1>Welcome to ${OWNER_USER} @ ${DOMAIN} nginx!</h1>|" "$TARGET_INDEX_HTM"
@@ -140,7 +132,7 @@ else
     chmod 644 "$TARGET_INDEX_HTM"
     echo "Created personalized page: $TARGET_INDEX_HTM"
   else
-    echo -e "${YELLOW}No template found (skip index init): $CUSTOM_TEMPLATE and $NGINX_TEMPLATE${NC}"
+    echo -e "${YELLOW}No template found (skip index init): $LLMWEB_SOURCE and $NGINX_TEMPLATE${NC}"
   fi
 fi
 
