@@ -33,10 +33,14 @@ echo -e "${YELLOW}[3/4] Restoring executable permission on shell scripts in $MBI
 chmod +x "$MBIN_DIR"/*.sh 2>/dev/null || true
 
 echo -e "${YELLOW}[4/4] Ensuring ownership matches sudo user when available${NC}"
-if [[ -n "${SUDO_USER:-}" && -d "$MBIN_DIR" ]]; then
-  chown -R "$SUDO_USER:$(id -gn "$SUDO_USER")" "$MBIN_DIR"
+if [[ -n "${SUDO_USER:-}" && -d "$MBIN_DIR" ]] \
+  && SUDO_UID_NUM="$(id -u "$SUDO_USER")" \
+  && MBIN_OWNER_UID="$(stat -c '%u' "$MBIN_DIR")" \
+  && [[ "$MBIN_OWNER_UID" != "$SUDO_UID_NUM" ]]; then
+  SUDO_GROUP="$(id -gn "$SUDO_USER")"
+  chown -R "$SUDO_USER:$SUDO_GROUP" "$MBIN_DIR"
   chmod u+rwx,g+rwx "$PARENT_DIR"
-  chown -R "$SUDO_USER:$(id -gn "$SUDO_USER")" "$PARENT_DIR"
+  chown -R "$SUDO_USER:$SUDO_GROUP" "$PARENT_DIR"
   chmod u+rwx,g+rwx "$PARENT_DIR"
 fi
 
