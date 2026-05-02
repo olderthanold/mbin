@@ -19,7 +19,7 @@ This document explains what `mgit_ssh.sh` does, how arguments are interpreted, a
 Inside the script itself:
 
 ```bash
-SCRIPT_VERSION="v10"
+SCRIPT_VERSION="v11"
 ```
 
 ## Usage

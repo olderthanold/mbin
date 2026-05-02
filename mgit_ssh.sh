@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # =============================================================================
-# git_mbin_ssh.sh - Automated repository management for /m/mbin directory
+# mgit_ssh.sh - Automated repository management for /m/mbin directory
 # Purpose: Keeps track of and updates multiple scripts/tools stored in /m/mbin
 # Author: olderthanold (via m.git repository)
 # =============================================================================
 
 set -euo pipefail  # Exit on error, undefined variable, or pipeline failure
 
-SCRIPT_NAME="git_mbin_ssh.sh"
-SCRIPT_VERSION="v10"
-# mgit_ssh.sh v10
+SCRIPT_NAME="mgit_ssh.sh"
+SCRIPT_VERSION="v11"
+# mgit_ssh.sh v11
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'

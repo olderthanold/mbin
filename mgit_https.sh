@@ -2,8 +2,8 @@
 set -euo pipefail
 
 SCRIPT_NAME="mgit_https.sh"
-SCRIPT_VERSION="v08"
-# mgit_https.sh v08
+SCRIPT_VERSION="v09"
+# mgit_https.sh v09
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
