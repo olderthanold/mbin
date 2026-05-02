@@ -65,7 +65,7 @@ Models are loaded on demand through the router API. Only one model should be
 loaded at a time on the small OCI VM.
 `0ainit.sh` uses `ai/bai1_init_model_cache.sh` to load missing models one by
 one so their GGUF files are present under `/m/hfcache`.
-`ai/bai1_build_router_service.sh` prints the readable `llama_control.sh list`
+`ai/bai1_build_router_service.sh` prints the readable `lctl list`
 summary after restart; use raw `/models` only when debugging router internals.
 
 ## 2) Configure nginx aliases
@@ -108,19 +108,19 @@ is set.
 
 ```bash
 # Local host.
-bash /m/mbin/ai/llama_control.sh list
-bash /m/mbin/ai/llama_control.sh loaded
-bash /m/mbin/ai/llama_control.sh load lfm25vl450
-bash /m/mbin/ai/llama_control.sh status lfm25vl450
-bash /m/mbin/ai/llama_control.sh chat "Ahoj, odpovez kratce."
-bash /m/mbin/ai/llama_control.sh chat lfm25vl450 "Ahoj, odpovez kratce."
-bash /m/mbin/ai/llama_control.sh unload lfm25vl450
+lctl list
+lctl loaded
+lctl load lfm25vl450
+lctl status lfm25vl450
+lctl chat "Ahoj, odpovez kratce."
+lctl chat lfm25vl450 "Ahoj, odpovez kratce."
+lctl unload lfm25vl450
 
 # Public 1234 alias.
-LLAMA_BASE_URL=http://<public-ip>:1234 bash /m/mbin/ai/llama_control.sh v1models
+LLAMA_BASE_URL=http://<public-ip>:1234 lctl v1models
 
 # Domain proxy.
-LLAMA_BASE_URL=https://<domain>/llama bash /m/mbin/ai/llama_control.sh chat gemma270 "Hello."
+LLAMA_BASE_URL=https://<domain>/llama lctl chat gemma270 "Hello."
 ```
 
 `load <model>` waits until the router reports the model as ready. Override the
@@ -185,7 +185,7 @@ bash -n /m/mbin/ai/bai1_build_llama.sh
 bash -n /m/mbin/ai/bai1_build_brew_llama.sh
 bash -n /m/mbin/ai/bai1_build_router_service.sh
 bash -n /m/mbin/ai/bai1_init_model_cache.sh
-bash -n /m/mbin/ai/llama_control.sh
+bash -n /m/mbin/lctl
 bash -n /m/mbin/ai/bai1_build_nginx_proxy.sh
 
 sudo bash /m/mbin/0buildai.sh --status

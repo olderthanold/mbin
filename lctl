@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# llama_control.sh v09
+# lctl v10
 set -euo pipefail
 
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
@@ -8,7 +8,7 @@ TEMPERATURE="${LLAMA_TEMPERATURE:-0.7}"
 LOAD_TIMEOUT="${LLAMA_LOAD_TIMEOUT:-600}"
 LOAD_POLL_SECONDS="${LLAMA_LOAD_POLL_SECONDS:-5}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODELS_PRESET="${LLAMA_MODELS_PRESET:-${SCRIPT_DIR}/llama_models.ini}"
+MODELS_PRESET="${LLAMA_MODELS_PRESET:-${SCRIPT_DIR}/ai/llama_models.ini}"
 
 show_help() {
   cat <<EOF

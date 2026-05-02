@@ -33,13 +33,13 @@ sudo bash /m/mbin/0web.sh llm129.duckdns.org
 sudo bash /m/mbin/ai/bai1_build_nginx_proxy.sh llm129.duckdns.org
 
 # Remote model control.
-bash /m/mbin/ai/llama_control.sh list
-bash /m/mbin/ai/llama_control.sh loaded
-bash /m/mbin/ai/llama_control.sh load lfm25vl450
-bash /m/mbin/ai/llama_control.sh status lfm25vl450
-bash /m/mbin/ai/llama_control.sh chat "Ahoj, odpovez kratce."
-bash /m/mbin/ai/llama_control.sh chat lfm25vl450 "Ahoj, odpovez kratce."
-bash /m/mbin/ai/llama_control.sh unload lfm25vl450
+lctl list
+lctl loaded
+lctl load lfm25vl450
+lctl status lfm25vl450
+lctl chat "Ahoj, odpovez kratce."
+lctl chat lfm25vl450 "Ahoj, odpovez kratce."
+lctl unload lfm25vl450
 ```
 
 Router profiles live in `/m/mbin/ai/llama_models.ini`.
@@ -55,7 +55,7 @@ If an older wrapper left `/m/llama.cpp` as a non-git directory, plain `0buildai.
 If the router service is already active, default `0buildai.sh` is status-only; use `--service-only` for an intentional service rewrite/restart.
 Hugging Face model cache is stored under `/m/hfcache` by default. HF cache setup and UFW allow rules are handled by `ai/bai1_build_settings.sh`.
 `0ainit.sh` uses `ai/bai1_init_model_cache.sh` to load missing models one by one so their GGUF files are present under `/m/hfcache`.
-`ai/bai1_build_router_service.sh` prints the readable `llama_control.sh list` summary after restart; use raw `/models` only when debugging router internals.
+`ai/bai1_build_router_service.sh` prints the readable `lctl list` summary after restart; use raw `/models` only when debugging router internals.
 Default `0buildai.sh` order is build/verify -> settings -> router service.
 
  ==== USE =================================================

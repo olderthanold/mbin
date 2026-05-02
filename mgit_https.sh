@@ -2,8 +2,8 @@
 set -euo pipefail
 
 SCRIPT_NAME="mgit_https.sh"
-SCRIPT_VERSION="v09"
-# mgit_https.sh v09
+SCRIPT_VERSION="v10"
+# mgit_https.sh v10
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -471,7 +471,8 @@ else
   exit 1
 fi
 
-# Restore executable permissions on all scripts after update
-echo -e "${YELLOW}Restoring executable permission on shell scripts in $WEB_DIR${NC}"
+# Restore executable permissions on shell scripts and extensionless root tools after update.
+echo -e "${YELLOW}Restoring executable permission on shell scripts and lctl in $WEB_DIR${NC}"
 chmod +x "$WEB_DIR"/*.sh 2>/dev/null || true
+chmod +x "$WEB_DIR"/lctl 2>/dev/null || true
 echo -e "${GREEN}Done: $SCRIPT_NAME workflow complete.${NC}"

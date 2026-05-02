@@ -83,7 +83,7 @@ sudo bash /m/mbin/0ini.sh emp
         |   |-- runs only when 0ini.sh is called with a target username
         |   |-- skipped by inu1user.sh when target user already exists
         |   `-- otherwise clone source user home, sudo membership, and SSH authorized_keys
-        `-- 2.[2/2] mgit_https.sh v09
+        `-- 2.[2/2] mgit_https.sh v10
             |-- refresh local repository via HTTPS, default target /m/mbin
             |-- if target username was provided: pass -n <target_user>
             |-- resolve relative local paths under HOME and aliases to GitHub HTTPS URLs
@@ -93,7 +93,7 @@ sudo bash /m/mbin/0ini.sh emp
             |-- pull main when target is an existing git repo
             |-- on pull failure: stash local changes, try pull --rebase, then fallback recreate+clone
             |-- normalize ownership/permissions pre/post git
-            `-- restore executable permission on top-level *.sh files
+            `-- restore executable permission on top-level *.sh files and lctl
 ```
 
 ## Notes

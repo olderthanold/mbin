@@ -8,8 +8,8 @@
 set -euo pipefail  # Exit on error, undefined variable, or pipeline failure
 
 SCRIPT_NAME="mgit_ssh.sh"
-SCRIPT_VERSION="v11"
-# mgit_ssh.sh v11
+SCRIPT_VERSION="v12"
+# mgit_ssh.sh v12
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -585,7 +585,8 @@ else
   exit 1
 fi
 
-# Restore executable permissions on all scripts after update
-echo -e "${YELLOW}Restoring executable permission on shell scripts in $MBIN_DIR${NC}"
+# Restore executable permissions on shell scripts and extensionless root tools after update.
+echo -e "${YELLOW}Restoring executable permission on shell scripts and lctl in $MBIN_DIR${NC}"
 chmod +x "$MBIN_DIR"/*.sh 2>/dev/null || true
+chmod +x "$MBIN_DIR"/lctl 2>/dev/null || true
 echo -e "${GREEN}Done: $SCRIPT_NAME workflow complete.${NC}"

@@ -57,18 +57,18 @@ sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
 |       |   |-- ensure UFW exists and allow AI ports 8080/tcp and 1234/tcp by default
 |       |   |-- leave UFW enable state unchanged unless AI_UFW_ENABLE=true
 |       |   `-- print current AI build settings summary
-|       `-- [2/2] ai/bai1_build_router_service.sh v04
+|       `-- [2/2] ai/bai1_build_router_service.sh v05
 |           |-- pre-flight: require sudo, systemctl, service user, llama-server binary, models preset, and settings env file
 |           |-- write /etc/systemd/system/llama-router.service by default
 |           |-- configure llama-server router mode with --models-preset, --no-models-autoload, and idle sleep
 |           |-- reload systemd, enable service, and restart service
 |           |-- show service status and local health check
-|           `-- list available router models through llama_control.sh or raw API fallback
-|-- [2/3] ai/bai1_init_model_cache.sh v02
-|   `-- bai1_init_model_cache.sh v02
+|           `-- list available router models through lctl or raw API fallback
+|-- [2/3] ai/bai1_init_model_cache.sh v03
+|   `-- bai1_init_model_cache.sh v03
 |       |-- load settings from /etc/default/llama-router when present
 |       |-- use LLAMA_MODELS_PRESET or ai/llama_models.ini
-|       |-- use LLAMA_CONTROL_SCRIPT or ai/llama_control.sh
+|       |-- use LLAMA_CONTROL_SCRIPT or /m/mbin/lctl
 |       |-- require llama router health endpoint at LLAMA_BASE_URL, default http://127.0.0.1:8080
 |       |-- parse configured model entries from the preset
 |       |-- check Hugging Face cache for full GGUF files, minimum size MIN_GGUF_BYTES

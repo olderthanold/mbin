@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bai1_build_router_service.sh v04
+# bai1_build_router_service.sh v05
 set -euo pipefail
 
 # Creates and starts a systemd service for llama.cpp router mode.
@@ -11,13 +11,14 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MBIN_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 
 SERVICE_NAME="${SERVICE_NAME:-llama-router}"
 LLAMA_USER="${LLAMA_USER:-${SUDO_USER:-$(id -un)}}"
 LLAMA_WORKDIR="${LLAMA_WORKDIR:-/m/llama.cpp}"
 LLAMA_BIN="${LLAMA_BIN:-/m/llama.cpp/build/bin/llama-server}"
 MODELS_PRESET="${MODELS_PRESET:-${SCRIPT_DIR}/llama_models.ini}"
-LLAMA_CONTROL_SCRIPT="${LLAMA_CONTROL_SCRIPT:-${SCRIPT_DIR}/llama_control.sh}"
+LLAMA_CONTROL_SCRIPT="${LLAMA_CONTROL_SCRIPT:-${MBIN_DIR}/lctl}"
 SETTINGS_ENV_FILE="${SETTINGS_ENV_FILE:-/etc/default/${SERVICE_NAME}}"
 BIND_HOST="${BIND_HOST:-0.0.0.0}"
 BIND_PORT="${BIND_PORT:-8080}"
@@ -29,7 +30,7 @@ if [[ "${1:-}" == "--write-only" ]]; then
   WRITE_ONLY="true"
 fi
 
-echo -e "${YELLOW}Running bai1_build_router_service.sh v04${NC}"
+echo -e "${YELLOW}Running bai1_build_router_service.sh v05${NC}"
 echo -e "${YELLOW}[0/7] Pre-flight checks...${NC}"
 
 if ! command -v sudo >/dev/null 2>&1; then
@@ -139,6 +140,6 @@ echo -e "${GREEN}Done. llama router is managed by systemd.${NC}"
 echo -e "${YELLOW}Useful commands:${NC}"
 echo "  sudo systemctl status ${SERVICE_NAME}.service --no-pager"
 echo "  sudo journalctl -u ${SERVICE_NAME}.service -n 100 --no-pager"
-echo "  bash /m/mbin/ai/llama_control.sh list"
-echo "  bash /m/mbin/ai/llama_control.sh load lfm25vl450"
-echo "  bash /m/mbin/ai/llama_control.sh chat lfm25vl450 \"Hello\""
+echo "  lctl list"
+echo "  lctl load lfm25vl450"
+echo "  lctl chat lfm25vl450 \"Hello\""
