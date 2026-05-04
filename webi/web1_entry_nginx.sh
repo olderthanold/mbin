@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_entry_nginx.sh v16
+# web1_entry_nginx.sh v17
 #
 # Args:
 #   $1 website/domain (required; must contain a dot, e.g. something.cz)
@@ -21,6 +21,7 @@ NC='\033[0m' # No Color
 #   3) Write domain nginx site config and enable it.
 #      - before certificate exists: HTTP-only block for certbot matching
 #      - after certificate exists: HTTP redirect + HTTPS block
+#      - /_pages/ exposes a JSON autoindex listing for the current web root
 #   4) Remove default enabled nginx site link to avoid default site taking traffic.
 #   5) Validate and reload nginx.
 
@@ -75,7 +76,7 @@ NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 CERT_FULLCHAIN="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 CERT_PRIVKEY="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
 
-echo -e "${YELLOW}Running web1_entry_nginx.sh v16${NC}"
+echo -e "${YELLOW}Running web1_entry_nginx.sh v17${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 
@@ -116,6 +117,14 @@ server {
     ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
 
+    location ^~ /_pages/ {
+        alias $WEB_ROOT/;
+        index __mbin_no_index__;
+        autoindex on;
+        autoindex_format json;
+        add_header Cache-Control "no-store";
+    }
+
     location / {
         try_files \$uri \$uri/ =404;
     }
@@ -134,6 +143,14 @@ server {
 
     location /.well-known/acme-challenge/ {
         root $WEB_ROOT;
+    }
+
+    location ^~ /_pages/ {
+        alias $WEB_ROOT/;
+        index __mbin_no_index__;
+        autoindex on;
+        autoindex_format json;
+        add_header Cache-Control "no-store";
     }
 
     location / {

@@ -53,23 +53,6 @@
             background: #1d4ed8;
         }
 
-        input[type="text"] {
-            padding: 9px 10px;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            background: #020617;
-            color: #f8fafc;
-            font-size: 14px;
-        }
-
-        label {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #cbd5e1;
-            font-size: 14px;
-        }
-
         #llm-embed {
             width: 100%;
             min-height: 580px;
@@ -110,6 +93,27 @@
         #links a:hover {
             background: #3a3a3a;
         }
+
+        #breadcrumb {
+            margin: 0 0 12px;
+            color: #cbd5e1;
+        }
+
+        #breadcrumb button {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #93c5fd;
+            font: inherit;
+            text-decoration: underline;
+        }
+
+        .entry-meta {
+            display: block;
+            margin-top: 4px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -128,12 +132,9 @@
     <h2>Static HTML pages</h2>
     <div class="controls">
         <button id="refresh-list" type="button">Refresh page list</button>
-        <label for="local-base-path">
-            Local path
-            <input id="local-base-path" type="text" value="/" autocomplete="off">
-        </label>
     </div>
-    <p id="status">Loading known site pages...</p>
+    <p id="status">Loading web root...</p>
+    <nav id="breadcrumb" aria-label="Web directory breadcrumb"></nav>
     <ul id="links"></ul>
 
     <!-- Local script only (no external dependencies). -->
