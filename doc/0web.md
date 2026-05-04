@@ -69,14 +69,14 @@ sudo WEB_BASE_DIR=/srv/webs bash /m/mbin/0web.sh example.com example
 |       |-- refuse to adapt repo source template directory llmweb/ directly
 |       |-- set <title> to domain prefix before first dot
 |       `-- set or insert <h1 id="page-title"> to <domain> - <public IP> - <private IP>
-|-- [4/6] webi/web1_entry_nginx.sh v17
-|   `-- web1_entry_nginx.sh v17
+|-- [4/6] webi/web1_entry_nginx.sh v18
+|   `-- web1_entry_nginx.sh v18
 |       |-- autoheal: remove existing domain enabled/available entries before recreate
 |       |-- if certificate is missing: write HTTP-only server block for certbot
 |       |-- if certificate exists: write final HTTP redirect + HTTPS server block
 |       |-- expose /_pages/ JSON autoindex for live web-root listing
 |       |-- remove default enabled site link when present
-|       `-- test nginx config and reload nginx
+|       `-- run systemctl daemon-reload, test nginx config, and reload nginx
 |-- [5/6] webi/web1_cert_nginx.sh v04
 |   `-- web1_cert_nginx.sh v04
 |       |-- [1/5] Ensure certbot + python3-certbot-nginx installed
@@ -86,11 +86,11 @@ sudo WEB_BASE_DIR=/srv/webs bash /m/mbin/0web.sh example.com example
 |       |-- [3/5] Test nginx configuration (nginx -t)
 |       |-- [4/5] Enable/start certbot.timer
 |       `-- [5/5] Test cert renewal (certbot renew --dry-run, with retries + fatal-error detection)
-`-- [6/6] webi/web1_entry_nginx.sh v17
-    `-- web1_entry_nginx.sh v17
+`-- [6/6] webi/web1_entry_nginx.sh v18
+    `-- web1_entry_nginx.sh v18
         |-- autoheal/recreate domain Nginx entry after certbot has run
         |-- remove default enabled site link when present
-        |-- test nginx config and reload nginx
+        |-- run systemctl daemon-reload, test nginx config, and reload nginx
         |-- expose /_pages/ JSON autoindex for live web-root listing
         `-- expected final state: HTTP redirect + HTTPS server block when cert files exist
 ```

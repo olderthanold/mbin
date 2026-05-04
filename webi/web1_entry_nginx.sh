@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# web1_entry_nginx.sh v17
+# web1_entry_nginx.sh v18
 #
 # Args:
 #   $1 website/domain (required; must contain a dot, e.g. something.cz)
@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 #      - after certificate exists: HTTP redirect + HTTPS block
 #      - /_pages/ exposes a JSON autoindex listing for the current web root
 #   4) Remove default enabled nginx site link to avoid default site taking traffic.
-#   5) Validate and reload nginx.
+#   5) Reload systemd manager config, validate nginx config, and reload nginx.
 
 show_help() {
     local web_base_name="webs"
@@ -76,7 +76,7 @@ NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
 CERT_FULLCHAIN="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 CERT_PRIVKEY="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
 
-echo -e "${YELLOW}Running web1_entry_nginx.sh v17${NC}"
+echo -e "${YELLOW}Running web1_entry_nginx.sh v18${NC}"
 echo "Using website/domain: $DOMAIN"
 echo "Using web root: $WEB_ROOT"
 
@@ -172,6 +172,7 @@ else
     echo "Default enabled site link not present: $DEFAULT_ENABLED"
 fi
 
+sudo systemctl daemon-reload  # Refresh unit metadata before reloading nginx.
 sudo nginx -t  # Validate config
 sudo systemctl reload nginx  # Reload service
 
