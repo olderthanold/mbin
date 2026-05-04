@@ -1,11 +1,14 @@
 # ==== Llama router POC =================================================
 
 ```bash
-# Full init: refresh service, download all configured models, list nginx aliases.
+# Full init: refresh service, download models, list aliases, load one model.
 sudo bash /m/mbin/0ainit.sh
 
 # Full init plus web/domain /llama/ alias. Default web root is domain prefix.
 sudo bash /m/mbin/0ainit.sh emp2.duckdns.org
+
+# Prefer a specific initial model after init.
+sudo LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 
 # Build/update llama.cpp, then create/restart llama-router.service.
 # If llama-router.service is already running, this prints status and exits.
@@ -56,6 +59,7 @@ If an older wrapper left `/m/llama.cpp` as a non-git directory, plain `0buildai.
 If the router service is already active, default `0buildai.sh` is status-only; use `--service-only` for an intentional service rewrite/restart.
 Hugging Face model cache is stored under `/m/hfcache` by default. HF cache setup and UFW allow rules are handled by `ai/bai1_build_settings.sh`.
 `0ainit.sh` uses `ai/bai1_init_model_cache.sh` to load missing models one by one so their GGUF files are present under `/m/hfcache`.
+At the end, `0ainit.sh` leaves any already loaded model alone; otherwise it loads `LLAMA_INIT_MODEL` or the first model in `ai/llama_models.ini`. If no configured model exists or loading fails, it warns and leaves `/llama/` reachable but not ready for inference until `lctl.sh load <model>` succeeds.
 `ai/bai1_build_router_service.sh` prints the readable `lctl.sh list` summary after restart; use raw `/models` only when debugging router internals.
 Default `0buildai.sh` order is build/verify -> settings -> router service.
 

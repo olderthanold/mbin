@@ -17,7 +17,7 @@ sudo bash /m/mbin/0ainit.sh [domain] [web_root]
 ## Examples
 
 ```bash
-# Refresh AI router service, ensure configured models are cached, and list nginx llama aliases.
+# Refresh AI router service, ensure models are cached, list aliases, and load one model.
 sudo bash /m/mbin/0ainit.sh
 
 # Initialize AI runtime and wire https://emp2.duckdns.org/llama/ using web root argument "emp2".
