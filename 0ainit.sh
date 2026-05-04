@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 0ainit.sh v01
+# 0ainit.sh v02
 set -euo pipefail
 
 GREEN='\033[0;32m'
@@ -8,7 +8,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 SCRIPT_NAME="0ainit.sh"
-SCRIPT_VERSION="v01"
+SCRIPT_VERSION="v02"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 AI_DIR="$SCRIPT_DIR/ai"
@@ -16,6 +16,11 @@ BUILD_WRAPPER="$SCRIPT_DIR/0buildai.sh"
 WEB_WRAPPER="$SCRIPT_DIR/0web.sh"
 MODEL_CACHE_SCRIPT="$AI_DIR/bai1_init_model_cache.sh"
 NGINX_PROXY_SCRIPT="$AI_DIR/bai1_build_nginx_proxy.sh"
+LLAMA_CONTROL_SCRIPT="${LLAMA_CONTROL_SCRIPT:-$SCRIPT_DIR/lctl.sh}"
+MODELS_PRESET="${LLAMA_MODELS_PRESET:-$AI_DIR/llama_models.ini}"
+BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
+LOAD_TIMEOUT="${LLAMA_LOAD_TIMEOUT:-600}"
+INIT_MODEL="${LLAMA_INIT_MODEL:-}"
 
 SNIPPET_PATH="${SNIPPET_PATH:-/etc/nginx/snippets/llama-router-proxy.conf}"
 PORT_ALIAS_CONF="${PORT_ALIAS_CONF:-/etc/nginx/conf.d/llama-router-1234.conf}"
@@ -29,6 +34,11 @@ Initializes the AI router runtime:
   2. Ensure all configured GGUF models are downloaded into HF cache.
   3. Without args, list current nginx llama aliases.
      With domain, run 0web.sh and add the domain /llama/ alias.
+  4. Ensure at least one model is loaded when a configured model exists.
+
+Environment:
+  LLAMA_INIT_MODEL    Optional initial model alias/canonical ID to load.
+                      Default: first model section in $MODELS_PRESET.
 
 Examples:
   sudo bash $0
@@ -135,6 +145,67 @@ list_nginx_aliases() {
   fi
 }
 
+first_model_from_preset() {
+  awk '
+    /^\[[^]]+\]$/ {
+      section = $0
+      gsub(/^\[/, "", section)
+      gsub(/\]$/, "", section)
+      if (section != "*") {
+        print section
+        exit
+      }
+    }
+  ' "$MODELS_PRESET"
+}
+
+loaded_models() {
+  LLAMA_BASE_URL="$BASE_URL" bash "$LLAMA_CONTROL_SCRIPT" loaded 2>/dev/null || true
+}
+
+ensure_initial_model_loaded() {
+  local loaded
+  local model
+
+  info "[4/4] Ensuring at least one llama model is loaded..."
+
+  if [[ ! -f "$LLAMA_CONTROL_SCRIPT" ]]; then
+    warn "llama control script not found: $LLAMA_CONTROL_SCRIPT"
+    warn "The /llama/ UI/API can be reachable, but chat will not work until you load a model manually."
+    return 0
+  fi
+
+  loaded="$(loaded_models)"
+  if [[ -n "$loaded" && "$loaded" != "none" ]]; then
+    ok "Model already loaded:"
+    printf '%s\n' "$loaded"
+    return 0
+  fi
+
+  model="$INIT_MODEL"
+  if [[ -z "$model" ]]; then
+    if [[ -f "$MODELS_PRESET" ]]; then
+      model="$(first_model_from_preset)"
+    else
+      warn "models preset not found: $MODELS_PRESET"
+    fi
+  fi
+
+  if [[ -z "$model" ]]; then
+    warn "No configured model found. The /llama/ UI/API can be reachable, but inference will not work yet."
+    warn "Add a model to $MODELS_PRESET or load one manually with: lctl.sh load <model>"
+    return 0
+  fi
+
+  info "No model is loaded. Loading initial model: $model"
+  if LLAMA_BASE_URL="$BASE_URL" LLAMA_LOAD_TIMEOUT="$LOAD_TIMEOUT" bash "$LLAMA_CONTROL_SCRIPT" load "$model"; then
+    ok "Initial model loaded: $model"
+  else
+    warn "Initial model load failed: $model"
+    warn "The /llama/ UI/API can be reachable, but chat will not work until you load a model manually: lctl.sh load <model>"
+  fi
+}
+
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   show_help
   exit 0
@@ -160,11 +231,13 @@ require_file "$BUILD_WRAPPER"
 require_file "$WEB_WRAPPER"
 require_file "$MODEL_CACHE_SCRIPT"
 require_file "$NGINX_PROXY_SCRIPT"
+require_file "$LLAMA_CONTROL_SCRIPT"
 
 BUILD_VERSION="$(get_script_version "$BUILD_WRAPPER")"
 WEB_VERSION="$(get_script_version "$WEB_WRAPPER")"
 MODEL_CACHE_VERSION="$(get_script_version "$MODEL_CACHE_SCRIPT")"
 NGINX_PROXY_VERSION="$(get_script_version "$NGINX_PROXY_SCRIPT")"
+LLAMA_CONTROL_VERSION="$(get_script_version "$LLAMA_CONTROL_SCRIPT")"
 
 info "Running ${SCRIPT_NAME} ${SCRIPT_VERSION}"
 echo "Script base path: $SCRIPT_DIR"
@@ -175,23 +248,27 @@ echo "  - $BUILD_WRAPPER ${BUILD_VERSION:-<unknown>}"
 echo "  - $MODEL_CACHE_SCRIPT ${MODEL_CACHE_VERSION:-<unknown>}"
 echo "  - $WEB_WRAPPER ${WEB_VERSION:-<unknown>}"
 echo "  - $NGINX_PROXY_SCRIPT ${NGINX_PROXY_VERSION:-<unknown>}"
+echo "  - $LLAMA_CONTROL_SCRIPT ${LLAMA_CONTROL_VERSION:-<unknown>}"
+echo "Initial model override: ${INIT_MODEL:-<first preset model>}"
 
-info "[1/3] Refreshing llama router service from current model preset..."
+info "[1/4] Refreshing llama router service from current model preset..."
 run_root bash "$BUILD_WRAPPER" --service-only
 
-info "[2/3] Ensuring configured GGUF models are downloaded..."
+info "[2/4] Ensuring configured GGUF models are downloaded..."
 bash "$MODEL_CACHE_SCRIPT"
 
 if [[ -z "$DOMAIN" ]]; then
-  info "[3/3] Listing nginx aliases..."
+  info "[3/4] Listing nginx aliases..."
   list_nginx_aliases
+  ensure_initial_model_loaded
   ok "Done. AI init check complete."
   exit 0
 fi
 
-info "[3/3] Creating/updating web and nginx llama alias..."
+info "[3/4] Creating/updating web and nginx llama alias..."
 run_root bash "$WEB_WRAPPER" "$DOMAIN" "$WEB_ROOT_ARG"
 run_root bash "$NGINX_PROXY_SCRIPT" "$DOMAIN"
 list_nginx_aliases
+ensure_initial_model_loaded
 
 ok "Done. AI init workflow complete."

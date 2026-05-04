@@ -11,8 +11,8 @@ sudo bash /m/mbin/0ainit.sh [domain] [web_root]
 - `domain` is optional, but when provided it must contain `.`.
 - `web_root` is optional and is used only when `domain` is provided.
 - If `domain` is provided and `web_root` is omitted, `web_root` defaults to the domain prefix before the first dot.
-- Without `domain`, the script refreshes the AI router service, ensures configured models are cached, then lists current nginx llama aliases.
-- With `domain`, the script also runs `0web.sh` and adds/updates the nginx `/llama/` alias for that domain.
+- Without `domain`, the script refreshes the AI router service, ensures configured models are cached, lists current nginx llama aliases, then ensures one model is loaded when possible.
+- With `domain`, the script also runs `0web.sh`, adds/updates the nginx `/llama/` alias for that domain, then ensures one model is loaded when possible.
 
 ## Examples
 
@@ -30,10 +30,13 @@ sudo bash /m/mbin/0ainit.sh emp2.duckdns.org emp2
 sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
   PORT_ALIAS_CONF=/etc/nginx/conf.d/llama-router-1234.conf \
   bash /m/mbin/0ainit.sh
+
+# Prefer a specific initial model instead of the first preset entry.
+sudo LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 ```
 
 ```text
-0ainit.sh v01
+0ainit.sh v02
 |-- Args: [domain] [web_root]
 |   |-- -h|--help prints usage and exits
 |   |-- domain is optional, but when provided it must contain "."
@@ -42,8 +45,11 @@ sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
 |   `-- child scripts are resolved from 0ainit.sh location and its ai/ subdir
 |-- Config paths
 |   |-- SNIPPET_PATH default: /etc/nginx/snippets/llama-router-proxy.conf
-|   `-- PORT_ALIAS_CONF default: /etc/nginx/conf.d/llama-router-1234.conf
-|-- [1/3] 0buildai.sh v05 --service-only
+|   |-- PORT_ALIAS_CONF default: /etc/nginx/conf.d/llama-router-1234.conf
+|   |-- LLAMA_CONTROL_SCRIPT default: /m/mbin/lctl.sh
+|   |-- LLAMA_INIT_MODEL optional initial model alias/canonical ID
+|   `-- LLAMA_MODELS_PRESET default: /m/mbin/ai/llama_models.ini
+|-- [1/4] 0buildai.sh v05 --service-only
 |   `-- 0buildai.sh v05
 |       |-- --service-only skips rebuild, but verifies llama-server runtime before service restart
 |       |-- resolves child scripts from the ai subdir of 0buildai.sh location
@@ -65,7 +71,7 @@ sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
 |           |-- reload systemd, enable service, and restart service
 |           |-- show service status and local health check
 |           `-- list available router models through lctl.sh or raw API fallback
-|-- [2/3] ai/bai1_init_model_cache.sh v05
+|-- [2/4] ai/bai1_init_model_cache.sh v05
 |   `-- bai1_init_model_cache.sh v05
 |       |-- load settings from /etc/default/llama-router when present
 |       |-- use LLAMA_MODELS_PRESET or ai/llama_models.ini
@@ -76,9 +82,9 @@ sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
 |       |-- for missing models: load model through llama router to trigger download
 |       |-- unload model after download attempt
 |       `-- fail if loaded model still cannot be found in cache
-`-- [3/3]
+|-- [3/4]
     |-- when no domain argument is provided
-    |   `-- list nginx llama aliases and exit
+    |   `-- list nginx llama aliases
     `-- when domain argument is provided
         |-- 0web.sh v13 <domain> <web_root>
         |   `-- create/update web root, nginx entry, certificate, and final HTTPS config
@@ -90,17 +96,22 @@ sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
         |   |-- public API alias: http://<public-ip>:1234/v1
         |   `-- domain API alias: https://<domain>/llama/v1
         `-- list nginx llama aliases after update
+`-- [4/4] ensure an initial model is loaded
+    |-- if any model is already loaded: leave it untouched
+    |-- otherwise load LLAMA_INIT_MODEL when provided
+    |-- otherwise load the first non-[*] model section from the preset
+    `-- if no model exists or load fails: warn and leave /llama/ reachable but not inferencing
 ```
 
 ## Notes
 
-- `0ainit.sh` is the AI runtime initializer: refresh router service, ensure configured GGUF models are cached, then either list nginx aliases or wire a domain alias.
+- `0ainit.sh` is the AI runtime initializer: refresh router service, ensure configured GGUF models are cached, either list nginx aliases or wire a domain alias, then try to leave one model loaded.
 - `0ainit.sh` can be run without root, but root-required child operations are executed through `sudo` via `run_root`.
-- Running without arguments still preflights required child script files, but does not call `0web.sh` or modify domain site configs; it refreshes the router service, checks/downloads models, then lists current nginx llama aliases.
+- Running without arguments still preflights required child script files, but does not call `0web.sh` or modify domain site configs; it refreshes the router service, checks/downloads models, lists current nginx llama aliases, then tries to load an initial model.
 - Running with a domain calls `0web.sh` before `bai1_build_nginx_proxy.sh`, so the domain Nginx site should exist before the `/llama/` include is added.
 - If `<web_root>` is omitted for a domain, `0ainit.sh` passes the domain prefix as the web root argument, e.g. `emp2.duckdns.org` becomes `emp2`.
 - The public port alias uses port `1234`; the router backend defaults to `http://127.0.0.1:8080`.
-- `SNIPPET_PATH`, `PORT_ALIAS_CONF`, `LLAMA_BACKEND_URL`, `LLAMA_BASE_URL`, `LLAMA_LOAD_TIMEOUT`, `LLAMA_MODELS_PRESET`, `HF_CACHE_DIR`, and related AI environment variables can override defaults.
+- `SNIPPET_PATH`, `PORT_ALIAS_CONF`, `LLAMA_BACKEND_URL`, `LLAMA_BASE_URL`, `LLAMA_LOAD_TIMEOUT`, `LLAMA_INIT_MODEL`, `LLAMA_MODELS_PRESET`, `HF_CACHE_DIR`, and related AI environment variables can override defaults.
 - Detailed website provisioning behavior is documented in `0web.md`.
 
 ## Selected shell scripts in this directory that are not used directly by 0ainit flow
