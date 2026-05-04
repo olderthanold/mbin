@@ -95,6 +95,10 @@ function isDirectory(entry) {
     return entry.type === "directory";
 }
 
+function isHiddenDirectory(entry) {
+    return isDirectory(entry) && String(entry.name || "").startsWith("_");
+}
+
 function formatSize(size) {
     if (typeof size !== "number") {
         return "";
@@ -225,7 +229,9 @@ async function loadDirectory(pathValue = currentDirectory) {
         }
 
         const entries = await response.json();
-        const visibleEntries = sortEntries(entries.filter((entry) => isDirectory(entry) || isHtmlFile(entry)));
+        const visibleEntries = sortEntries(
+            entries.filter((entry) => !isHiddenDirectory(entry) && (isDirectory(entry) || isHtmlFile(entry)))
+        );
 
         renderLinks(visibleEntries, currentDirectory);
         setStatus(`Loaded ${visibleEntries.length} item(s) from ${currentPath}.`);
