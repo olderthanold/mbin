@@ -2,8 +2,8 @@
 set -euo pipefail
 
 SCRIPT_NAME="mgit_https.sh"
-SCRIPT_VERSION="v11"
-# mgit_https.sh v11
+SCRIPT_VERSION="v12"
+# mgit_https.sh v12
 SEP="======================================================================"
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -197,6 +197,53 @@ normalize_repo_ownership() {
   echo -e "${GREEN}[$phase_label] Ownership/permissions normalization complete for $repo_dir.${NC}"
 }
 
+prepare_parent_directory() {
+  local parent_dir="$1"
+
+  if [[ -z "$parent_dir" || "$parent_dir" == "/" ]]; then
+    echo -e "${RED}Error: refusing to modify unsafe parent directory: ${parent_dir:-<empty>}${NC}"
+    return 1
+  fi
+
+  if [[ ! -d "$parent_dir" ]]; then
+    echo -e "${YELLOW}Parent directory does not exist: $parent_dir${NC}"
+    echo -e "${YELLOW}Attempting to create parent directory: $parent_dir${NC}"
+    if ! mkdir -p "$parent_dir"; then
+      echo -e "${RED}Error: cannot create parent directory $parent_dir. Please run with sudo.${NC}"
+      return 1
+    fi
+  fi
+
+  if [[ "${EUID}" -eq 0 ]]; then
+    local current_owner current_group
+    current_owner="$(stat -c '%U' "$parent_dir")"
+    current_group="$(stat -c '%G' "$parent_dir")"
+
+    if [[ "$current_owner" != "$OWNER_USER" || "$current_group" != "$OWNER_GROUP" ]]; then
+      echo -e "${YELLOW}Running: chown $OWNER_USER:$OWNER_GROUP $parent_dir${NC}"
+      if ! chown "$OWNER_USER:$OWNER_GROUP" "$parent_dir"; then
+        echo -e "${RED}Error: failed to set ownership on $parent_dir.${NC}"
+        return 1
+      fi
+    else
+      echo -e "${GREEN}Parent ownership already matches target: $parent_dir -> $OWNER_USER:$OWNER_GROUP${NC}"
+    fi
+
+    echo -e "${YELLOW}Running: chmod u+rwx,g+rwx $parent_dir${NC}"
+    if ! chmod u+rwx,g+rwx "$parent_dir"; then
+      echo -e "${RED}Error: failed to set permissions on $parent_dir.${NC}"
+      return 1
+    fi
+  fi
+
+  if [[ ! -w "$parent_dir" ]]; then
+    echo -e "${RED}Error: no write access to parent directory $parent_dir. Please run with sudo.${NC}"
+    return 1
+  fi
+
+  echo -e "${GREEN}Parent directory is writable: $parent_dir${NC}"
+}
+
 ASSIGN_USER=""
 POSITIONAL_ARGS=()
 SYNC_USERS=()
@@ -281,40 +328,20 @@ echo -e "${YELLOW}HTTPS mode: public repos work without login; private repos may
 # Check write access before any git operation.
 echo -e "${YELLOW}[3/8] Checking write access for target path${NC}"
 PARENT_DIR="$(dirname "$WEB_DIR")"
+PARENT_PREPARED="false"
+if [[ "${EUID}" -eq 0 && "$PARENT_DIR" == "/m" ]]; then
+  prepare_parent_directory "$PARENT_DIR" || exit 1
+  PARENT_PREPARED="true"
+fi
+
 if [[ -e "$WEB_DIR" ]]; then
   if [[ ! -w "$WEB_DIR" ]]; then
     echo -e "${RED}Error: no write access to $WEB_DIR. Please run with sudo.${NC}"
     exit 1
   fi
 else
-  if [[ ! -d "$PARENT_DIR" ]]; then
-    echo -e "${YELLOW}Parent directory does not exist: $PARENT_DIR${NC}"
-    echo -e "${YELLOW}Attempting to create parent directory: $PARENT_DIR${NC}"
-    if ! mkdir -p "$PARENT_DIR"; then
-      echo -e "${RED}Error: cannot create parent directory $PARENT_DIR. Please run with sudo.${NC}"
-      exit 1
-    fi
-
-    if [[ "${EUID}" -eq 0 ]]; then
-      echo -e "${YELLOW}Running: chown $OWNER_USER:$OWNER_GROUP $PARENT_DIR${NC}"
-      if ! chown "$OWNER_USER:$OWNER_GROUP" "$PARENT_DIR"; then
-        echo -e "${RED}Error: failed to set ownership on $PARENT_DIR.${NC}"
-        exit 1
-      fi
-    fi
-
-    echo -e "${YELLOW}Running: chmod u+rwx,g+rwx $PARENT_DIR${NC}"
-    if ! chmod u+rwx,g+rwx "$PARENT_DIR"; then
-      echo -e "${RED}Error: failed to set permissions on $PARENT_DIR.${NC}"
-      exit 1
-    fi
-
-    echo -e "${GREEN}Parent directory prepared: $PARENT_DIR${NC}"
-  fi
-
-  if [[ ! -w "$PARENT_DIR" ]]; then
-    echo -e "${RED}Error: no write access to parent directory $PARENT_DIR. Please run with sudo.${NC}"
-    exit 1
+  if [[ "$PARENT_PREPARED" != "true" ]]; then
+    prepare_parent_directory "$PARENT_DIR" || exit 1
   fi
 fi
 
