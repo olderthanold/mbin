@@ -94,41 +94,42 @@ Will take a bit of time, In progress
 
 # B. **- UBUNTU VM SETUP for Windows -**
 ## 1 *Windows*
-## Get IP
-Get public IP from OCI console instance: 129.80.226.85
+### Get IP
+Get public IP from OCI console instance: 129.80.226.856
 ### make keys yours
-`icacls "c:\apps\keys\my.key" /inheritance:r`
-`icacls "c:\apps\keys\my.key" /grant:r "user:F"`
+- `icacls "c:\apps\keys\my.key" /inheritance:r`
+- `icacls "c:\apps\keys\my.key" /grant:r "user:F"`
 ### 1. Connect to the instance
-ssh -i c:\apps\keys\my.key ubuntu@92.5.32.30
+`ssh -i c:\apps\keys\my.key ubuntu@92.5.32.303`
 ### 2. Pull scripts from github
-sudo git clone -b main https://github.com/olderthanold/mbin.git /m/mbin
+`sudo git clone -b main https://github.com/olderthanold/mbin.git /m/mbin`
 ### 3. Run scripts and create user ubun2, default ubuntu will be a backup
-sudo /m/mbin/0ini.sh ubun2    #takes some time
-(if fails run with Make scripts executable:
-sudo chmod -R +x /m/mbin/*.sh
-)
-### 4. create passwords  (just execute: passwd)
-sudo passwd ubuntu   # create password for defaul ubuntu account
-sudo passwd ubun2    # create password for new ubun2 account
+`sudo /m/mbin/0ini.sh ubun2    #takes some time`
+
+If fails run with Make scripts executable: `sudo chmod -R +x /m/mbin/*.sh`
+### 4. create passwords
+`sudo passwd ubuntu`   # create password for defaul ubuntu account
+`sudo passwd ubun2`    # create password for new ubun2 account
 ### 5. reboot
-sudo reboot
+`sudo reboot`
 
-# =======================website=========================
-## set up dns (map domain to IP)
-[duckdns](https://www.duckdns.org/domains)
-[clouDNS](https://www.cloudns.net)
-## optionally: create dir, default /webs/*yourdomain*
-sudo web_0.sh emp2.duckdns.org
-## creates auto renewable certificate for https (cert that domain is on ip)
-## create ngnix site (map domain addres to a dir)
+# C **- website -**
+### set up free subdomain (map your subdomain to IP)
+- [duckdns](https://www.duckdns.org/domains)
+- [clouDNS](https://www.cloudns.net)
+### once IP is mapped to domain
+- `sudo 0web.sh yourname.duckdns.org`
+- creates auto renewable certificate for https (cert that domain is on ip)
+- creates ngnix site (map domain addres to a dir)
+- webiste root is /m/webs/yourname
+- u can change web root dir, run `0web.sh` for syntax
 
+# d **- Block Storage -**
+no good for aways free
+### OCI console
+- a. create block volume 
+- b. attach to VM
 
-
-## 4 -------------------- Block Storage ------------------------
-## OCI console
-### a. create block volume 
-### b. attach to VM
-
-## UBUNTU
-### Attach block voluem
+### UBUNTU
+- Attach block voluem, on can be shared others read only
+- if all write it needs paid stuff
