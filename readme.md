@@ -1,11 +1,16 @@
-# ================ ***always free setup*** =====================
-## 1 ----------------- OCI console account ---------------------
-Create account, credit card needed, will charge and immediately teurn about 1$.
-Will force you to create passkey.
-2 Micro instances (+ Ampere 4 CPU + 24 RAM)
-200 GB block storage
-VCN, DBs, Apex, monitoring, notifications and many other useless things
+# ===== ***always free setup*** ======
+## 1 -------- OCI console account and preparations ----------
+   ### 1 Basic info
+Create account, credit card needed, will charge and immediately return about 1$. Creating instance will create passkey or you can use yours.
+
+https://cloud.oracle.com/?region=<reion>&tenant=<tenant>&provider=Default&username=<username>
+
+- 2 Micro instances (+ Ampere 4 CPU + 24 RAM)
+- 200 GB block storage
+- VCN, DBs, Apex, monitoring, notifications and many other useless things
+
 https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm
+## Account preparations
    ### Enable alternative login methods and recovery in the Identity domain:
 In top right corner click: Profile > Identity domain
 Authentication tab
@@ -48,8 +53,7 @@ click Subnets tabs
 Create Subnet
 10.0.0.0/16 (same as above)
 click Create Subnet
-   ### e. user group
-allow all
+
 
 ## 3 --------Compute - Virtual Machine (VM) Instance------------
 Go to Compote > Instances
