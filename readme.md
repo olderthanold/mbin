@@ -1,16 +1,17 @@
-# ===== ***Oracle OCI always free setup*** ======
+# **Oracle OCI always free setup**
 ## 1 -------- OCI console account and preparations ----------
-   ### 1 Basic info
+   ### Basic info
 Create account, credit card needed, will charge and immediately return about 1$. Creating instance will create passkey or you can use yours. Add region, tenant and username to get your login link that save clicking/writing:
-
-`https://cloud.oracle.com/?region=<region>&tenant=<tenant>&provider=Default&username=<username>`
+```
+https://cloud.oracle.com/?region=<region>&tenant=<tenant>&provider=Default&username=<username>
+```
 
 - 2 Micro instances (+ Ampere 4 CPU + 24 RAM)
 - 200 GB block storage
 - VCN, DBs, Apex, monitoring, notifications and many other useless things
-
 [Always free resources](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm)
-## Account preparations
+
+## 1.1 *Account preparations*
    ### Enable alternative login methods and recovery in the Identity domain:
 + In top right corner click: `Profile > Identity Domain > Authentication tab`
 + Enable or Disable factors
@@ -21,12 +22,13 @@ Create account, credit card needed, will charge and immediately return about 1$.
 + In top right corner click: Profile > *yourmail*
 + Security tab
 + 2-step verification
-- Email
-- Mobile App
-- Security questions
+   - Email
+   - Mobile App
+   - Security questions
    ### Set up budget - alert for 1% of 1$ forecasted spending
+If you upgrade to get ampere you should set alert.
 
-## 2 ------------ Virtual Cloud Network (VCN) ------------------
+## 1.2 ------------ Virtual Cloud Network (VCN) ------------------
    ### Create a VCN, a network that connects all your virtual OCI stuff
 Go to Networking > Virtual Cloud Networks
 Create VCN
@@ -54,8 +56,7 @@ Create Subnet
 10.0.0.0/16 (same as above)
 click Create Subnet
 
-
-## 3 --------Compute - Virtual Machine (VM) Instance------------
+## 1.3 --------Compute - Virtual Machine (VM) Instance------------
 Go to Compote > Instances
 Click Create Instance button
 ### Basic information
@@ -85,10 +86,10 @@ Next
 Click Create
 Will take a bit of time, In progress
 
-# =======================UBUNTU VM SETUP========================
+# 2 **UBUNTU VM SETUP for Windows**
 ## init machine
 Get public IP from OCI console instance: 129.80.226.85
-### make keys mine
+### make keys yours
 icacls "c:\apps\keys\my.key" /inheritance:r
 icacls "c:\apps\keys\my.key" /grant:r "user:F"
 ### 1. Connect to the instance
