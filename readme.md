@@ -1,7 +1,7 @@
 # ===== ***Oracle OCI always free setup*** ======
 ## 1 -------- OCI console account and preparations ----------
    ### 1 Basic info
-Create account, credit card needed, will charge and immediately return about 1$. Creating instance will create passkey or you can use yours.
+Create account, credit card needed, will charge and immediately return about 1$. Creating instance will create passkey or you can use yours. Add region, tenant and username to get your login link that save clicking/writing:
 
 `https://cloud.oracle.com/?region=<region>&tenant=<tenant>&provider=Default&username=<username>`
 
@@ -9,13 +9,13 @@ Create account, credit card needed, will charge and immediately return about 1$.
 - 200 GB block storage
 - VCN, DBs, Apex, monitoring, notifications and many other useless things
 
-https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm
+[Always free resources](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm)
 ## Account preparations
    ### Enable alternative login methods and recovery in the Identity domain:
 In top right corner click: Profile > Identity domain
 Authentication tab
 Enable or Disable factors
-Turn on mail, mobile app, security Qs?
+Turn on mail, mobile app (4 digits), security Qs?
 Edit email settings: 4 60 10 72, Save changes
    ### Set up alternative login methods for yourslef
 In top right corner click: Profile > *yourmail*
