@@ -19,29 +19,10 @@ chmod 600 ~/.ssh/old.key
 chmod 600 ~/.ssh/config
 cd ~
 # ==== git ==============================================================
-git clone git@github.com:olderthanold/m.git ~/m
-git config user.email "olderthanold@gmail.com"
-git config user.name "olderthanold"
-git remote add github git@github.com:username/m.git
-git remote add gitlab git@gitlab.com:username/m.git
-git remote set-url --add --push origin git@github.com:olderthanold/m.git
-git remote set-url --add --push origin git@gitlab.com:olderthanold/m.git
-git remote -v
-git add .
-git pull
-git push
-
-git add .
-commit -m "ubuntucommit $(date +"%Y-%m-%d %H:%M:%S")"
-git push
-
-## ==== clone repo
-git clone -b main https://github.com/olderthanold/mbin.git ~/mm
+sudo git clone -b main https://github.com/olderthanold/mbin.git /m/mbin
+git clone https://github.com/olderthanold/mbin.git ~/mbin
 ## ==== update repo
-git -C ~/mm pull origin main
-## ==== push
-git add -A && git commit -m "update" && git push https://github.com/olderthanold/mbin.git main
-git add -A && git commit -m "update" && git push https://gitlab.com/olderthanold/mbin.git main
+git -C ~/mbin pull
 
 # ==== Executables ======================================================
 ## make executable, single or recursive whole dir
