@@ -1,47 +1,51 @@
-# **Oracle OCI always free setup**
-## 1 -------- OCI console account and preparations ----------
+# a. **- Oracle OCI always free setup -**
+## 1 *OCI console account info* ----------------------
    ### Basic info
 Create account, credit card needed, will charge and immediately return about 1$. Creating instance will create passkey or you can use yours. Add region, tenant and username to get your login link that save clicking/writing:
 ```
 https://cloud.oracle.com/?region=<region>&tenant=<tenant>&provider=Default&username=<username>
 ```
-
 - 2 Micro instances (+ Ampere 4 CPU + 24 RAM)
 - 200 GB block storage
 - VCN, DBs, Apex, monitoring, notifications and many other useless things
 [Always free resources](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm)
 
-## 1.1 *Account preparations*
-   ### Enable alternative login methods and recovery in the Identity domain:
+## 2 *Account preparations* ----------------------
+
+### Enable alternative login methods and recovery in the Identity domain:
 + In top right corner click: `Profile > Identity Domain > Authentication tab`
 + Enable or Disable factors
 + Turn on mail, mobile app (set 4 digits), security Qs
 + Edit email settings: 4 60 10 72
 + Save changes
-   ### Set up alternative login methods for yourslef
+
+### Set up alternative login methods for yourslef
 + In top right corner click: Profile > *yourmail*
 + Security tab
 + 2-step verification
    - Email
    - Mobile App
    - Security questions
-   ### Set up budget - alert for 1% of 1$ forecasted spending
+### Set up budget - alert for 1% of 1$ forecasted spending
 If you upgrade to get ampere you should set alert.
 
-## 1.2 ------------ Virtual Cloud Network (VCN) ------------------
-   ### Create a VCN, a network that connects all your virtual OCI stuff
+## 3 *Virtual Cloud Network (VCN)* ----------------------
+
+### Create a VCN, a network that connects all your virtual OCI stuff
 Go to Networking > Virtual Cloud Networks
 Create VCN
 Name it *yournet*
 CIDR 10.0.0.0/16
 Click Create VCN
 in Virtual Cloud Networks click *yournet*
-   ### b. Gateway - a virtual device in VCN for your VM to reach internets
+
+### b. Gateway - a virtual device in VCN for your VM to reach internets
 Click Gateways tab
 Create Internet Gateway
 Name it *yourgate*
 Click Create Internet Gateway
-   ### c. Routing - route outgoing traffic in VCN to your gateway
+
+### c. Routing - route outgoing traffic in VCN to your gateway
 Click Routing tab
 Click Default Route Table for *yournet*
 Route Rules
@@ -50,13 +54,15 @@ Internet Gateway
 0.0.0.0/0
 *yourgate*
 Click Add Route Rules
-   ### d. Subnet - it is good for dividing your VCN, we need only 1
+
+### d. Subnet - it is good for dividing your VCN, we need only 1
 click Subnets tabs
 Create Subnet
 10.0.0.0/16 (same as above)
 click Create Subnet
 
-## 1.3 --------Compute - Virtual Machine (VM) Instance------------
+## 4 *Compute - Virtual Machine (VM) Instance* ----------------------
+
 Go to Compote > Instances
 Click Create Instance button
 ### Basic information
@@ -86,12 +92,13 @@ Next
 Click Create
 Will take a bit of time, In progress
 
-# 2 **UBUNTU VM SETUP for Windows**
-## init machine
+# B. **- UBUNTU VM SETUP for Windows -**
+## 1 *Windows*
+## Get IP
 Get public IP from OCI console instance: 129.80.226.85
 ### make keys yours
-icacls "c:\apps\keys\my.key" /inheritance:r
-icacls "c:\apps\keys\my.key" /grant:r "user:F"
+`icacls "c:\apps\keys\my.key" /inheritance:r`
+`icacls "c:\apps\keys\my.key" /grant:r "user:F"`
 ### 1. Connect to the instance
 ssh -i c:\apps\keys\my.key ubuntu@92.5.32.30
 ### 2. Pull scripts from github
