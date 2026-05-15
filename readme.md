@@ -1,9 +1,9 @@
-# ===== ***always free setup*** ======
+# ===== ***Oracle OCI always free setup*** ======
 ## 1 -------- OCI console account and preparations ----------
    ### 1 Basic info
 Create account, credit card needed, will charge and immediately return about 1$. Creating instance will create passkey or you can use yours.
 
-https://cloud.oracle.com/?region=<reion>&tenant=<tenant>&provider=Default&username=<username>
+`https://cloud.oracle.com/?region=<region>&tenant=<tenant>&provider=Default&username=<username>`
 
 - 2 Micro instances (+ Ampere 4 CPU + 24 RAM)
 - 200 GB block storage
