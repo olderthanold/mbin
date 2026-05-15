@@ -12,15 +12,15 @@ Create account, credit card needed, will charge and immediately return about 1$.
 [Always free resources](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm)
 ## Account preparations
    ### Enable alternative login methods and recovery in the Identity domain:
-In top right corner click: Profile > Identity domain
-Authentication tab
-Enable or Disable factors
-Turn on mail, mobile app (4 digits), security Qs?
-Edit email settings: 4 60 10 72, Save changes
++ In top right corner click: `Profile > Identity Domain > Authentication tab`
++ Enable or Disable factors
++ Turn on mail, mobile app (set 4 digits), security Qs
++ Edit email settings: 4 60 10 72
++ Save changes
    ### Set up alternative login methods for yourslef
-In top right corner click: Profile > *yourmail*
-Security tab
-2-step verification
++ In top right corner click: Profile > *yourmail*
++ Security tab
++ 2-step verification
 - Email
 - Mobile App
 - Security questions
