@@ -1,14 +1,16 @@
 # ==== Llama router POC =================================================
 
+Run `0ainit.sh` without `sudo`; it requests `sudo` only for system-level child steps.
+
 ```bash
 # Full init: refresh service, download models, list aliases, load one model.
-sudo bash /m/mbin/0ainit.sh
+bash /m/mbin/0ainit.sh
 
 # Full init plus web/domain /llama/ alias. Default web root is domain prefix.
-sudo bash /m/mbin/0ainit.sh emp2.duckdns.org
+bash /m/mbin/0ainit.sh emp2.duckdns.org
 
 # Prefer a specific initial model after init.
-sudo LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
+LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 
 # Build/update llama.cpp, then create/restart llama-router.service.
 # If llama-router.service is already running, this prints status and exits.
@@ -168,12 +170,13 @@ llama-server -hf Jackrong/Qwen3.5-0.8B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:
   --host 127.0.0.1 \
   --port 8080 \
   --no-webui
+```
 
 
 
 
 # Link to llama.cpp GitHub page: https://github.com/ggml-org/llama.cpp
-```
+It is safer to run installation in tmux. Installation deosn't stop if terminal is closed (acciednt, timeout).
 # ==== tmux ================================================
 ```bash
 # install tmux (only once)

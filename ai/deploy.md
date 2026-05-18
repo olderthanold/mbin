@@ -3,17 +3,19 @@
 This document covers the llama.cpp router setup used by `/m/mbin/ai`.
 The static web files stay in `llmweb`; AI build/setup scripts stay in `ai`.
 
+Run `0ainit.sh` without `sudo`; it requests `sudo` only for system-level child steps and refuses root execution to avoid root-owned model/cache files.
+
 ## 1) Start llama router
 
 ```bash
 # Full AI init: refresh service, download models, list aliases, load one model.
-sudo bash /m/mbin/0ainit.sh
+bash /m/mbin/0ainit.sh
 
 # Full AI init plus web/domain /llama/ alias. Default web root is domain prefix.
-sudo bash /m/mbin/0ainit.sh emp2.duckdns.org
+bash /m/mbin/0ainit.sh emp2.duckdns.org
 
 # Prefer a specific initial model after init.
-sudo LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
+LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 
 # Build/update llama.cpp, then create/restart llama-router.service.
 # If llama-router.service is already running, this prints status and exits.

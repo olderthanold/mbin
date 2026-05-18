@@ -144,9 +144,11 @@ tail -f clone.log
 tail -f /proc/<pid>/fd/1
 
 # ==== AI build foreground ================================================
+Run `0ainit.sh` without `sudo`; it requests `sudo` only for system-level child steps.
+
 ```bash
-sudo bash /m/mbin/0ainit.sh
-sudo bash /m/mbin/0ainit.sh emp2.duckdns.org
+bash /m/mbin/0ainit.sh
+bash /m/mbin/0ainit.sh emp2.duckdns.org
 sudo bash /m/mbin/0buildai.sh
 sudo bash /m/mbin/0buildai.sh --status
 sudo bash /m/mbin/0buildai.sh --force

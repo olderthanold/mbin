@@ -2,10 +2,12 @@
 
 This document describes the run order started by `0ainit.sh`, including step numbering and script versions as detected from script headers by the wrapper.
 
+**Run `0ainit.sh` without `sudo`.** The wrapper requests `sudo` only for system-level child steps. Running the whole wrapper as root is refused to avoid root-owned model/cache files.
+
 ## Usage
 
 ```bash
-sudo bash /m/mbin/0ainit.sh [domain] [web_root]
+bash /m/mbin/0ainit.sh [domain] [web_root]
 ```
 
 - `domain` is optional, but when provided it must contain `.`.
@@ -18,21 +20,21 @@ sudo bash /m/mbin/0ainit.sh [domain] [web_root]
 
 ```bash
 # Refresh AI router service, ensure models are cached, list aliases, and load one model.
-sudo bash /m/mbin/0ainit.sh
+bash /m/mbin/0ainit.sh
 
 # Initialize AI runtime and wire https://emp2.duckdns.org/llama/ using web root argument "emp2".
-sudo bash /m/mbin/0ainit.sh emp2.duckdns.org
+bash /m/mbin/0ainit.sh emp2.duckdns.org
 
 # Initialize AI runtime and wire domain alias using an explicit relative web root.
-sudo bash /m/mbin/0ainit.sh emp2.duckdns.org emp2
+bash /m/mbin/0ainit.sh emp2.duckdns.org emp2
 
 # Override nginx proxy paths while initializing/listing aliases.
-sudo SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
+SNIPPET_PATH=/etc/nginx/snippets/llama-router-proxy.conf \
   PORT_ALIAS_CONF=/etc/nginx/conf.d/llama-router-1234.conf \
   bash /m/mbin/0ainit.sh
 
 # Prefer a specific initial model instead of the first preset entry.
-sudo LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
+LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 ```
 
 ```text
@@ -106,7 +108,7 @@ sudo LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 ## Notes
 
 - `0ainit.sh` is the AI runtime initializer: refresh router service, ensure configured GGUF models are cached, either list nginx aliases or wire a domain alias, then try to leave one model loaded.
-- `0ainit.sh` can be run without root, but root-required child operations are executed through `sudo` via `run_root`.
+- `0ainit.sh` must be run without root; root-required child operations are executed through `sudo` via `run_root`.
 - Running without arguments still preflights required child script files, but does not call `0web.sh` or modify domain site configs; it refreshes the router service, checks/downloads models, lists current nginx llama aliases, then tries to load an initial model.
 - Running with a domain calls `0web.sh` before `bai1_build_nginx_proxy.sh`, so the domain Nginx site should exist before the `/llama/` include is added.
 - If `<web_root>` is omitted for a domain, `0ainit.sh` passes the domain prefix as the web root argument, e.g. `emp2.duckdns.org` becomes `emp2`.

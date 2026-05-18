@@ -36,14 +36,16 @@ Initializes the AI router runtime:
      With domain, run 0web.sh and add the domain /llama/ alias.
   4. Ensure at least one model is loaded when a configured model exists.
 
+Run this wrapper without sudo/root. It asks for sudo only for system-level child steps.
+
 Environment:
   LLAMA_INIT_MODEL    Optional initial model alias/canonical ID to load.
                       Default: first model section in $MODELS_PRESET.
 
 Examples:
-  sudo bash $0
-  sudo bash $0 emp2.duckdns.org
-  sudo bash $0 emp2.duckdns.org emp2
+  bash $0
+  bash $0 emp2.duckdns.org
+  bash $0 emp2.duckdns.org emp2
 EOF
 }
 
@@ -62,6 +64,16 @@ ok() {
 
 warn() {
   echo -e "${YELLOW}WARN: $*${NC}"
+}
+
+refuse_root_invocation() {
+  if [[ "$EUID" -eq 0 ]]; then
+    echo -e "${RED}ERROR: Do not run ${SCRIPT_NAME} with sudo/root.${NC}" >&2
+    echo -e "${YELLOW}Run it as your normal user; sudo is requested only for system-level child steps.${NC}" >&2
+    echo >&2
+    show_help
+    exit 1
+  fi
 }
 
 run_root() {
@@ -210,6 +222,8 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   show_help
   exit 0
 fi
+
+refuse_root_invocation
 
 if [[ "$#" -gt 2 ]]; then
   show_help

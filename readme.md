@@ -1,4 +1,7 @@
 # a. **- Oracle OCI always free setup -**
+
+**AI init note:** run `/m/mbin/0ainit.sh` without `sudo`; it requests `sudo` only for system-level child steps.
+
 ## 1 *OCI console account info* ----------------------
    ### Basic info
 Create account, credit card needed, will charge and immediately return about 1$. Creating instance will create passkey or you can use yours. Add region, tenant and username to get your login link that save clicking/writing:
@@ -95,14 +98,14 @@ Will take a bit of time, In progress
 # B. **- UBUNTU VM SETUP for Windows -**
 ## 1 *Windows*
 ### Get IP
-Get public IP from OCI console (https://cloud.oracle.com/compute/instances) instance such as 129.80.226.856
+Get public IP from OCI console [Compute > Instances](https://cloud.oracle.com/compute/instances) instance such as 129.80.226.856
 ### make keys yours
 - `icacls "c:\apps\keys\my.key" /inheritance:r`
 - `icacls "c:\apps\keys\my.key" /grant:r "user:F"`
 ### 1. Connect to the instance
 `ssh -i c:\apps\keys\my.key ubuntu@92.5.32.303`
 ### 2. Pull scripts from github
-`sudo git clone -b main (https://github.com/olderthanold/mbin.git) /m/mbin`
+`sudo git clone -b main https://github.com/olderthanold/mbin.git /m/mbin`
 ### 3. Run scripts and create user ubun2, default ubuntu will be a backup
 `sudo /m/mbin/0ini.sh ubun2    #takes some time`
 
@@ -135,3 +138,6 @@ Don't do, no good for aways free.
 - if all write it needs paid stuff
 
 # d **- Set up llama.cpp llm server with tiny model -**
+```bash
+bash /m/mbin/0ainit.sh [domain] [web_root]
+```
