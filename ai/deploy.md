@@ -3,12 +3,12 @@
 This document covers the llama.cpp router setup used by `/m/mbin/ai`.
 The static web files stay in `llmweb`; AI build/setup scripts stay in `ai`.
 
-Run `0ainit.sh` without `sudo`; it requests `sudo` only for system-level child steps and refuses root execution to avoid root-owned model/cache files.
+Run `0ainit.sh` and `0web.sh` without `sudo`; they request `sudo` only for system-level child steps and refuse root execution to avoid root-owned generated files.
 
 ## 1) Start llama router
 
 ```bash
-# Full AI init: refresh service, download models, list aliases, load one model.
+# Status/help only: llama.cpp build, router service, loaded model, nginx aliases.
 bash /m/mbin/0ainit.sh
 
 # Full AI init plus web/domain /llama/ alias. Default web root is domain prefix.
@@ -17,8 +17,7 @@ bash /m/mbin/0ainit.sh emp2.duckdns.org
 # Prefer a specific initial model after init.
 LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 
-# Build/update llama.cpp, then create/restart llama-router.service.
-# If llama-router.service is already running, this prints status and exits.
+# Status/help only for llama.cpp/router build wrapper.
 sudo bash /m/mbin/0buildai.sh
 
 # Print router/build status without changing anything.
@@ -48,8 +47,8 @@ a clean checkout/rebuild. `--force` does not remove `/m/hfcache`, nginx proxy
 config, or webroot files.
 If an older wrapper left `/m/llama.cpp` as a non-git directory, plain
 `0buildai.sh` removes it automatically and clones a fresh checkout.
-If the router service is already active, default `0buildai.sh` is status-only; use
-`--service-only` for an intentional service rewrite/restart.
+No-argument `0buildai.sh` is status/help only; use `--service-only` for an
+intentional service rewrite/restart.
 Hugging Face model cache is stored under `/m/hfcache` by default. The cache and
 UFW port rules are handled by `ai/bai1_build_settings.sh`, not by the router
 service script.
@@ -87,7 +86,7 @@ Single-VM mode:
 
 ```bash
 # Serve copied llmweb content from the domain first.
-sudo bash /m/mbin/0web.sh llm129.duckdns.org
+bash /m/mbin/0web.sh llm129.duckdns.org
 
 # Adds public :1234 alias and, if the domain site exists, /llama/ proxy.
 sudo bash /m/mbin/ai/bai1_build_nginx_proxy.sh llm129.duckdns.org
@@ -97,7 +96,7 @@ Split web/LLM mode:
 
 ```bash
 # Run on the public web VM. Point nginx at the LLM VM.
-sudo bash /m/mbin/0web.sh olderthanold.duckdns.org
+bash /m/mbin/0web.sh olderthanold.duckdns.org
 
 sudo env LLAMA_BACKEND_URL=http://129.159.30.72:8080 \
   bash /m/mbin/ai/bai1_build_nginx_proxy.sh olderthanold.duckdns.org

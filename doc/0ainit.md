@@ -13,13 +13,13 @@ bash /m/mbin/0ainit.sh [domain] [web_root]
 - `domain` is optional, but when provided it must contain `.`.
 - `web_root` is optional and is used only when `domain` is provided.
 - If `domain` is provided and `web_root` is omitted, `web_root` defaults to the domain prefix before the first dot.
-- Without `domain`, the script refreshes the AI router service, ensures configured models are cached, lists current nginx llama aliases, then ensures one model is loaded when possible.
-- With `domain`, the script also runs `0web.sh`, adds/updates the nginx `/llama/` alias for that domain, then ensures one model is loaded when possible.
+- Without `domain`, the script is safe/status-only: it prints llama.cpp build status, router service status, loaded model status, nginx llama aliases, then help.
+- With `domain`, the script refreshes the AI router service, ensures configured models are cached, runs `0web.sh`, adds/updates the nginx `/llama/` alias for that domain, then ensures one model is loaded when possible.
 
 ## Examples
 
 ```bash
-# Refresh AI router service, ensure models are cached, list aliases, and load one model.
+# Print AI/router status, nginx llama aliases, and help without making changes.
 bash /m/mbin/0ainit.sh
 
 # Initialize AI runtime and wire https://emp2.duckdns.org/llama/ using web root argument "emp2".
@@ -38,9 +38,10 @@ LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 ```
 
 ```text
-0ainit.sh v02
+0ainit.sh v04
 |-- Args: [domain] [web_root]
 |   |-- -h|--help prints usage and exits
+|   |-- no args prints llama.cpp build status, router service status, aliases, and help
 |   |-- domain is optional, but when provided it must contain "."
 |   |-- web_root is optional and used only when domain is provided
 |   |-- if domain is provided and web_root is omitted: web_root defaults to domain prefix before first dot
@@ -51,8 +52,8 @@ LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 |   |-- LLAMA_CONTROL_SCRIPT default: /m/mbin/lctl.sh
 |   |-- LLAMA_INIT_MODEL optional initial model alias/canonical ID
 |   `-- LLAMA_MODELS_PRESET default: /m/mbin/ai/llama_models.ini
-|-- [1/4] 0buildai.sh v05 --service-only
-|   `-- 0buildai.sh v05
+|-- [1/4] 0buildai.sh v06 --service-only
+|   `-- 0buildai.sh v06
 |       |-- --service-only skips rebuild, but verifies llama-server runtime before service restart
 |       |-- resolves child scripts from the ai subdir of 0buildai.sh location
 |       |-- uses SERVICE_NAME default llama-router
@@ -88,7 +89,7 @@ LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
     |-- when no domain argument is provided
     |   `-- list nginx llama aliases
     `-- when domain argument is provided
-        |-- 0web.sh v13 <domain> <web_root>
+        |-- 0web.sh v15 <domain> <web_root>
         |   `-- create/update web root, nginx entry, certificate, and final HTTPS config
         |-- ai/bai1_build_nginx_proxy.sh v02 <domain>
         |   |-- write nginx /llama/ proxy snippet
@@ -109,7 +110,8 @@ LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 
 - `0ainit.sh` is the AI runtime initializer: refresh router service, ensure configured GGUF models are cached, either list nginx aliases or wire a domain alias, then try to leave one model loaded.
 - `0ainit.sh` must be run without root; root-required child operations are executed through `sudo` via `run_root`.
-- Running without arguments still preflights required child script files, but does not call `0web.sh` or modify domain site configs; it refreshes the router service, checks/downloads models, lists current nginx llama aliases, then tries to load an initial model.
+- `0web.sh` is also a non-root orchestrator as of `v15`, so `0ainit.sh` calls it directly and lets `0web.sh` sudo its own child steps.
+- Running without arguments is safe/status-only: it does not refresh the router service, does not download models, does not call `0web.sh`, does not modify domain site configs, and does not load a model.
 - Running with a domain calls `0web.sh` before `bai1_build_nginx_proxy.sh`, so the domain Nginx site should exist before the `/llama/` include is added.
 - If `<web_root>` is omitted for a domain, `0ainit.sh` passes the domain prefix as the web root argument, e.g. `emp2.duckdns.org` becomes `emp2`.
 - The public port alias uses port `1234`; the router backend defaults to `http://127.0.0.1:8080`.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 0ainit.sh v02
+# 0ainit.sh v04
 set -euo pipefail
 
 GREEN='\033[0;32m'
@@ -8,7 +8,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 SCRIPT_NAME="0ainit.sh"
-SCRIPT_VERSION="v02"
+SCRIPT_VERSION="v04"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 AI_DIR="$SCRIPT_DIR/ai"
@@ -21,6 +21,8 @@ MODELS_PRESET="${LLAMA_MODELS_PRESET:-$AI_DIR/llama_models.ini}"
 BASE_URL="${LLAMA_BASE_URL:-http://127.0.0.1:8080}"
 LOAD_TIMEOUT="${LLAMA_LOAD_TIMEOUT:-600}"
 INIT_MODEL="${LLAMA_INIT_MODEL:-}"
+LLAMA_DIR="${LLAMA_DIR:-/m/llama.cpp}"
+SERVICE_NAME="${SERVICE_NAME:-llama-router}"
 
 SNIPPET_PATH="${SNIPPET_PATH:-/etc/nginx/snippets/llama-router-proxy.conf}"
 PORT_ALIAS_CONF="${PORT_ALIAS_CONF:-/etc/nginx/conf.d/llama-router-1234.conf}"
@@ -30,17 +32,17 @@ show_help() {
 Usage: $0 [domain] [web_root]
 
 Initializes the AI router runtime:
-  1. Refresh llama-router.service from current model preset.
-  2. Ensure all configured GGUF models are downloaded into HF cache.
-  3. Without args, list current nginx llama aliases.
-     With domain, run 0web.sh and add the domain /llama/ alias.
-  4. Ensure at least one model is loaded when a configured model exists.
+  - Without args, print AI/router status, nginx llama aliases, and this help.
+  - With domain, refresh llama-router.service, ensure model cache, run 0web.sh,
+    add/update the domain /llama/ alias, and ensure one model is loaded.
 
 Run this wrapper without sudo/root. It asks for sudo only for system-level child steps.
 
 Environment:
   LLAMA_INIT_MODEL    Optional initial model alias/canonical ID to load.
                       Default: first model section in $MODELS_PRESET.
+  LLAMA_DIR           llama.cpp checkout/build directory. Default: $LLAMA_DIR.
+  SERVICE_NAME        Systemd service name. Default: $SERVICE_NAME.
 
 Examples:
   bash $0
@@ -175,6 +177,54 @@ loaded_models() {
   LLAMA_BASE_URL="$BASE_URL" bash "$LLAMA_CONTROL_SCRIPT" loaded 2>/dev/null || true
 }
 
+print_llama_build_status() {
+  info "llama.cpp build"
+  echo "LLAMA_DIR: $LLAMA_DIR"
+  if [[ -x "$LLAMA_DIR/build/bin/llama-server" && -x "$LLAMA_DIR/build/bin/llama-cli" ]]; then
+    ok "llama.cpp built: yes"
+  else
+    warn "llama.cpp built: no/incomplete"
+  fi
+  echo "llama-server: $([[ -e "$LLAMA_DIR/build/bin/llama-server" ]] && printf '%s' "$LLAMA_DIR/build/bin/llama-server" || printf '<missing>')"
+  echo "llama-cli:    $([[ -e "$LLAMA_DIR/build/bin/llama-cli" ]] && printf '%s' "$LLAMA_DIR/build/bin/llama-cli" || printf '<missing>')"
+  echo
+}
+
+print_router_service_status() {
+  info "Router service"
+  echo "Service: ${SERVICE_NAME}.service"
+  if command -v systemctl >/dev/null 2>&1; then
+    echo "is-active:  $(systemctl is-active "${SERVICE_NAME}.service" 2>/dev/null || true)"
+    echo "is-enabled: $(systemctl is-enabled "${SERVICE_NAME}.service" 2>/dev/null || true)"
+  else
+    warn "systemctl not found"
+  fi
+  echo
+}
+
+print_loaded_model_status() {
+  info "Loaded llama models"
+  if [[ ! -f "$LLAMA_CONTROL_SCRIPT" ]]; then
+    warn "llama control script not found: $LLAMA_CONTROL_SCRIPT"
+    echo
+    return 0
+  fi
+  loaded_models || true
+  echo
+}
+
+print_status() {
+  info "${SCRIPT_NAME} ${SCRIPT_VERSION} status"
+  echo "BASE_URL: $BASE_URL"
+  echo "MODELS_PRESET: $MODELS_PRESET"
+  echo
+  print_llama_build_status
+  print_router_service_status
+  print_loaded_model_status
+  list_nginx_aliases
+  echo
+}
+
 ensure_initial_model_loaded() {
   local loaded
   local model
@@ -241,6 +291,12 @@ if [[ -n "$DOMAIN" && -z "$WEB_ROOT_ARG" ]]; then
   WEB_ROOT_ARG="$(default_web_root_arg "$DOMAIN")"
 fi
 
+if [[ -z "$DOMAIN" ]]; then
+  print_status
+  show_help
+  exit 0
+fi
+
 require_file "$BUILD_WRAPPER"
 require_file "$WEB_WRAPPER"
 require_file "$MODEL_CACHE_SCRIPT"
@@ -271,16 +327,8 @@ run_root bash "$BUILD_WRAPPER" --service-only
 info "[2/4] Ensuring configured GGUF models are downloaded..."
 bash "$MODEL_CACHE_SCRIPT"
 
-if [[ -z "$DOMAIN" ]]; then
-  info "[3/4] Listing nginx aliases..."
-  list_nginx_aliases
-  ensure_initial_model_loaded
-  ok "Done. AI init check complete."
-  exit 0
-fi
-
 info "[3/4] Creating/updating web and nginx llama alias..."
-run_root bash "$WEB_WRAPPER" "$DOMAIN" "$WEB_ROOT_ARG"
+bash "$WEB_WRAPPER" "$DOMAIN" "$WEB_ROOT_ARG"
 run_root bash "$NGINX_PROXY_SCRIPT" "$DOMAIN"
 list_nginx_aliases
 ensure_initial_model_loaded

@@ -2,10 +2,12 @@
 
 This document describes the run order started by `0ini.sh`, including step numbering and script versions as printed by the scripts.
 
+**Run `0ini.sh` without `sudo`.** The wrapper requests `sudo` only for system-level child steps. Running the whole wrapper as root is refused to keep top-level orchestration under the normal user.
+
 ## Usage
 
 ```bash
-sudo bash /m/mbin/0ini.sh [target_user]
+bash /m/mbin/0ini.sh [target_user]
 ```
 
 - `target_user` is optional.
@@ -16,16 +18,18 @@ sudo bash /m/mbin/0ini.sh [target_user]
 
 ```bash
 # Run server-level setup and user-level repository refresh only.
-sudo bash /m/mbin/0ini.sh
+bash /m/mbin/0ini.sh
 
 # Run setup, clone/create user "emp", then refresh /m/mbin with extra group sync for emp.
-sudo bash /m/mbin/0ini.sh emp
+bash /m/mbin/0ini.sh emp
 ```
 
 ```text
-0ini.sh v07
-|-- requires root (use sudo)
+0ini.sh v08
+|-- refuses root/sudo; run as normal user
+|-- root-required child steps are executed through sudo via run_root
 |-- Args: [target_user]
+|   |-- -h|--help prints usage and exits
 |   `-- optional target username is passed to inu1user.sh
 |-- resolves child scripts next to 0ini.sh
 |-- [1/2] ini1sys.sh v15
@@ -99,7 +103,7 @@ sudo bash /m/mbin/0ini.sh emp
 ## Notes
 
 - `0ini.sh` always runs `ini1sys.sh` first, then `inu1user.sh`.
-- `0ini.sh`, `ini1sys.sh`, and `inu1user.sh` require root/sudo.
+- `0ini.sh` must be run without root; `ini1sys.sh` and `inu1user.sh` are executed through `sudo` via `run_root`.
 - `inu2_clone_user.sh` is conditionally executed only if a username argument is passed to `0ini.sh`.
 - If the requested target user already exists, `inu1user.sh` skips the clone step for idempotency.
 - `mgit_https.sh` is the final `inu1user.sh` step.

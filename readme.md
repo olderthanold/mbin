@@ -1,6 +1,7 @@
 # a. **- Oracle OCI always free setup -**
 
-**AI init note:** run `/m/mbin/0ainit.sh` without `sudo`; it requests `sudo` only for system-level child steps.
+**Wrapper note:** run `/m/mbin/0ini.sh`, `/m/mbin/0web.sh`, and `/m/mbin/0ainit.sh` without `sudo`; these wrappers request `sudo` only for system-level child steps.
+Most top-level wrappers print status/help without making changes when run without arguments, except `0ini.sh` where no-arg still means “run init without cloning a user”.
 
 ## 1 *OCI console account info* ----------------------
    ### Basic info
@@ -107,7 +108,7 @@ Get public IP from OCI console [Compute > Instances](https://cloud.oracle.com/co
 ### 2. Pull scripts from github
 `sudo git clone -b main https://github.com/olderthanold/mbin.git /m/mbin`
 ### 3. Run scripts and create user ubun2, default ubuntu will be a backup
-`sudo /m/mbin/0ini.sh ubun2    #takes some time`
+`bash /m/mbin/0ini.sh ubun2    #takes some time`
 
 If fails run with Make scripts executable: `sudo chmod -R +x /m/mbin/*.sh`
 ### 4. create passwords
@@ -121,7 +122,7 @@ If fails run with Make scripts executable: `sudo chmod -R +x /m/mbin/*.sh`
 - [duckdns](https://www.duckdns.org/domains)
 - [clouDNS](https://www.cloudns.net)
 ### once IP is mapped to domain
-- `sudo 0web.sh yourname.duckdns.org`
+- `bash /m/mbin/0web.sh yourname.duckdns.org`
 - creates auto renewable certificate for https (cert that domain is on ip)
 - creates ngnix site (map domain addres to a dir)
 - webiste root is /m/webs/yourname
@@ -139,5 +140,9 @@ Don't do, no good for aways free.
 
 # d **- Set up llama.cpp llm server with tiny model -**
 ```bash
+# Status/help only.
+bash /m/mbin/0ainit.sh
+
+# Domain workflow.
 bash /m/mbin/0ainit.sh [domain] [web_root]
 ```

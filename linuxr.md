@@ -156,10 +156,11 @@ sudo bash /m/mbin/0buildai.sh --build-only
 sudo bash /m/mbin/0buildai.sh --service-only
 sudo env HF_CACHE_DIR=/m/ai-cache bash /m/mbin/0buildai.sh --service-only
 ```
-`0ainit.sh` refreshes the router service, downloads missing configured GGUF models one by one, and lists/adds nginx `/llama/` aliases.
+No-arg `0ainit.sh` prints AI/router status, nginx llama aliases, and help without making changes.
+No-arg `0buildai.sh` prints build/router status and help without making changes.
+`0ainit.sh <domain>` refreshes the router service, downloads missing configured GGUF models one by one, and lists/adds nginx `/llama/` aliases.
 `--force` resets only `/m/llama.cpp` and `llama-router.service`; `/m/hfcache`, nginx proxy config and webroot stay in place.
-Plain `0buildai.sh` automatically removes non-git `/m/llama.cpp` and clones a fresh checkout.
-If `llama-router.service` is already running, plain `0buildai.sh` only prints status.
+Explicit build modes such as `--build-only`, `--service-only`, or `--force` perform changes; no-arg `0buildai.sh` is status/help only.
 HF cache setup and UFW allow rules are handled by `/m/mbin/ai/bai1_build_settings.sh`.
 du -sh /m/hfcache
 

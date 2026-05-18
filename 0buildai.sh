@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 0buildai.sh v05
+# 0buildai.sh v06
 set -euo pipefail
 
 GREEN='\033[0;32m'
@@ -8,7 +8,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 SCRIPT_NAME="0buildai.sh"
-SCRIPT_VERSION="v05"
+SCRIPT_VERSION="v06"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 AI_DIR="$SCRIPT_DIR/ai"
@@ -27,12 +27,15 @@ BUILD_ONLY="false"
 SERVICE_ONLY="false"
 FORCE="false"
 STATUS_ONLY="false"
+ORIGINAL_ARG_COUNT="$#"
 
 show_help() {
   cat <<EOF
 Usage: $0 [--status|--force|--build-only|--service-only]
 
 Build/update llama.cpp and configure the llama router systemd service.
+
+Without arguments, prints build/router status and this help, then exits.
 
 Defaults:
   LLAMA_DIR=$LLAMA_DIR
@@ -225,6 +228,11 @@ print_router_status() {
   info "Router/build status"
   echo "Service: ${SERVICE_NAME}.service"
   echo "LLAMA_DIR: $LLAMA_DIR"
+  if [[ -x "$LLAMA_DIR/build/bin/llama-server" && -x "$LLAMA_DIR/build/bin/llama-cli" ]]; then
+    echo "llama.cpp built: yes"
+  else
+    echo "llama.cpp built: no/incomplete"
+  fi
   echo "HF_CACHE_DIR: $HF_CACHE_DIR"
   echo "Settings env file: $SETTINGS_ENV_FILE"
   echo "Expected local API: http://127.0.0.1:${bind_port}"
@@ -438,6 +446,13 @@ echo "  - $ROUTER_SERVICE_SCRIPT ${ROUTER_SERVICE_VERSION:-<unknown>}"
 
 if [[ "$RESET_BAD_TARGET_DEPRECATED" == "true" ]]; then
   warn "--reset-bad-target is deprecated; non-git LLAMA_DIR cleanup is automatic."
+fi
+
+if [[ "$ORIGINAL_ARG_COUNT" -eq 0 ]]; then
+  print_router_status
+  echo
+  show_help
+  exit 0
 fi
 
 if [[ "$STATUS_ONLY" == "true" ]]; then

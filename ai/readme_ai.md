@@ -1,9 +1,9 @@
 # ==== Llama router POC =================================================
 
-Run `0ainit.sh` without `sudo`; it requests `sudo` only for system-level child steps.
+Run `0ainit.sh` and `0web.sh` without `sudo`; they request `sudo` only for system-level child steps and refuse root execution.
 
 ```bash
-# Full init: refresh service, download models, list aliases, load one model.
+# Status/help only: llama.cpp build, router service, loaded model, nginx aliases.
 bash /m/mbin/0ainit.sh
 
 # Full init plus web/domain /llama/ alias. Default web root is domain prefix.
@@ -12,8 +12,7 @@ bash /m/mbin/0ainit.sh emp2.duckdns.org
 # Prefer a specific initial model after init.
 LLAMA_INIT_MODEL=smollm360 bash /m/mbin/0ainit.sh emp2.duckdns.org
 
-# Build/update llama.cpp, then create/restart llama-router.service.
-# If llama-router.service is already running, this prints status and exits.
+# Status/help only for llama.cpp/router build wrapper.
 sudo bash /m/mbin/0buildai.sh
 
 # Print router/build status without changing anything.
@@ -32,7 +31,7 @@ sudo bash /m/mbin/0buildai.sh --service-only
 sudo env HF_CACHE_DIR=/m/ai-cache bash /m/mbin/0buildai.sh --service-only
 
 # Serve copied llmweb from the domain first.
-sudo bash /m/mbin/0web.sh llm129.duckdns.org
+bash /m/mbin/0web.sh llm129.duckdns.org
 
 # Add nginx :1234 alias and optional domain /llama/ proxy.
 sudo bash /m/mbin/ai/bai1_build_nginx_proxy.sh llm129.duckdns.org
@@ -58,7 +57,7 @@ Short names are aliases only; the router and Web UI use canonical HF/cache IDs.
 Use `rawmodels` for the raw router JSON when debugging.
 Existing builds are only smoke-tested unless `--force` is used. `--service-only` also verifies `llama-server` before restart and may create a compatibility symlink for a moved legacy RUNPATH. `--force` does not remove `/m/hfcache`, nginx proxy config, or webroot files.
 If an older wrapper left `/m/llama.cpp` as a non-git directory, plain `0buildai.sh` removes it automatically and clones a fresh checkout.
-If the router service is already active, default `0buildai.sh` is status-only; use `--service-only` for an intentional service rewrite/restart.
+No-argument `0buildai.sh` is status/help only; use `--service-only` for an intentional service rewrite/restart.
 Hugging Face model cache is stored under `/m/hfcache` by default. HF cache setup and UFW allow rules are handled by `ai/bai1_build_settings.sh`.
 `0ainit.sh` uses `ai/bai1_init_model_cache.sh` to load missing models one by one so their GGUF files are present under `/m/hfcache`.
 At the end, `0ainit.sh` leaves any already loaded model alone; otherwise it loads `LLAMA_INIT_MODEL` or the first model in `ai/llama_models.ini`. If no configured model exists or loading fails, it warns and leaves `/llama/` reachable but not ready for inference until `lctl.sh load <model>` succeeds.

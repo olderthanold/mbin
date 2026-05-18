@@ -2,13 +2,16 @@
 
 This document describes the run order started by `0web.sh`, including step numbering and script versions as printed by the scripts.
 
+**Run `0web.sh` without `sudo`.** The wrapper requests `sudo` only for system-level child steps. Running the whole wrapper as root is refused to keep top-level orchestration under the normal user.
+
 ## Usage
 
 ```bash
-sudo bash /m/mbin/0web.sh <domain> [web_root]
+bash /m/mbin/0web.sh [domain] [web_root]
 ```
 
-- `domain` is required and must contain `.`.
+- Without arguments, `0web.sh` prints Nginx/web/UFW status, then help, and exits without making changes.
+- `domain` is required for website creation/update and must contain `.`.
 - `web_root` is optional.
 - If `web_root` is omitted, it defaults to the domain prefix before the first dot.
 - The omitted-default target path is `${WEB_BASE_DIR:-/m/webs}/<domain_prefix>`.
@@ -18,23 +21,29 @@ sudo bash /m/mbin/0web.sh <domain> [web_root]
 ## Examples
 
 ```bash
+# Print Nginx/web/UFW status and help without making changes.
+bash /m/mbin/0web.sh
+
 # Create/update website for a domain using the default web root: /m/webs/example.
-sudo bash /m/mbin/0web.sh example.com
+bash /m/mbin/0web.sh example.com
 
 # Create/update website for a domain using relative web root: /m/webs/example.
-sudo bash /m/mbin/0web.sh example.com example
+bash /m/mbin/0web.sh example.com example
 
 # Create/update website for a domain using an absolute web root.
-sudo bash /m/mbin/0web.sh example.com /m/webs/example.com
+bash /m/mbin/0web.sh example.com /m/webs/example.com
 
 # Use a custom web base for relative/default web roots.
-sudo WEB_BASE_DIR=/srv/webs bash /m/mbin/0web.sh example.com example
+WEB_BASE_DIR=/srv/webs bash /m/mbin/0web.sh example.com example
 ```
 
 ```text
-0web.sh v13
-|-- Args: <domain> [web_root]
-|   |-- domain is required and must contain "."
+0web.sh v15
+|-- refuses root/sudo; run as normal user
+|-- root-required child steps are executed through sudo via run_root
+|-- Args: [domain] [web_root]
+|   |-- no args prints Nginx/web/UFW status + help and exits with no changes
+|   |-- domain is required for website creation/update and must contain "."
 |   |-- -h|--help prints usage and exits
 |   |-- if web_root is omitted: defaults to domain prefix before first dot
 |   |-- default web base is /m/webs (override with WEB_BASE_DIR)
@@ -98,13 +107,15 @@ sudo WEB_BASE_DIR=/srv/webs bash /m/mbin/0web.sh example.com example
 ## Notes
 
 - `0web.sh` prints resolved child script paths and detected versions before running steps.
+- Running `0web.sh` without arguments is safe/status-only: it reports Nginx availability/service state, configured sites with detected local root paths, a short UFW/open-port summary, then help.
+- `0web.sh` must be run without root; root-required child scripts are executed through `sudo` via `run_root`.
 - Web-root ensure/init is centralized in `web1_webroot.sh`.
 - `web1_webroot.sh` copies the whole `llmweb/` directory only for newly created web roots.
 - `web1_adapt_index.sh` edits the copied target `index.htm`, not the repo template in `llmweb/`.
 - `web1_entry_nginx.sh` exposes `/_pages/` as a public JSON autoindex for live web-root listing; it includes names, types, modified times, and file sizes from Nginx, but not filesystem capacity/free-space metrics.
 - `WEB_BASE_DIR` can override the default `/m/webs`.
 - `M_BASE_DIR` can override the default `/m` base used by `web1_webs.sh`; in the normal `0web.sh` flow, set `WEB_BASE_DIR` too if the web base should move away from `/m/webs`.
-- `web1_webs.sh`, `web1_webroot.sh`, `web1_adapt_index.sh`, and `web1_cert_nginx.sh` require root.
+- `web1_webs.sh`, `web1_webroot.sh`, `web1_adapt_index.sh`, and `web1_cert_nginx.sh` require root and are called through `sudo` by `0web.sh`.
 - `web1_entry_nginx.sh` uses `sudo` commands internally.
 
 ## Shell scripts in this directory that are not used by 0web flow
