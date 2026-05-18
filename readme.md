@@ -95,14 +95,14 @@ Will take a bit of time, In progress
 # B. **- UBUNTU VM SETUP for Windows -**
 ## 1 *Windows*
 ### Get IP
-Get public IP from OCI console instance: 129.80.226.856
+Get public IP from OCI console (https://cloud.oracle.com/compute/instances) instance such as 129.80.226.856
 ### make keys yours
 - `icacls "c:\apps\keys\my.key" /inheritance:r`
 - `icacls "c:\apps\keys\my.key" /grant:r "user:F"`
 ### 1. Connect to the instance
 `ssh -i c:\apps\keys\my.key ubuntu@92.5.32.303`
 ### 2. Pull scripts from github
-`sudo git clone -b main https://github.com/olderthanold/mbin.git /m/mbin`
+`sudo git clone -b main (https://github.com/olderthanold/mbin.git) /m/mbin`
 ### 3. Run scripts and create user ubun2, default ubuntu will be a backup
 `sudo /m/mbin/0ini.sh ubun2    #takes some time`
 
@@ -125,7 +125,7 @@ If fails run with Make scripts executable: `sudo chmod -R +x /m/mbin/*.sh`
 - u can change web root dir, run `0web.sh` for syntax
 
 # d **- Block Storage -**
-no good for aways free
+Don't do, no good for aways free.
 ### OCI console
 - a. create block volume 
 - b. attach to VM
@@ -133,3 +133,5 @@ no good for aways free
 ### UBUNTU
 - Attach block voluem, on can be shared others read only
 - if all write it needs paid stuff
+
+# d **- Set up llama.cpp llm server with tiny model -**
