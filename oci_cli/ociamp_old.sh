@@ -1,27 +1,10 @@
-#!/usr/bin/env bash
-# Repeatedly attempts to create an OCI Compute instance across availability domains, validating OCI CLI and the SSH key first.
-# Iterates through configured availability domains until an instance is created successfully.
-# ociamp2.sh v02
-set -uo pipefail
+# Repeatedly attempts to create an OCI Compute instance across availability domains until one attempt succeeds.
+# Uses embedded OCI CLI parameters for the target compartment, subnet, and instance shape.
+# ociamp.sh v01
 
-GREEN='\033[0;32m'
+# Define terminal colors for highlighted echo output.
 YELLOW='\033[1;33m'
-RED='\033[0;31m'
 NC='\033[0m' # No Color
-
-SSH_AUTHORIZED_KEYS_FILE="${SSH_AUTHORIZED_KEYS_FILE:-/m/mbin/old.pub}"
-
-echo -e "${YELLOW}Running ociamp2.sh v02${NC}"
-
-if ! command -v oci >/dev/null 2>&1; then
-    echo -e "${RED}Error: OCI CLI command not found: oci${NC}"
-    exit 1
-fi
-
-if [[ ! -r "$SSH_AUTHORIZED_KEYS_FILE" ]]; then
-    echo -e "${RED}Error: SSH public key file not readable: $SSH_AUTHORIZED_KEYS_FILE${NC}"
-    exit 1
-fi
 
 # Define the availability domains ----------------------------------------- <UPDATE> -------------------------------------------
 AD1="sYfx:EU-FRANKFURT-1-AD-1"
@@ -34,7 +17,7 @@ AVAILABILITY_DOMAINS=("$AD1" "$AD2" "$AD3")
 # Loop indefinitely until a command succeeds
 while true; do
     for AVAILABILITY_DOMAIN in "${AVAILABILITY_DOMAINS[@]}"; do
-        echo "Attempting to launch instance in Availability Domain: $AVAILABILITY_DOMAIN"
+        echo -e "${YELLOW}===== Attempting to launch instance in Availability Domain: $AVAILABILITY_DOMAIN =====${NC}"
         # ------------------------------------------------------------ <UPDATE AS NECESSARY> ------------------------------------
         oci compute instance launch \
             --availability-domain "$AVAILABILITY_DOMAIN" \
@@ -58,12 +41,12 @@ while true; do
             --display-name "amp" \
             --image-id "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaasoblespfnzqa67jnq4psbpnbal4mlh2tpwnlhnhvmkhzuqbrxu4a" \
             --instance-options '{"are_legacy_imds_endpoints_disabled": false}' \
-            --shape-config '{"memory_in_gbs": 24, "ocpus": 4}' \
-            --ssh-authorized-keys-file "$SSH_AUTHORIZED_KEYS_FILE"
+            --shape-config '{"memory_in_gbs": 12, "ocpus": 2}' \
+            --ssh-authorized-keys-file /m/mbin/old.pub
             #--ssh-authorized-keys "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGuCF0uiflr/lzzD8Ha5VPKhMt9O7BGl4uwrV2TFnjDq"
 
         if [ $? -eq 0 ]; then
-            echo -e "${GREEN}Instance created successfully in $AVAILABILITY_DOMAIN.${NC}"
+            echo -e "${YELLOW}Instance created successfully in $AVAILABILITY_DOMAIN.${NC}"
             exit 0  # Exit the script after successful execution
         else
             echo -e "${YELLOW}Failed to launch instance in $AVAILABILITY_DOMAIN. Trying the next one...${NC}"
