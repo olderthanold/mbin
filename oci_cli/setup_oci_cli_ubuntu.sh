@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Installs OCI CLI on Ubuntu, verifies the command, and can optionally start interactive credential configuration.
+# Uses Oracle's official installer and is intended for a regular user with sudo access.
 
 # ============================================================================
 # OCI CLI setup script for Ubuntu (Oracle Cloud Free Tier VM friendly)

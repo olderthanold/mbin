@@ -1,4 +1,6 @@
 #!/bin/bash
+# Updates the system and installs the base tools required to operate the server.
+# Checks installed packages and installs only missing components.
 set -euo pipefail  # Fail on errors/unset vars/pipeline failures
 
 GREEN='\033[0;32m'

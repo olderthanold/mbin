@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Controls the llama-router HTTP API: status checks, model listing, loading, unloading, and simple chat.
+# Resolves model aliases from ai/llama_aliases.ini and waits for loading to finish within the configured timeout.
 # lctl.sh v13
 set -euo pipefail
 

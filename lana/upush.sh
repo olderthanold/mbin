@@ -1,3 +1,4 @@
+# Adds, commits, and pushes changes from a supplied Git repository; uses ~/m when no path is given.
 gpush() {
     echo supply path else runs push for ~/m
     # First argument = repo path, default is $HOME/m if nothing is passed

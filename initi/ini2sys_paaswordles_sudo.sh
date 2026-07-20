@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Ensures passwordless sudo for the %sudo group in /etc/sudoers.d.
+# Looks for an existing rule first, otherwise safely adds it to a compatible or new drop-in file.
 set -euo pipefail
 
 GREEN='\033[0;32m'

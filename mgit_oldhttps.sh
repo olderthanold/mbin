@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Legacy helper for updating the /m/mbin repository over HTTPS.
+# Preserves the original workflow for compatibility; use mgit_https.sh for current management.
 # mgit_oldhttps.sh v01
 set -euo pipefail
 

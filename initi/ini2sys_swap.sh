@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Creates, activates, and persistently records a 5 GiB swap file in /etc/fstab.
+# Checks the current swap state before changes, making the script safe to rerun.
 set -euo pipefail
 
 GREEN='\033[0;32m'

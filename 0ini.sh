@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Runs the complete server initialization workflow and can optionally create a cloned user.
+# This wrapper runs ini1sys.sh for host setup, then inu1user.sh for user setup.
 # 0ini.sh v08
 set -euo pipefail  # Stop on errors/unset vars
 

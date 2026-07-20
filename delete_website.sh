@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Removes Nginx configuration, links, and certificate artifacts for a website domain.
+# Intentionally leaves the website content directory untouched.
 set -euo pipefail
 
 GREEN='\033[0;32m'

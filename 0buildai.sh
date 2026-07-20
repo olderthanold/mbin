@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Builds or updates llama.cpp and configures the llama-router system service.
+# Flags select build-only, service-only, or status checks and pass configuration to the child AI scripts.
 # 0buildai.sh v06
 set -euo pipefail
 

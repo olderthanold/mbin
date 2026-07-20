@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Orchestrates host-level server initialization: updates, swap, SSH, sudo, PATH, firewall, and network checks.
+# Verifies availability and versions of child scripts in initi/ and runs them in a defined order.
 set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
 GREEN='\033[0;32m'

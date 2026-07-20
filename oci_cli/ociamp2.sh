@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Repeatedly attempts to create an OCI Compute instance across availability domains, validating OCI CLI and the SSH key first.
+# Iterates through configured availability domains until an instance is created successfully.
 # ociamp2.sh v02
 set -uo pipefail
 

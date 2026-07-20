@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Writes llama-router runtime settings to /etc/default, including cache, user, and optional UFW ports.
+# Reads and validates environment values, then safely performs system changes through sudo/root.
 # bai1_build_settings.sh v01
 set -euo pipefail
 

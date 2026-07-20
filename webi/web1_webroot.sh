@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Ensures a domain web root exists and populates it with default content from llmweb on first creation.
+# Accepts absolute and relative paths; resolves relative paths under /m/webs.
 set -euo pipefail
 
 GREEN='\033[0;32m'

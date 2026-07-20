@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Ensures the shared /m/webs directory exists and is readable by www-data.
 set -euo pipefail
 
 GREEN='\033[0;32m'

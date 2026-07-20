@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Sets up a website for a domain: content directory, Nginx configuration, and a Let's Encrypt certificate.
+# Creates the web root, adapts the index, deploys HTTP bootstrap config, obtains a certificate, and deploys final HTTPS config.
 set -euo pipefail
 
 GREEN='\033[0;32m'

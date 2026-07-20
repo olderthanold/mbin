@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Optionally installs or updates llama.cpp through Homebrew and verifies the resulting binaries.
+# This is an alternative to the Linux build path through 0buildai.sh.
 # bai1_build_brew_llama.sh v01
 set -euo pipefail
 

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Adapts a copied index.htm for a specific domain and the host IP addresses.
+# Resolves the web root from an optional path and performs targeted replacements in the template.
 set -euo pipefail
 
 GREEN='\033[0;32m'

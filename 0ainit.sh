@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Orchestrates AI router setup: builds or verifies llama.cpp, the model cache, and the Nginx proxy for a domain.
+# Calls 0buildai.sh, model initialization, and 0web.sh in sequence; without a domain, it only prints service status.
 # 0ainit.sh v04
 set -euo pipefail
 

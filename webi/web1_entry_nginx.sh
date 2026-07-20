@@ -1,4 +1,6 @@
 #!/bin/bash
+# Creates or refreshes the Nginx site configuration for a domain and its web root.
+# Deploys HTTP configuration for certbot first, then switches to HTTP redirect and an HTTPS block including /_pages/.
 set -e  # Stop on first error
 
 GREEN='\033[0;32m'

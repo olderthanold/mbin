@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Adds /m/mbin to the global PATH for login users, root, and sudo.
+# Creates /etc/profile.d/mbin.sh and safely normalizes existing PATH lines in .bashrc and sudoers configuration.
 set -euo pipefail
 
 GREEN='\033[0;32m'

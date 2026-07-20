@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Configures the UFW firewall for the server and removes obsolete INPUT rules.
+# Retries package installation during temporary apt/dpkg locks and applies rules idempotently.
 set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
 GREEN='\033[0;32m'

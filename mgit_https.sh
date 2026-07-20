@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Manages a local mbin Git clone over HTTPS: initializes, updates, and synchronizes a selected repository.
+# Works idempotently with the target path, remote URL, and optional user.
 set -euo pipefail
 
 SCRIPT_NAME="mgit_https.sh"

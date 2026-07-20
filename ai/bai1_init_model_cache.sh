@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Verifies llama-router models and downloads missing GGUF files by loading them one at a time.
+# Reads configuration from presets and service settings; --check-only performs no changes.
 # bai1_init_model_cache.sh v05
 set -euo pipefail
 

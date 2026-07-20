@@ -1,3 +1,5 @@
+# Repeatedly attempts to create an OCI Compute instance across availability domains until one attempt succeeds.
+# Uses embedded OCI CLI parameters for the target compartment, subnet, and instance shape.
 # ociamp.sh v01
 
 # Define terminal colors for highlighted echo output.

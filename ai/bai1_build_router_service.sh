@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Creates and starts the llama.cpp llama-router systemd service.
+# Generates a unit with model and server settings, validates it, and supports --write-only mode.
 # bai1_build_router_service.sh v10
 set -euo pipefail
 

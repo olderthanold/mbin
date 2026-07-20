@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Creates a new user as a copy of an existing user, including selected home files and SSH authorization.
+# Runs as root, validates source and target state, and configures ownership and the sudo group.
 set -euo pipefail  # Stop on errors/unset vars
 
 GREEN='\033[0;32m'

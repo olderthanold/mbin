@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Builds or updates a local llama.cpp checkout from its source repository.
+# Prepares dependencies and the target directory, clones or updates sources, then compiles; --force recreates the target state.
 # bai1_build_llama.sh v06
 set -euo pipefail
 

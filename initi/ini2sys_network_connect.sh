@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Verifies network connectivity and website reachability; installs or repairs Nginx when needed.
+# Checks outbound connectivity and HTTP/HTTPS responses and is safe to run repeatedly.
 set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
 GREEN='\033[0;32m'

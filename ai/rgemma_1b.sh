@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Runs llama-cli with the preset quantized Gemma 3 1B model for local interactive use.
 # rgemma_1b.sh v01
 set -euo pipefail
 

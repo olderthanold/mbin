@@ -1,3 +1,4 @@
+# Prints basic system status: processes, swap, memory, disk space, and local and public IP addresses.
 echo -e "\033[1;34m Starting mstats... \033[0m"
 echo -e "\033[0;32m =---------- ps -la ----------= \033[0m"
 ps -la

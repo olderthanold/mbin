@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Performs the user-level part of server initialization and can clone an existing user when requested.
+# Prepares permissions and delegates cloning to initi/inu2_clone_user.sh.
 set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
 GREEN='\033[0;32m'

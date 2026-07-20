@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Enforces password authentication in the primary and cloud-init SSH configurations.
+# Normalizes several directives, validates the resulting sshd configuration, and supports --force re-enforcement.
 set -euo pipefail
 
 GREEN='\033[0;32m'

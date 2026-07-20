@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Creates the /m runtime layout and compatibility symlinks from legacy paths.
+# Protects existing real paths; with --force, moves them to timestamped backups first.
 set -euo pipefail
 
 GREEN='\033[0;32m'

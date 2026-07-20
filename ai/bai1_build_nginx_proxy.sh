@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Configures an Nginx proxy to llama-router on public port 1234 and optionally at /llama/ for a domain.
+# Idempotently writes the snippet and listener configuration, then validates and reloads Nginx.
 # bai1_build_nginx_proxy.sh v02
 set -euo pipefail
 

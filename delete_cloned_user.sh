@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Safely removes a user created by inu2_clone_user.sh, including its home directory and private group.
+# Checks safety conditions before destructive actions; supports --dry-run preview and --force override.
 set -euo pipefail  # Stop on errors/unset vars/pipeline failures
 
 GREEN='\033[0;32m'

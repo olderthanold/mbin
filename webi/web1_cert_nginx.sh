@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Obtains and configures a renewable Let's Encrypt certificate for a domain in Nginx.
+# Checks for an existing certificate, invokes certbot if needed, and verifies configuration and automatic renewal.
 set -euo pipefail
 
 GREEN='\033[0;32m'
