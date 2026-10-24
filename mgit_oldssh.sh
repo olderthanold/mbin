@@ -11,7 +11,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
-SSH_KEY_PATH="~/.ssh/old.key"
+SSH_KEY_PATH="$HOME/.ssh/old.key"
 MBIN_DIR="${1:-/m/mbin}"
 PARENT_DIR="$(dirname "$MBIN_DIR")"
 

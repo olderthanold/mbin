@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 DEFAULT_LOCAL_PATH="/m/mbin"
 DEFAULT_REMOTE_REPO="git@github.com:olderthanold/mbin.git"
 DEFAULT_GITHUB_OWNER="olderthanold"
-SSH_KEY_PATH="~/.ssh/old.key"
+SSH_KEY_PATH="$HOME/.ssh/old.key"
 
 show_help() {
   echo "Usage: $0 [-h|--help] [-n <user>] [local_path] [remote_repo]"
