@@ -39,7 +39,7 @@ If the parent directory for `local_path` does not exist, the script attempts to 
 Configured key path:
 
 ```bash
-SSH_KEY_PATH="~/.ssh/old.key"
+SSH_KEY_PATH="$HOME/.ssh/old.key"
 ```
 
 For SSH remotes only, the script checks:
